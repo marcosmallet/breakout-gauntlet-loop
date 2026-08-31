@@ -14,6 +14,7 @@
   const MAX_BALL_SPEED = 8;
   const TARGET_FRAME_MS = 1000 / 60;
   const MAX_FRAME_STEP = 2;
+  const RESPAWN_GRACE_STEPS = 45;
 
   const paddle = { x: W / 2 - 55, y: H - 38, w: 110, h: 14, speed: 8 };
   const ball = { x: W / 2, y: H - 58, r: 8, vx: 4, vy: -4 };
@@ -26,6 +27,7 @@
   let bricks = [];
   let pointerActive = false;
   let lastFrameTime = null;
+  let respawnGrace = 0;
 
   function createBricks() {
     const rows = 5;
@@ -50,12 +52,13 @@
     }
   }
 
-  function resetBall() {
+  function resetBall(withGrace = false) {
     ball.x = W / 2;
     ball.y = H - 58;
     ball.vx = 4 * (Math.random() < 0.5 ? -1 : 1);
     ball.vy = -4;
     paddle.x = W / 2 - paddle.w / 2;
+    respawnGrace = withGrace ? RESPAWN_GRACE_STEPS : 0;
   }
 
   function resetGame() {
@@ -167,6 +170,13 @@
     if (keys.has('ArrowRight') || keys.has('d') || keys.has('D')) paddle.x += paddle.speed * stepScale;
     paddle.x = Math.max(0, Math.min(W - paddle.w, paddle.x));
 
+    if (respawnGrace > 0) {
+      ball.x = paddle.x + paddle.w / 2;
+      ball.y = H - 58;
+      respawnGrace = Math.max(0, respawnGrace - stepScale);
+      return;
+    }
+
     const previousBallX = ball.x;
     const previousBallY = ball.y;
     ball.x += ball.vx * stepScale;
@@ -212,7 +222,7 @@
         gameStatusEl.textContent = 'Fim de jogo.';
         startButton.textContent = 'Jogar novamente';
       } else {
-        resetBall();
+        resetBall(true);
       }
     }
 
@@ -298,7 +308,8 @@
         lives,
         paddle: { ...paddle },
         ball: { ...ball },
-        bricksRemaining: bricks.filter((brick) => brick.alive).length
+        bricksRemaining: bricks.filter((brick) => brick.alive).length,
+        respawnGrace
       };
     },
     start,
