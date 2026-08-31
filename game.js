@@ -8,6 +8,7 @@
   const W = canvas.width;
   const H = canvas.height;
   const MIN_HORIZONTAL_SPEED = 1.5;
+  const MIN_VERTICAL_SPEED = 1.5;
 
   const paddle = { x: W / 2 - 55, y: H - 38, w: 110, h: 14, speed: 8 };
   const ball = { x: W / 2, y: H - 58, r: 8, vx: 4, vy: -4 };
@@ -63,10 +64,19 @@
   function applyPaddleBounce(hit) {
     const speed = Math.hypot(ball.vx, ball.vy);
     const previousDirection = ball.vx < 0 ? -1 : 1;
-    const nextVx = hit * Math.min(5, speed);
-    ball.vx = Math.abs(nextVx) < MIN_HORIZONTAL_SPEED
-      ? MIN_HORIZONTAL_SPEED * previousDirection
-      : nextVx;
+    const desiredVx = hit * Math.min(5, speed);
+    const effectiveMinVerticalSpeed = Math.min(MIN_VERTICAL_SPEED, speed / 2);
+    const maxHorizontalSpeed = Math.sqrt(Math.max(
+      0,
+      speed * speed - effectiveMinVerticalSpeed * effectiveMinVerticalSpeed
+    ));
+    const horizontalDirection = desiredVx === 0 ? previousDirection : Math.sign(desiredVx);
+    const minimumHorizontalVx = MIN_HORIZONTAL_SPEED * horizontalDirection;
+    const nextVx = Math.abs(desiredVx) < MIN_HORIZONTAL_SPEED
+      ? minimumHorizontalVx
+      : desiredVx;
+
+    ball.vx = Math.max(-maxHorizontalSpeed, Math.min(maxHorizontalSpeed, nextVx));
     ball.vy = -Math.sqrt(Math.max(0, speed * speed - ball.vx * ball.vx));
   }
 
