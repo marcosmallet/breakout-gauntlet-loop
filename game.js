@@ -28,6 +28,7 @@
   let pointerActive = false;
   let lastFrameTime = null;
   let respawnGrace = 0;
+  let pausedByFocusLoss = false;
 
   function createBricks() {
     const rows = 5;
@@ -171,7 +172,23 @@
     pointerActive = false;
   }
 
+  function pauseForFocusLoss() {
+    clearActiveInput();
+    if (!running || pausedByFocusLoss) return;
+    pausedByFocusLoss = true;
+    gameStatusEl.textContent = 'Pausado.';
+  }
+
+  function resumeAfterFocusLoss() {
+    if (!pausedByFocusLoss) return;
+    pausedByFocusLoss = false;
+    lastFrameTime = null;
+    gameStatusEl.textContent = respawnGrace > 0 ? 'Prepare-se...' : '';
+  }
+
   function update(stepScale = 1) {
+    if (pausedByFocusLoss) return;
+
     if (keys.has('ArrowLeft') || keys.has('a') || keys.has('A')) paddle.x -= paddle.speed * stepScale;
     if (keys.has('ArrowRight') || keys.has('d') || keys.has('D')) paddle.x += paddle.speed * stepScale;
     paddle.x = Math.max(0, Math.min(W - paddle.w, paddle.x));
@@ -266,6 +283,13 @@
       return;
     }
 
+    if (pausedByFocusLoss) {
+      lastFrameTime = null;
+      draw();
+      rafId = requestAnimationFrame(frame);
+      return;
+    }
+
     const stepScale = lastFrameTime === null
       ? 1
       : Math.min(MAX_FRAME_STEP, Math.max(0, (timestamp - lastFrameTime) / TARGET_FRAME_MS));
@@ -279,6 +303,7 @@
   function start() {
     if (rafId) cancelAnimationFrame(rafId);
     clearActiveInput();
+    pausedByFocusLoss = false;
     gameStatusEl.textContent = '';
     resetGame();
     running = true;
@@ -292,7 +317,8 @@
     keys.add(event.key);
   });
   document.addEventListener('keyup', (event) => keys.delete(event.key));
-  window.addEventListener('blur', clearActiveInput);
+  window.addEventListener('blur', pauseForFocusLoss);
+  window.addEventListener('focus', resumeAfterFocusLoss);
   startButton.addEventListener('click', start);
 
   canvas.addEventListener('pointerdown', (event) => {
@@ -318,7 +344,8 @@
         paddle: { ...paddle },
         ball: { ...ball },
         bricksRemaining: bricks.filter((brick) => brick.alive).length,
-        respawnGrace
+        respawnGrace,
+        pausedByFocusLoss
       };
     },
     start,
