@@ -18,6 +18,7 @@
   let running = false;
   let rafId = null;
   let bricks = [];
+  let pointerActive = false;
 
   function createBricks() {
     const rows = 5;
@@ -66,6 +67,17 @@
       ? MIN_HORIZONTAL_SPEED * previousDirection
       : nextVx;
     ball.vy = -Math.abs(ball.vy);
+  }
+
+  function movePaddleTo(x) {
+    paddle.x = Math.max(0, Math.min(W - paddle.w, x));
+  }
+
+  function movePaddleFromPointer(event) {
+    const rect = canvas.getBoundingClientRect();
+    const canvasX = (event.clientX - rect.left) * (W / rect.width);
+    movePaddleTo(canvasX - paddle.w / 2);
+    draw();
   }
 
   function update() {
@@ -165,6 +177,17 @@
   document.addEventListener('keyup', (event) => keys.delete(event.key));
   startButton.addEventListener('click', start);
 
+  canvas.addEventListener('pointerdown', (event) => {
+    pointerActive = true;
+    canvas.setPointerCapture?.(event.pointerId);
+    movePaddleFromPointer(event);
+  });
+  canvas.addEventListener('pointermove', (event) => {
+    if (pointerActive) movePaddleFromPointer(event);
+  });
+  canvas.addEventListener('pointerup', () => { pointerActive = false; });
+  canvas.addEventListener('pointercancel', () => { pointerActive = false; });
+
   createBricks();
   draw();
 
@@ -181,7 +204,7 @@
     },
     start,
     movePaddleTo(x) {
-      paddle.x = Math.max(0, Math.min(W - paddle.w, x));
+      movePaddleTo(x);
       draw();
     },
     bounceBallOffPaddle(hit = 0) {
