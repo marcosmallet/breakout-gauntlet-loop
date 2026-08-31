@@ -7,6 +7,7 @@
 
   const W = canvas.width;
   const H = canvas.height;
+  const MIN_HORIZONTAL_SPEED = 1.5;
 
   const paddle = { x: W / 2 - 55, y: H - 38, w: 110, h: 14, speed: 8 };
   const ball = { x: W / 2, y: H - 58, r: 8, vx: 4, vy: -4 };
@@ -58,6 +59,15 @@
     resetBall();
   }
 
+  function applyPaddleBounce(hit) {
+    const previousDirection = ball.vx < 0 ? -1 : 1;
+    const nextVx = hit * 5;
+    ball.vx = Math.abs(nextVx) < MIN_HORIZONTAL_SPEED
+      ? MIN_HORIZONTAL_SPEED * previousDirection
+      : nextVx;
+    ball.vy = -Math.abs(ball.vy);
+  }
+
   function update() {
     if (keys.has('ArrowLeft') || keys.has('a') || keys.has('A')) paddle.x -= paddle.speed;
     if (keys.has('ArrowRight') || keys.has('d') || keys.has('D')) paddle.x += paddle.speed;
@@ -78,8 +88,7 @@
     ) {
       ball.y = paddle.y - ball.r;
       const hit = (ball.x - (paddle.x + paddle.w / 2)) / (paddle.w / 2);
-      ball.vx = hit * 5;
-      ball.vy = -Math.abs(ball.vy);
+      applyPaddleBounce(hit);
     }
 
     for (const brick of bricks) {
@@ -173,6 +182,10 @@
     start,
     movePaddleTo(x) {
       paddle.x = Math.max(0, Math.min(W - paddle.w, x));
+      draw();
+    },
+    bounceBallOffPaddle(hit = 0) {
+      applyPaddleBounce(Math.max(-1, Math.min(1, hit)));
       draw();
     }
   };
