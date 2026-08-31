@@ -10,6 +10,16 @@ test('carrega o jogo com o estado inicial esperado', async ({ page }) => {
   expect(state.bricksRemaining).toBe(50);
 });
 
+test('hud anuncia mudanças de pontos e vidas para tecnologias assistivas', async ({ page }) => {
+  await page.goto('/');
+
+  const hud = page.locator('.hud');
+  await expect(hud).toHaveAttribute('aria-live', 'polite');
+  await expect(hud).toHaveAttribute('aria-atomic', 'true');
+  await expect(hud).toContainText('Pontos: 0');
+  await expect(hud).toContainText('Vidas: 3');
+});
+
 test('inicia uma partida', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Iniciar' }).click();
