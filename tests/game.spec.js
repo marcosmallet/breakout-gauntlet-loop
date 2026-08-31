@@ -31,6 +31,27 @@ test('controle para a direita move a raquete', async ({ page }) => {
   expect(after).toBeGreaterThan(before);
 });
 
+test('setas de controle não acionam comportamento padrão da página', async ({ page }) => {
+  await page.goto('/');
+
+  const prevented = await page.evaluate(() => {
+    let defaultPrevented = false;
+    const observer = (event) => {
+      if (event.key === 'ArrowRight') defaultPrevented = event.defaultPrevented;
+    };
+    document.addEventListener('keydown', observer);
+    document.dispatchEvent(new KeyboardEvent('keydown', {
+      key: 'ArrowRight',
+      bubbles: true,
+      cancelable: true
+    }));
+    document.removeEventListener('keydown', observer);
+    return defaultPrevented;
+  });
+
+  expect(prevented).toBe(true);
+});
+
 test('rebatida central mantém movimento horizontal mínimo', async ({ page }) => {
   await page.goto('/');
 
