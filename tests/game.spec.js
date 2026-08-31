@@ -58,3 +58,22 @@ test('arrastar no canvas move a raquete', async ({ page }) => {
   const after = await page.evaluate(() => window.__GAME_DEBUG__.getState().paddle.x);
   expect(after).toBeGreaterThan(before);
 });
+
+test('raspada na borda da raquete rebate a bola', async ({ page }) => {
+  await page.goto('/');
+
+  const ballAfter = await page.evaluate(() => {
+    const { paddle, ball } = window.__GAME_DEBUG__.getState();
+    window.__GAME_DEBUG__.setBall({
+      x: paddle.x - ball.r + 1,
+      y: paddle.y - ball.r - 4,
+      vx: 0,
+      vy: 4
+    });
+    window.__GAME_DEBUG__.step();
+    return window.__GAME_DEBUG__.getState().ball;
+  });
+
+  expect(ballAfter.vy).toBeLessThan(0);
+  expect(Math.abs(ballAfter.vx)).toBeLessThanOrEqual(5);
+});
