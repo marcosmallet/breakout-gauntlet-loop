@@ -255,7 +255,10 @@
     frame(performance.now());
   }
 
-  document.addEventListener('keydown', (event) => keys.add(event.key));
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') event.preventDefault();
+    keys.add(event.key);
+  });
   document.addEventListener('keyup', (event) => keys.delete(event.key));
   startButton.addEventListener('click', start);
 
