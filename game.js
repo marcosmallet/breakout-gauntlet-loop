@@ -95,11 +95,12 @@
       ball.vy > 0 &&
       ball.y + ball.r >= paddle.y &&
       ball.y - ball.r <= paddle.y + paddle.h &&
-      ball.x >= paddle.x &&
-      ball.x <= paddle.x + paddle.w
+      ball.x + ball.r >= paddle.x &&
+      ball.x - ball.r <= paddle.x + paddle.w
     ) {
       ball.y = paddle.y - ball.r;
-      const hit = (ball.x - (paddle.x + paddle.w / 2)) / (paddle.w / 2);
+      const rawHit = (ball.x - (paddle.x + paddle.w / 2)) / (paddle.w / 2);
+      const hit = Math.max(-1, Math.min(1, rawHit));
       applyPaddleBounce(hit);
     }
 
@@ -209,6 +210,14 @@
     },
     bounceBallOffPaddle(hit = 0) {
       applyPaddleBounce(Math.max(-1, Math.min(1, hit)));
+      draw();
+    },
+    setBall(nextBall) {
+      Object.assign(ball, nextBall);
+      draw();
+    },
+    step() {
+      update();
       draw();
     }
   };
