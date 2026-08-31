@@ -77,3 +77,23 @@ test('raspada na borda da raquete rebate a bola', async ({ page }) => {
   expect(ballAfter.vy).toBeLessThan(0);
   expect(Math.abs(ballAfter.vx)).toBeLessThanOrEqual(5);
 });
+
+test('colisão lateral com bloco inverte o movimento horizontal', async ({ page }) => {
+  await page.goto('/');
+
+  const result = await page.evaluate(() => {
+    window.__GAME_DEBUG__.setBall({
+      x: 21.6,
+      y: 69,
+      vx: 4,
+      vy: 0
+    });
+    window.__GAME_DEBUG__.step();
+    return window.__GAME_DEBUG__.getState();
+  });
+
+  expect(result.ball.vx).toBeLessThan(0);
+  expect(result.ball.vy).toBe(0);
+  expect(result.score).toBe(10);
+  expect(result.bricksRemaining).toBe(49);
+});
