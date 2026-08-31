@@ -278,6 +278,7 @@
 
   function start() {
     if (rafId) cancelAnimationFrame(rafId);
+    clearActiveInput();
     gameStatusEl.textContent = '';
     resetGame();
     running = true;
