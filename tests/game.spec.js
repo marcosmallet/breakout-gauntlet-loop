@@ -16,7 +16,7 @@ test('canvas associa instruções de controle para tecnologias assistivas', asyn
   const canvas = page.locator('#game');
   await expect(canvas).toHaveAttribute('aria-describedby', 'controlInstructions');
   await expect(page.locator('#controlInstructions')).toHaveText(
-    'Use ← →, A/D ou arraste sobre o jogo para mover a raquete.'
+    'Use ← →, A/D ou arraste sobre o jogo para mover a raquete. Pressione Espaço para pausar ou retomar.'
   );
 });
 
@@ -110,6 +110,46 @@ test('setas de controle não acionam comportamento padrão da página', async ({
   });
 
   expect(prevented).toBe(true);
+});
+
+test('espaço pausa e retoma a partida sem avançar a bola', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Iniciar' }).click();
+
+  const states = await page.evaluate(() => {
+    while (window.__GAME_DEBUG__.getState().respawnGrace > 0) {
+      window.__GAME_DEBUG__.step();
+    }
+    window.__GAME_DEBUG__.setBall({ x: 400, y: 300, vx: 4, vy: -4 });
+
+    document.dispatchEvent(new KeyboardEvent('keydown', {
+      code: 'Space',
+      key: ' ',
+      bubbles: true,
+      cancelable: true
+    }));
+    const paused = window.__GAME_DEBUG__.getState();
+    window.__GAME_DEBUG__.step();
+    const whilePaused = window.__GAME_DEBUG__.getState();
+
+    document.dispatchEvent(new KeyboardEvent('keydown', {
+      code: 'Space',
+      key: ' ',
+      bubbles: true,
+      cancelable: true
+    }));
+    window.__GAME_DEBUG__.step();
+    const resumed = window.__GAME_DEBUG__.getState();
+
+    return { paused, whilePaused, resumed };
+  });
+
+  expect(states.paused.pausedByPlayer).toBe(true);
+  expect(states.whilePaused.ball.x).toBe(states.paused.ball.x);
+  expect(states.whilePaused.ball.y).toBe(states.paused.ball.y);
+  expect(states.resumed.pausedByPlayer).toBe(false);
+  expect(states.resumed.ball.x).toBeGreaterThan(states.whilePaused.ball.x);
+  expect(states.resumed.ball.y).toBeLessThan(states.whilePaused.ball.y);
 });
 
 test('rebatida central mantém movimento horizontal mínimo', async ({ page }) => {
