@@ -118,3 +118,28 @@ test('colisão lateral com bloco inverte o movimento horizontal', async ({ page 
   expect(result.score).toBe(10);
   expect(result.bricksRemaining).toBe(49);
 });
+
+test('destruir bloco aumenta gradualmente a velocidade da bola', async ({ page }) => {
+  await page.goto('/');
+
+  const speeds = await page.evaluate(() => {
+    window.__GAME_DEBUG__.setBall({
+      x: 21.6,
+      y: 69,
+      vx: 4,
+      vy: 0
+    });
+    const before = window.__GAME_DEBUG__.getState().ball;
+    const beforeSpeed = Math.hypot(before.vx, before.vy);
+
+    window.__GAME_DEBUG__.step();
+    const after = window.__GAME_DEBUG__.getState().ball;
+    return {
+      beforeSpeed,
+      afterSpeed: Math.hypot(after.vx, after.vy)
+    };
+  });
+
+  expect(speeds.afterSpeed).toBeGreaterThan(speeds.beforeSpeed);
+  expect(speeds.afterSpeed).toBeLessThanOrEqual(8);
+});
