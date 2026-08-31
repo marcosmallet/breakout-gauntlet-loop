@@ -59,6 +59,7 @@
     ball.vy = -4;
     paddle.x = W / 2 - paddle.w / 2;
     respawnGrace = withGrace ? RESPAWN_GRACE_STEPS : 0;
+    if (withGrace) gameStatusEl.textContent = 'Prepare-se...';
   }
 
   function resetGame() {
@@ -179,6 +180,7 @@
       ball.x = paddle.x + paddle.w / 2;
       ball.y = H - 58;
       respawnGrace = Math.max(0, respawnGrace - stepScale);
+      if (respawnGrace === 0) gameStatusEl.textContent = '';
       return;
     }
 
@@ -276,10 +278,10 @@
 
   function start() {
     if (rafId) cancelAnimationFrame(rafId);
+    gameStatusEl.textContent = '';
     resetGame();
     running = true;
     lastFrameTime = null;
-    gameStatusEl.textContent = '';
     startButton.textContent = 'Reiniciar';
     frame(performance.now());
   }
