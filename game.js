@@ -9,6 +9,8 @@
   const H = canvas.height;
   const MIN_HORIZONTAL_SPEED = 1.5;
   const MIN_VERTICAL_SPEED = 1.5;
+  const BRICK_SPEED_MULTIPLIER = 1.012;
+  const MAX_BALL_SPEED = 8;
 
   const paddle = { x: W / 2 - 55, y: H - 38, w: 110, h: 14, speed: 8 };
   const ball = { x: W / 2, y: H - 58, r: 8, vx: 4, vy: -4 };
@@ -78,6 +80,16 @@
 
     ball.vx = Math.max(-maxHorizontalSpeed, Math.min(maxHorizontalSpeed, nextVx));
     ball.vy = -Math.sqrt(Math.max(0, speed * speed - ball.vx * ball.vx));
+  }
+
+  function accelerateBallAfterBrick() {
+    const speed = Math.hypot(ball.vx, ball.vy);
+    if (speed === 0 || speed >= MAX_BALL_SPEED) return;
+
+    const nextSpeed = Math.min(MAX_BALL_SPEED, speed * BRICK_SPEED_MULTIPLIER);
+    const scale = nextSpeed / speed;
+    ball.vx *= scale;
+    ball.vy *= scale;
   }
 
   function bounceBallOffBrick(brick, previousX, previousY) {
@@ -167,6 +179,7 @@
       ) {
         brick.alive = false;
         bounceBallOffBrick(brick, previousBallX, previousBallY);
+        accelerateBallAfterBrick();
         score += 10;
         scoreEl.textContent = score;
         break;
