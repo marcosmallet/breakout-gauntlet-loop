@@ -61,12 +61,13 @@
   }
 
   function applyPaddleBounce(hit) {
+    const speed = Math.hypot(ball.vx, ball.vy);
     const previousDirection = ball.vx < 0 ? -1 : 1;
-    const nextVx = hit * 5;
+    const nextVx = hit * Math.min(5, speed);
     ball.vx = Math.abs(nextVx) < MIN_HORIZONTAL_SPEED
       ? MIN_HORIZONTAL_SPEED * previousDirection
       : nextVx;
-    ball.vy = -Math.abs(ball.vy);
+    ball.vy = -Math.sqrt(Math.max(0, speed * speed - ball.vx * ball.vx));
   }
 
   function bounceBallOffBrick(brick, previousX, previousY) {
