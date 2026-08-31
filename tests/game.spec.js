@@ -158,3 +158,16 @@ test('fim de jogo exibe resultado acessível ao jogador', async ({ page }) => {
   await expect(page.getByRole('status')).toHaveText('Fim de jogo.');
   await expect(page.getByRole('button', { name: 'Jogar novamente' })).toBeVisible();
 });
+
+test('movimento respeita a fração de frame normalizada', async ({ page }) => {
+  await page.goto('/');
+
+  const ballAfter = await page.evaluate(() => {
+    window.__GAME_DEBUG__.setBall({ x: 400, y: 300, vx: 4, vy: 2 });
+    window.__GAME_DEBUG__.step(0.5);
+    return window.__GAME_DEBUG__.getState().ball;
+  });
+
+  expect(ballAfter.x).toBeCloseTo(402, 8);
+  expect(ballAfter.y).toBeCloseTo(301, 8);
+});
