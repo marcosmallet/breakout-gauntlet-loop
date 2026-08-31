@@ -319,6 +319,8 @@
   document.addEventListener('keyup', (event) => keys.delete(event.key));
   window.addEventListener('blur', pauseForFocusLoss);
   window.addEventListener('focus', resumeAfterFocusLoss);
+  window.addEventListener('pagehide', pauseForFocusLoss);
+  window.addEventListener('pageshow', resumeAfterFocusLoss);
   startButton.addEventListener('click', start);
 
   canvas.addEventListener('pointerdown', (event) => {
