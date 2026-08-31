@@ -136,6 +136,21 @@
     else ball.vy *= -1;
   }
 
+  function resolveBoundaryCollisions() {
+    if (ball.x - ball.r <= 0 && ball.vx < 0) {
+      ball.x = ball.r;
+      ball.vx = Math.abs(ball.vx);
+    } else if (ball.x + ball.r >= W && ball.vx > 0) {
+      ball.x = W - ball.r;
+      ball.vx = -Math.abs(ball.vx);
+    }
+
+    if (ball.y - ball.r <= 0 && ball.vy < 0) {
+      ball.y = ball.r;
+      ball.vy = Math.abs(ball.vy);
+    }
+  }
+
   function movePaddleTo(x) {
     paddle.x = Math.max(0, Math.min(W - paddle.w, x));
   }
@@ -157,8 +172,7 @@
     ball.x += ball.vx * stepScale;
     ball.y += ball.vy * stepScale;
 
-    if (ball.x - ball.r <= 0 || ball.x + ball.r >= W) ball.vx *= -1;
-    if (ball.y - ball.r <= 0) ball.vy *= -1;
+    resolveBoundaryCollisions();
 
     if (
       ball.vy > 0 &&
