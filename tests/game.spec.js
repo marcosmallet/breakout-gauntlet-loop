@@ -10,6 +10,16 @@ test('carrega o jogo com o estado inicial esperado', async ({ page }) => {
   expect(state.bricksRemaining).toBe(50);
 });
 
+test('canvas associa instruções de controle para tecnologias assistivas', async ({ page }) => {
+  await page.goto('/');
+
+  const canvas = page.locator('#game');
+  await expect(canvas).toHaveAttribute('aria-describedby', 'controlInstructions');
+  await expect(page.locator('#controlInstructions')).toHaveText(
+    'Use ← →, A/D ou arraste sobre o jogo para mover a raquete.'
+  );
+});
+
 test('hud anuncia mudanças de pontos e vidas para tecnologias assistivas', async ({ page }) => {
   await page.goto('/');
 
