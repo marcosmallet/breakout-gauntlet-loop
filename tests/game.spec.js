@@ -143,3 +143,18 @@ test('destruir bloco aumenta gradualmente a velocidade da bola', async ({ page }
   expect(speeds.afterSpeed).toBeGreaterThan(speeds.beforeSpeed);
   expect(speeds.afterSpeed).toBeLessThanOrEqual(8);
 });
+
+test('fim de jogo exibe resultado acessível ao jogador', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Iniciar' }).click();
+
+  await page.evaluate(() => {
+    for (let life = 0; life < 3; life += 1) {
+      window.__GAME_DEBUG__.setBall({ y: 540, vy: 4 });
+      window.__GAME_DEBUG__.step();
+    }
+  });
+
+  await expect(page.getByRole('status')).toHaveText('Fim de jogo.');
+  await expect(page.getByRole('button', { name: 'Jogar novamente' })).toBeVisible();
+});
