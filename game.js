@@ -12,6 +12,8 @@
   const MIN_VERTICAL_SPEED = 1.5;
   const BRICK_SPEED_MULTIPLIER = 1.012;
   const MAX_BALL_SPEED = 8;
+  const TARGET_FRAME_MS = 1000 / 60;
+  const MAX_FRAME_STEP = 2;
 
   const paddle = { x: W / 2 - 55, y: H - 38, w: 110, h: 14, speed: 8 };
   const ball = { x: W / 2, y: H - 58, r: 8, vx: 4, vy: -4 };
@@ -23,6 +25,7 @@
   let rafId = null;
   let bricks = [];
   let pointerActive = false;
+  let lastFrameTime = null;
 
   function createBricks() {
     const rows = 5;
@@ -144,15 +147,15 @@
     draw();
   }
 
-  function update() {
-    if (keys.has('ArrowLeft') || keys.has('a') || keys.has('A')) paddle.x -= paddle.speed;
-    if (keys.has('ArrowRight') || keys.has('d') || keys.has('D')) paddle.x += paddle.speed;
+  function update(stepScale = 1) {
+    if (keys.has('ArrowLeft') || keys.has('a') || keys.has('A')) paddle.x -= paddle.speed * stepScale;
+    if (keys.has('ArrowRight') || keys.has('d') || keys.has('D')) paddle.x += paddle.speed * stepScale;
     paddle.x = Math.max(0, Math.min(W - paddle.w, paddle.x));
 
     const previousBallX = ball.x;
     const previousBallY = ball.y;
-    ball.x += ball.vx;
-    ball.y += ball.vy;
+    ball.x += ball.vx * stepScale;
+    ball.y += ball.vy * stepScale;
 
     if (ball.x - ball.r <= 0 || ball.x + ball.r >= W) ball.vx *= -1;
     if (ball.y - ball.r <= 0) ball.vy *= -1;
@@ -225,12 +228,19 @@
     ctx.fill();
   }
 
-  function frame() {
+  function frame(timestamp) {
     if (!running) {
+      lastFrameTime = null;
       draw();
       return;
     }
-    update();
+
+    const stepScale = lastFrameTime === null
+      ? 1
+      : Math.min(MAX_FRAME_STEP, Math.max(0, (timestamp - lastFrameTime) / TARGET_FRAME_MS));
+    lastFrameTime = timestamp;
+
+    update(stepScale);
     draw();
     rafId = requestAnimationFrame(frame);
   }
@@ -239,9 +249,10 @@
     if (rafId) cancelAnimationFrame(rafId);
     resetGame();
     running = true;
+    lastFrameTime = null;
     gameStatusEl.textContent = '';
     startButton.textContent = 'Reiniciar';
-    frame();
+    frame(performance.now());
   }
 
   document.addEventListener('keydown', (event) => keys.add(event.key));
@@ -286,8 +297,8 @@
       Object.assign(ball, nextBall);
       draw();
     },
-    step() {
-      update();
+    step(stepScale = 1) {
+      update(stepScale);
       draw();
     }
   };
