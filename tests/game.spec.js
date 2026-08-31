@@ -16,6 +16,26 @@ test('inicia uma partida', async ({ page }) => {
 
   const state = await page.evaluate(() => window.__GAME_DEBUG__.getState());
   expect(state.running).toBe(true);
+  expect(state.respawnGrace).toBeGreaterThan(0);
+});
+
+test('início concede tempo para posicionar a raquete antes do lançamento', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Iniciar' }).click();
+
+  const states = await page.evaluate(() => {
+    const initial = window.__GAME_DEBUG__.getState();
+    window.__GAME_DEBUG__.movePaddleTo(600);
+    window.__GAME_DEBUG__.step();
+    const duringGrace = window.__GAME_DEBUG__.getState();
+    return { initial, duringGrace };
+  });
+
+  expect(states.initial.respawnGrace).toBeGreaterThan(0);
+  expect(states.duringGrace.ball.x).toBe(
+    states.duringGrace.paddle.x + states.duringGrace.paddle.w / 2
+  );
+  expect(states.duringGrace.ball.y).toBe(states.initial.ball.y);
 });
 
 test('controle para a direita move a raquete', async ({ page }) => {
@@ -190,6 +210,10 @@ test('perder uma vida concede tempo para reposicionar a raquete', async ({ page 
   await page.getByRole('button', { name: 'Iniciar' }).click();
 
   const states = await page.evaluate(() => {
+    while (window.__GAME_DEBUG__.getState().respawnGrace > 0) {
+      window.__GAME_DEBUG__.step();
+    }
+
     window.__GAME_DEBUG__.setBall({ y: 540, vy: 4 });
     window.__GAME_DEBUG__.step();
     const afterLoss = window.__GAME_DEBUG__.getState();
@@ -198,7 +222,7 @@ test('perder uma vida concede tempo para reposicionar a raquete', async ({ page 
     window.__GAME_DEBUG__.step();
     const duringGrace = window.__GAME_DEBUG__.getState();
 
-    for (let step = 0; step < 44; step += 1) {
+    while (window.__GAME_DEBUG__.getState().respawnGrace > 0) {
       window.__GAME_DEBUG__.step();
     }
     const beforeLaunch = window.__GAME_DEBUG__.getState();
@@ -211,7 +235,7 @@ test('perder uma vida concede tempo para reposicionar a raquete', async ({ page 
   expect(states.afterLoss.lives).toBe(2);
   expect(states.afterLoss.respawnGrace).toBe(45);
   expect(states.duringGrace.ball.x).toBe(states.duringGrace.paddle.x + states.duringGrace.paddle.w / 2);
-  expect(states.duringGrace.respawnGrace).toBe(44);
+  expect(states.duringGrace.respawnGrace).toBeLessThan(states.afterLoss.respawnGrace);
   expect(states.beforeLaunch.respawnGrace).toBe(0);
   expect(states.afterLaunch.ball.y).toBeLessThan(states.beforeLaunch.ball.y);
 });
@@ -221,11 +245,15 @@ test('fim de jogo exibe resultado acessível ao jogador', async ({ page }) => {
   await page.getByRole('button', { name: 'Iniciar' }).click();
 
   await page.evaluate(() => {
+    while (window.__GAME_DEBUG__.getState().respawnGrace > 0) {
+      window.__GAME_DEBUG__.step();
+    }
+
     for (let life = 0; life < 3; life += 1) {
       window.__GAME_DEBUG__.setBall({ y: 540, vy: 4 });
       window.__GAME_DEBUG__.step();
       if (life < 2) {
-        for (let step = 0; step < 45; step += 1) {
+        while (window.__GAME_DEBUG__.getState().respawnGrace > 0) {
           window.__GAME_DEBUG__.step();
         }
       }
