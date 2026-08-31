@@ -69,6 +69,46 @@
     ball.vy = -Math.abs(ball.vy);
   }
 
+  function bounceBallOffBrick(brick, previousX, previousY) {
+    const cameFromLeft = previousX + ball.r <= brick.x;
+    const cameFromRight = previousX - ball.r >= brick.x + brick.w;
+    const cameFromAbove = previousY + ball.r <= brick.y;
+    const cameFromBelow = previousY - ball.r >= brick.y + brick.h;
+
+    if (cameFromLeft && ball.vx > 0) {
+      ball.x = brick.x - ball.r;
+      ball.vx = -Math.abs(ball.vx);
+      return;
+    }
+    if (cameFromRight && ball.vx < 0) {
+      ball.x = brick.x + brick.w + ball.r;
+      ball.vx = Math.abs(ball.vx);
+      return;
+    }
+    if (cameFromAbove && ball.vy > 0) {
+      ball.y = brick.y - ball.r;
+      ball.vy = -Math.abs(ball.vy);
+      return;
+    }
+    if (cameFromBelow && ball.vy < 0) {
+      ball.y = brick.y + brick.h + ball.r;
+      ball.vy = Math.abs(ball.vy);
+      return;
+    }
+
+    const overlapX = Math.min(
+      ball.x + ball.r - brick.x,
+      brick.x + brick.w - (ball.x - ball.r)
+    );
+    const overlapY = Math.min(
+      ball.y + ball.r - brick.y,
+      brick.y + brick.h - (ball.y - ball.r)
+    );
+
+    if (overlapX < overlapY) ball.vx *= -1;
+    else ball.vy *= -1;
+  }
+
   function movePaddleTo(x) {
     paddle.x = Math.max(0, Math.min(W - paddle.w, x));
   }
@@ -85,6 +125,8 @@
     if (keys.has('ArrowRight') || keys.has('d') || keys.has('D')) paddle.x += paddle.speed;
     paddle.x = Math.max(0, Math.min(W - paddle.w, paddle.x));
 
+    const previousBallX = ball.x;
+    const previousBallY = ball.y;
     ball.x += ball.vx;
     ball.y += ball.vy;
 
@@ -113,7 +155,7 @@
         ball.y - ball.r <= brick.y + brick.h
       ) {
         brick.alive = false;
-        ball.vy *= -1;
+        bounceBallOffBrick(brick, previousBallX, previousBallY);
         score += 10;
         scoreEl.textContent = score;
         break;
