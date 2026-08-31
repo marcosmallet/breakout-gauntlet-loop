@@ -29,6 +29,7 @@
   let lastFrameTime = null;
   let respawnGrace = 0;
   let pausedByFocusLoss = false;
+  let pausedByPlayer = false;
 
   function createBricks() {
     const rows = 5;
@@ -183,11 +184,23 @@
     if (!pausedByFocusLoss) return;
     pausedByFocusLoss = false;
     lastFrameTime = null;
-    gameStatusEl.textContent = respawnGrace > 0 ? 'Prepare-se...' : '';
+    gameStatusEl.textContent = pausedByPlayer
+      ? 'Pausado.'
+      : (respawnGrace > 0 ? 'Prepare-se...' : '');
+  }
+
+  function togglePlayerPause() {
+    if (!running) return;
+    pausedByPlayer = !pausedByPlayer;
+    clearActiveInput();
+    lastFrameTime = null;
+    gameStatusEl.textContent = pausedByPlayer
+      ? 'Pausado.'
+      : (respawnGrace > 0 ? 'Prepare-se...' : '');
   }
 
   function update(stepScale = 1) {
-    if (pausedByFocusLoss) return;
+    if (pausedByFocusLoss || pausedByPlayer) return;
 
     if (keys.has('ArrowLeft') || keys.has('a') || keys.has('A')) paddle.x -= paddle.speed * stepScale;
     if (keys.has('ArrowRight') || keys.has('d') || keys.has('D')) paddle.x += paddle.speed * stepScale;
@@ -283,7 +296,7 @@
       return;
     }
 
-    if (pausedByFocusLoss) {
+    if (pausedByFocusLoss || pausedByPlayer) {
       lastFrameTime = null;
       draw();
       rafId = requestAnimationFrame(frame);
@@ -304,6 +317,7 @@
     if (rafId) cancelAnimationFrame(rafId);
     clearActiveInput();
     pausedByFocusLoss = false;
+    pausedByPlayer = false;
     gameStatusEl.textContent = '';
     resetGame();
     running = true;
@@ -313,6 +327,11 @@
   }
 
   document.addEventListener('keydown', (event) => {
+    if (event.code === 'Space') {
+      event.preventDefault();
+      togglePlayerPause();
+      return;
+    }
     if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') event.preventDefault();
     keys.add(event.key);
   });
@@ -347,7 +366,8 @@
         ball: { ...ball },
         bricksRemaining: bricks.filter((brick) => brick.alive).length,
         respawnGrace,
-        pausedByFocusLoss
+        pausedByFocusLoss,
+        pausedByPlayer
       };
     },
     start,
