@@ -67,7 +67,7 @@
     scoreEl.textContent = score;
     livesEl.textContent = lives;
     createBricks();
-    resetBall();
+    resetBall(true);
   }
 
   function applyPaddleBounce(hit) {
