@@ -42,3 +42,19 @@ test('rebatida central mantém movimento horizontal mínimo', async ({ page }) =
   expect(Math.abs(velocity.vx)).toBeGreaterThanOrEqual(1.5);
   expect(velocity.vy).toBeLessThan(0);
 });
+
+test('arrastar no canvas move a raquete', async ({ page }) => {
+  await page.goto('/');
+  const canvas = page.locator('#game');
+  const box = await canvas.boundingBox();
+  expect(box).not.toBeNull();
+
+  const before = await page.evaluate(() => window.__GAME_DEBUG__.getState().paddle.x);
+  await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.8);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width * 0.8, box.y + box.height * 0.8);
+  await page.mouse.up();
+
+  const after = await page.evaluate(() => window.__GAME_DEBUG__.getState().paddle.x);
+  expect(after).toBeGreaterThan(before);
+});
