@@ -20,6 +20,7 @@ test('inicia uma partida', async ({ page }) => {
 
 test('controle para a direita move a raquete', async ({ page }) => {
   await page.goto('/');
+  await page.getByRole('button', { name: 'Iniciar' }).click();
   const before = await page.evaluate(() => window.__GAME_DEBUG__.getState().paddle.x);
 
   await page.keyboard.down('ArrowRight');
