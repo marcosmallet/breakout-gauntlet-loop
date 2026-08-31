@@ -165,6 +165,11 @@
     draw();
   }
 
+  function clearActiveInput() {
+    keys.clear();
+    pointerActive = false;
+  }
+
   function update(stepScale = 1) {
     if (keys.has('ArrowLeft') || keys.has('a') || keys.has('A')) paddle.x -= paddle.speed * stepScale;
     if (keys.has('ArrowRight') || keys.has('d') || keys.has('D')) paddle.x += paddle.speed * stepScale;
@@ -284,6 +289,7 @@
     keys.add(event.key);
   });
   document.addEventListener('keyup', (event) => keys.delete(event.key));
+  window.addEventListener('blur', clearActiveInput);
   startButton.addEventListener('click', start);
 
   canvas.addEventListener('pointerdown', (event) => {
