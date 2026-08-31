@@ -192,3 +192,21 @@ test('movimento respeita a fração de frame normalizada', async ({ page }) => {
   expect(ballAfter.x).toBeCloseTo(402, 8);
   expect(ballAfter.y).toBeCloseTo(301, 8);
 });
+
+test('colisão com parede resolve overshoot sem inverter novamente no frame seguinte', async ({ page }) => {
+  await page.goto('/');
+
+  const states = await page.evaluate(() => {
+    window.__GAME_DEBUG__.setBall({ x: 12, y: 300, vx: -8, vy: 0 });
+    window.__GAME_DEBUG__.step(2);
+    const afterBounce = window.__GAME_DEBUG__.getState().ball;
+    window.__GAME_DEBUG__.step();
+    const afterNextFrame = window.__GAME_DEBUG__.getState().ball;
+    return { afterBounce, afterNextFrame };
+  });
+
+  expect(states.afterBounce.x).toBe(states.afterBounce.r);
+  expect(states.afterBounce.vx).toBeGreaterThan(0);
+  expect(states.afterNextFrame.x).toBeGreaterThan(states.afterBounce.x);
+  expect(states.afterNextFrame.vx).toBeGreaterThan(0);
+});
