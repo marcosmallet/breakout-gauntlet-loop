@@ -43,6 +43,27 @@ test('rebatida central mantém movimento horizontal mínimo', async ({ page }) =
   expect(velocity.vy).toBeLessThan(0);
 });
 
+test('rebatida na raquete preserva a velocidade total da bola', async ({ page }) => {
+  await page.goto('/');
+
+  const speeds = await page.evaluate(() => {
+    window.__GAME_DEBUG__.setBall({ vx: 4, vy: 4 });
+    const before = window.__GAME_DEBUG__.getState().ball;
+    const beforeSpeed = Math.hypot(before.vx, before.vy);
+
+    window.__GAME_DEBUG__.bounceBallOffPaddle(1);
+    const after = window.__GAME_DEBUG__.getState().ball;
+    return {
+      beforeSpeed,
+      afterSpeed: Math.hypot(after.vx, after.vy),
+      vy: after.vy
+    };
+  });
+
+  expect(speeds.afterSpeed).toBeCloseTo(speeds.beforeSpeed, 8);
+  expect(speeds.vy).toBeLessThan(0);
+});
+
 test('arrastar no canvas move a raquete', async ({ page }) => {
   await page.goto('/');
   const canvas = page.locator('#game');
