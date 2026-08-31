@@ -4,6 +4,7 @@
   const scoreEl = document.getElementById('score');
   const livesEl = document.getElementById('lives');
   const startButton = document.getElementById('startButton');
+  const gameStatusEl = document.getElementById('gameStatus');
 
   const W = canvas.width;
   const H = canvas.height;
@@ -191,6 +192,7 @@
       livesEl.textContent = lives;
       if (lives <= 0) {
         running = false;
+        gameStatusEl.textContent = 'Fim de jogo.';
         startButton.textContent = 'Jogar novamente';
       } else {
         resetBall();
@@ -199,6 +201,7 @@
 
     if (bricks.every((brick) => !brick.alive)) {
       running = false;
+      gameStatusEl.textContent = 'Você venceu!';
       startButton.textContent = 'Jogar novamente';
     }
   }
@@ -236,6 +239,7 @@
     if (rafId) cancelAnimationFrame(rafId);
     resetGame();
     running = true;
+    gameStatusEl.textContent = '';
     startButton.textContent = 'Reiniciar';
     frame();
   }
