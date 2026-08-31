@@ -31,6 +31,26 @@ test('controle para a direita move a raquete', async ({ page }) => {
   expect(after).toBeGreaterThan(before);
 });
 
+test('perder foco limpa teclas de movimento presas', async ({ page }) => {
+  await page.goto('/');
+
+  const positions = await page.evaluate(() => {
+    const before = window.__GAME_DEBUG__.getState().paddle.x;
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    window.__GAME_DEBUG__.step();
+    const afterKeyDown = window.__GAME_DEBUG__.getState().paddle.x;
+
+    window.dispatchEvent(new Event('blur'));
+    window.__GAME_DEBUG__.step();
+    const afterBlur = window.__GAME_DEBUG__.getState().paddle.x;
+
+    return { before, afterKeyDown, afterBlur };
+  });
+
+  expect(positions.afterKeyDown).toBeGreaterThan(positions.before);
+  expect(positions.afterBlur).toBe(positions.afterKeyDown);
+});
+
 test('setas de controle não acionam comportamento padrão da página', async ({ page }) => {
   await page.goto('/');
 
