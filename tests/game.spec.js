@@ -30,3 +30,15 @@ test('controle para a direita move a raquete', async ({ page }) => {
   const after = await page.evaluate(() => window.__GAME_DEBUG__.getState().paddle.x);
   expect(after).toBeGreaterThan(before);
 });
+
+test('rebatida central mantém movimento horizontal mínimo', async ({ page }) => {
+  await page.goto('/');
+
+  const velocity = await page.evaluate(() => {
+    window.__GAME_DEBUG__.bounceBallOffPaddle(0);
+    return window.__GAME_DEBUG__.getState().ball;
+  });
+
+  expect(Math.abs(velocity.vx)).toBeGreaterThanOrEqual(1.5);
+  expect(velocity.vy).toBeLessThan(0);
+});
