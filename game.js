@@ -16,6 +16,7 @@
   const TARGET_FRAME_MS = 1000 / 60;
   const MAX_FRAME_STEP = 2;
   const RESPAWN_GRACE_STEPS = 45;
+  const IMPACT_FLASH_STEPS = 8;
 
   const paddle = { x: W / 2 - 55, y: H - 38, w: 110, h: 14, speed: 8 };
   const ball = { x: W / 2, y: H - 58, r: 8, vx: 4, vy: -4 };
@@ -31,6 +32,7 @@
   let respawnGrace = 0;
   let pausedByFocusLoss = false;
   let pausedByPlayer = false;
+  let impactFlash = null;
 
   function createBricks() {
     const rows = 5;
@@ -68,6 +70,7 @@
   function resetGame() {
     score = 0;
     lives = 3;
+    impactFlash = null;
     scoreEl.textContent = score;
     livesEl.textContent = lives;
     createBricks();
@@ -210,6 +213,11 @@
   function update(stepScale = 1) {
     if (pausedByFocusLoss || pausedByPlayer) return;
 
+    if (impactFlash) {
+      impactFlash.life = Math.max(0, impactFlash.life - stepScale);
+      if (impactFlash.life === 0) impactFlash = null;
+    }
+
     if (keys.has('ArrowLeft') || keys.has('a') || keys.has('A')) paddle.x -= paddle.speed * stepScale;
     if (keys.has('ArrowRight') || keys.has('d') || keys.has('D')) paddle.x += paddle.speed * stepScale;
     paddle.x = Math.max(0, Math.min(W - paddle.w, paddle.x));
@@ -252,6 +260,7 @@
         ball.y - ball.r <= brick.y + brick.h
       ) {
         brick.alive = false;
+        impactFlash = { x: ball.x, y: ball.y, life: IMPACT_FLASH_STEPS };
         bounceBallOffBrick(brick, previousBallX, previousBallY);
         accelerateBallAfterBrick();
         score += 10;
@@ -289,6 +298,18 @@
       const hue = 205 + brick.row * 18;
       ctx.fillStyle = `hsl(${hue} 80% 58%)`;
       ctx.fillRect(brick.x, brick.y, brick.w, brick.h);
+    }
+
+    if (impactFlash) {
+      const progress = 1 - impactFlash.life / IMPACT_FLASH_STEPS;
+      ctx.save();
+      ctx.globalAlpha = impactFlash.life / IMPACT_FLASH_STEPS;
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(impactFlash.x, impactFlash.y, ball.r + 5 + progress * 12, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
     }
 
     ctx.fillStyle = '#f8fafc';
@@ -390,7 +411,8 @@
         bricksRemaining: bricks.filter((brick) => brick.alive).length,
         respawnGrace,
         pausedByFocusLoss,
-        pausedByPlayer
+        pausedByPlayer,
+        impactFlash: impactFlash ? { ...impactFlash } : null
       };
     },
     start,
