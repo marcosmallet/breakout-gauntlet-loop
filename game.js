@@ -355,6 +355,7 @@
   pauseButton.addEventListener('click', togglePlayerPause);
 
   canvas.addEventListener('pointerdown', (event) => {
+    if (!running || pausedByFocusLoss || pausedByPlayer) return;
     pointerActive = true;
     canvas.setPointerCapture?.(event.pointerId);
     movePaddleFromPointer(event);
