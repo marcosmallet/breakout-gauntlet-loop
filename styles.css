@@ -51,4 +51,8 @@ button {
   font-weight: 700;
   cursor: pointer;
 }
+button:focus-visible {
+  outline: 3px solid currentColor;
+  outline-offset: 3px;
+}
 .controls p { opacity: .7; font-size: .95rem; }
