@@ -231,6 +231,7 @@
 
     if (
       ball.vy > 0 &&
+      previousBallY + ball.r <= paddle.y &&
       ball.y + ball.r >= paddle.y &&
       ball.y - ball.r <= paddle.y + paddle.h &&
       ball.x + ball.r >= paddle.x &&
