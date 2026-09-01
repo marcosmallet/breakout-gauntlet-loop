@@ -62,3 +62,15 @@ test('controle desabilitado comunica visualmente que não está acionável', asy
   expect(disabledStyle.opacity).toBeLessThanOrEqual(0.5);
   expect(disabledStyle.cursor).toBe('not-allowed');
 });
+
+test('controles mantêm alvo de toque confortável em telas móveis', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+
+  for (const name of ['Iniciar', 'Pausar']) {
+    const box = await page.getByRole('button', { name }).boundingBox();
+    expect(box).not.toBeNull();
+    expect(box.width).toBeGreaterThanOrEqual(44);
+    expect(box.height).toBeGreaterThanOrEqual(44);
+  }
+});
