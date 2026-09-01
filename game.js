@@ -25,6 +25,7 @@
 
   let score = 0;
   let lives = 3;
+  let round = 1;
   let running = false;
   let rafId = null;
   let bricks = [];
@@ -72,6 +73,7 @@
   function resetGame() {
     score = 0;
     lives = 3;
+    round = 1;
     impactFlash = null;
     paddleFlash = 0;
     scoreEl.textContent = score;
@@ -287,11 +289,11 @@
       }
     }
 
-    if (bricks.every((brick) => !brick.alive)) {
-      running = false;
-      gameStatusEl.textContent = 'Você venceu!';
-      startButton.textContent = 'Jogar novamente';
-      syncPauseButton();
+    if (running && bricks.every((brick) => !brick.alive)) {
+      round += 1;
+      createBricks();
+      resetBall(true);
+      gameStatusEl.textContent = `Rodada ${round}!`;
     }
   }
 
@@ -420,6 +422,7 @@
         running,
         score,
         lives,
+        round,
         paddle: { ...paddle },
         ball: { ...ball },
         bricksRemaining: bricks.filter((brick) => brick.alive).length,
@@ -445,6 +448,12 @@
     },
     step(stepScale = 1) {
       update(stepScale);
+      draw();
+    },
+    clearBricksExcept(indexToKeep = 0) {
+      bricks.forEach((brick, index) => {
+        brick.alive = index === indexToKeep;
+      });
       draw();
     }
   };
