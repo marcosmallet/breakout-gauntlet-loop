@@ -23,3 +23,24 @@ test('Espaço preserva a ativação nativa dos botões do jogo', async ({ page }
   expect(state.pausedByPlayer).toBe(false);
   await expect(page.getByRole('button', { name: 'Pausar' })).toHaveAttribute('aria-pressed', 'false');
 });
+
+test('controles exibem foco visível para navegação por teclado', async ({ page }) => {
+  await page.goto('/');
+
+  const startButton = page.getByRole('button', { name: 'Iniciar' });
+  await page.keyboard.press('Tab');
+  await expect(startButton).toBeFocused();
+
+  const focusStyle = await startButton.evaluate((button) => {
+    const style = getComputedStyle(button);
+    return {
+      outlineStyle: style.outlineStyle,
+      outlineWidth: style.outlineWidth,
+      outlineOffset: style.outlineOffset
+    };
+  });
+
+  expect(focusStyle.outlineStyle).not.toBe('none');
+  expect(parseFloat(focusStyle.outlineWidth)).toBeGreaterThanOrEqual(3);
+  expect(parseFloat(focusStyle.outlineOffset)).toBeGreaterThanOrEqual(3);
+});
