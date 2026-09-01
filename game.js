@@ -17,6 +17,7 @@
   const MAX_FRAME_STEP = 2;
   const RESPAWN_GRACE_STEPS = 45;
   const IMPACT_FLASH_STEPS = 8;
+  const PADDLE_FLASH_STEPS = 6;
 
   const paddle = { x: W / 2 - 55, y: H - 38, w: 110, h: 14, speed: 8 };
   const ball = { x: W / 2, y: H - 58, r: 8, vx: 4, vy: -4 };
@@ -33,6 +34,7 @@
   let pausedByFocusLoss = false;
   let pausedByPlayer = false;
   let impactFlash = null;
+  let paddleFlash = 0;
 
   function createBricks() {
     const rows = 5;
@@ -71,6 +73,7 @@
     score = 0;
     lives = 3;
     impactFlash = null;
+    paddleFlash = 0;
     scoreEl.textContent = score;
     livesEl.textContent = lives;
     createBricks();
@@ -217,6 +220,7 @@
       impactFlash.life = Math.max(0, impactFlash.life - stepScale);
       if (impactFlash.life === 0) impactFlash = null;
     }
+    paddleFlash = Math.max(0, paddleFlash - stepScale);
 
     if (keys.has('ArrowLeft') || keys.has('a') || keys.has('A')) paddle.x -= paddle.speed * stepScale;
     if (keys.has('ArrowRight') || keys.has('d') || keys.has('D')) paddle.x += paddle.speed * stepScale;
@@ -249,6 +253,7 @@
       const rawHit = (ball.x - (paddle.x + paddle.w / 2)) / (paddle.w / 2);
       const hit = Math.max(-1, Math.min(1, rawHit));
       applyPaddleBounce(hit);
+      paddleFlash = PADDLE_FLASH_STEPS;
     }
 
     for (const brick of bricks) {
@@ -312,8 +317,17 @@
       ctx.restore();
     }
 
-    ctx.fillStyle = '#f8fafc';
+    ctx.save();
+    if (paddleFlash > 0) {
+      const intensity = paddleFlash / PADDLE_FLASH_STEPS;
+      ctx.shadowColor = '#67e8f9';
+      ctx.shadowBlur = 18 * intensity;
+      ctx.fillStyle = '#ffffff';
+    } else {
+      ctx.fillStyle = '#f8fafc';
+    }
     ctx.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
+    ctx.restore();
 
     ctx.beginPath();
     ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
@@ -412,7 +426,8 @@
         respawnGrace,
         pausedByFocusLoss,
         pausedByPlayer,
-        impactFlash: impactFlash ? { ...impactFlash } : null
+        impactFlash: impactFlash ? { ...impactFlash } : null,
+        paddleFlash
       };
     },
     start,
