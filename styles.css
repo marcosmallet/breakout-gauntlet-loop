@@ -51,6 +51,10 @@ button {
   font-weight: 700;
   cursor: pointer;
 }
+button:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
 button:focus-visible {
   outline: 3px solid currentColor;
   outline-offset: 3px;

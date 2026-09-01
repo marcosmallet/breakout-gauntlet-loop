@@ -44,3 +44,21 @@ test('controles exibem foco visível para navegação por teclado', async ({ pag
   expect(parseFloat(focusStyle.outlineWidth)).toBeGreaterThanOrEqual(3);
   expect(parseFloat(focusStyle.outlineOffset)).toBeGreaterThanOrEqual(3);
 });
+
+test('controle desabilitado comunica visualmente que não está acionável', async ({ page }) => {
+  await page.goto('/');
+
+  const pauseButton = page.getByRole('button', { name: 'Pausar' });
+  await expect(pauseButton).toBeDisabled();
+
+  const disabledStyle = await pauseButton.evaluate((button) => {
+    const style = getComputedStyle(button);
+    return {
+      opacity: parseFloat(style.opacity),
+      cursor: style.cursor
+    };
+  });
+
+  expect(disabledStyle.opacity).toBeLessThanOrEqual(0.5);
+  expect(disabledStyle.cursor).toBe('not-allowed');
+});
