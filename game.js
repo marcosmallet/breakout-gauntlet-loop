@@ -352,7 +352,9 @@
   window.addEventListener('blur', pauseForFocusLoss);
   window.addEventListener('focus', resumeAfterFocusLoss);
   window.addEventListener('pagehide', pauseForFocusLoss);
-  window.addEventListener('pageshow', resumeAfterFocusLoss);
+  window.addEventListener('pageshow', () => {
+    if (document.hasFocus()) resumeAfterFocusLoss();
+  });
   startButton.addEventListener('click', start);
   pauseButton.addEventListener('click', togglePlayerPause);
 
