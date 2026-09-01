@@ -4,6 +4,7 @@
   const scoreEl = document.getElementById('score');
   const livesEl = document.getElementById('lives');
   const startButton = document.getElementById('startButton');
+  const pauseButton = document.getElementById('pauseButton');
   const gameStatusEl = document.getElementById('gameStatus');
 
   const W = canvas.width;
@@ -173,6 +174,12 @@
     pointerActive = false;
   }
 
+  function syncPauseButton() {
+    pauseButton.disabled = !running;
+    pauseButton.textContent = pausedByPlayer ? 'Retomar' : 'Pausar';
+    pauseButton.setAttribute('aria-pressed', pausedByPlayer ? 'true' : 'false');
+  }
+
   function pauseForFocusLoss() {
     clearActiveInput();
     if (!running || pausedByFocusLoss) return;
@@ -197,6 +204,7 @@
     gameStatusEl.textContent = pausedByPlayer
       ? 'Pausado.'
       : (respawnGrace > 0 ? 'Prepare-se...' : '');
+    syncPauseButton();
   }
 
   function update(stepScale = 1) {
@@ -258,6 +266,7 @@
         running = false;
         gameStatusEl.textContent = 'Fim de jogo.';
         startButton.textContent = 'Jogar novamente';
+        syncPauseButton();
       } else {
         resetBall(true);
       }
@@ -267,6 +276,7 @@
       running = false;
       gameStatusEl.textContent = 'Você venceu!';
       startButton.textContent = 'Jogar novamente';
+      syncPauseButton();
     }
   }
 
@@ -323,6 +333,7 @@
     running = true;
     lastFrameTime = null;
     startButton.textContent = 'Reiniciar';
+    syncPauseButton();
     frame(performance.now());
   }
 
@@ -341,6 +352,7 @@
   window.addEventListener('pagehide', pauseForFocusLoss);
   window.addEventListener('pageshow', resumeAfterFocusLoss);
   startButton.addEventListener('click', start);
+  pauseButton.addEventListener('click', togglePlayerPause);
 
   canvas.addEventListener('pointerdown', (event) => {
     pointerActive = true;
@@ -354,6 +366,7 @@
   canvas.addEventListener('pointercancel', () => { pointerActive = false; });
 
   createBricks();
+  syncPauseButton();
   draw();
 
   window.__GAME_DEBUG__ = {
