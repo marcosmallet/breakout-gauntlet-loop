@@ -109,6 +109,10 @@
     ball.vy *= scale;
   }
 
+  function pointsForBrick(brick) {
+    return (5 - brick.row) * 10;
+  }
+
   function bounceBallOffBrick(brick, previousX, previousY) {
     const cameFromLeft = previousX + ball.r <= brick.x;
     const cameFromRight = previousX - ball.r >= brick.x + brick.w;
@@ -268,7 +272,7 @@
         impactFlash = { x: ball.x, y: ball.y, life: IMPACT_FLASH_STEPS };
         bounceBallOffBrick(brick, previousBallX, previousBallY);
         accelerateBallAfterBrick();
-        score += 10;
+        score += pointsForBrick(brick);
         scoreEl.textContent = score;
         break;
       }

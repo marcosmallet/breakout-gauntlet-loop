@@ -11,6 +11,6 @@ test('destruir bloco dispara feedback sonoro uma vez', async ({ page }) => {
     game.step();
   });
 
-  await expect(page.locator('#score')).toHaveText('10');
+  await expect(page.locator('#score')).toHaveText('50');
   await expect.poll(() => page.evaluate(() => window.__IMPACT_SOUND_DEBUG__.getImpactCount())).toBe(1);
 });
