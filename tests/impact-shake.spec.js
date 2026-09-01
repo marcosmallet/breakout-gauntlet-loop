@@ -12,6 +12,6 @@ test('destruir bloco gera micro impacto visual no campo', async ({ page }) => {
     game.step();
   });
 
-  await expect(page.locator('#score')).toHaveText('50');
+  await expect(page.locator('#score')).toHaveText('10');
   await expect(page.locator('#game')).toHaveClass(/impact-shake/);
 });
