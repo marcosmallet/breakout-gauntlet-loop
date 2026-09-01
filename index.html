@@ -34,6 +34,10 @@
         window.dispatchEvent(new Event('focus'));
       }
     }, true);
+
+    document.addEventListener('visibilitychange', () => {
+      window.dispatchEvent(new Event(document.hidden ? 'blur' : 'focus'));
+    });
   </script>
   <script src="game.js"></script>
 </body>
