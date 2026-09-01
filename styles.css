@@ -46,6 +46,8 @@ button {
   appearance: none;
   border: 0;
   border-radius: 999px;
+  min-width: 44px;
+  min-height: 44px;
   padding: 10px 22px;
   font: inherit;
   font-weight: 700;
