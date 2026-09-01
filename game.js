@@ -362,7 +362,11 @@
     movePaddleFromPointer(event);
   });
   canvas.addEventListener('pointermove', (event) => {
-    if (pointerActive) movePaddleFromPointer(event);
+    const dragging = pointerActive || event.buttons === 1;
+    if (!dragging || !running || pausedByPlayer) return;
+    if (pausedByFocusLoss) resumeAfterFocusLoss();
+    pointerActive = true;
+    movePaddleFromPointer(event);
   });
   canvas.addEventListener('pointerup', () => { pointerActive = false; });
   canvas.addEventListener('pointercancel', () => { pointerActive = false; });
