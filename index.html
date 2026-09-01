@@ -36,7 +36,11 @@
     }, true);
 
     document.addEventListener('visibilitychange', () => {
-      window.dispatchEvent(new Event(document.hidden ? 'blur' : 'focus'));
+      if (document.hidden) {
+        window.dispatchEvent(new Event('blur'));
+      } else if (document.hasFocus()) {
+        window.dispatchEvent(new Event('focus'));
+      }
     });
   </script>
   <script src="game.js"></script>
