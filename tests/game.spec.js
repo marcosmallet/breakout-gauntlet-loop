@@ -220,7 +220,13 @@ test('arrastar no canvas move a raquete', async ({ page }) => {
   expect(box).not.toBeNull();
 
   await page.getByRole('button', { name: 'Iniciar' }).click();
-  const before = await page.evaluate(() => window.__GAME_DEBUG__.getState().paddle.x);
+  await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+  const activeState = await page.evaluate(() => window.__GAME_DEBUG__.getState());
+  expect(activeState.running).toBe(true);
+  expect(activeState.pausedByFocusLoss).toBe(false);
+  expect(activeState.pausedByPlayer).toBe(false);
+
+  const before = activeState.paddle.x;
   await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.8);
   await page.mouse.down();
   await page.mouse.move(box.x + box.width * 0.8, box.y + box.height * 0.8);
