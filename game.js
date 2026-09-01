@@ -339,6 +339,7 @@
 
   document.addEventListener('keydown', (event) => {
     if (event.code === 'Space') {
+      if (event.target instanceof HTMLButtonElement) return;
       event.preventDefault();
       togglePlayerPause();
       return;
