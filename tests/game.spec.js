@@ -16,7 +16,7 @@ test('canvas associa instruções de controle para tecnologias assistivas', asyn
   const canvas = page.locator('#game');
   await expect(canvas).toHaveAttribute('aria-describedby', 'controlInstructions');
   await expect(page.locator('#controlInstructions')).toHaveText(
-    'Use ← →, A/D ou arraste sobre o jogo para mover a raquete. Pressione Espaço para pausar ou retomar.'
+    'Use ← →, A/D ou arraste sobre o jogo para mover a raquete. Pressione Espaço ou use o botão Pausar para pausar ou retomar.'
   );
 });
 
@@ -150,6 +150,23 @@ test('espaço pausa e retoma a partida sem avançar a bola', async ({ page }) =>
   expect(states.resumed.pausedByPlayer).toBe(false);
   expect(states.resumed.ball.x).toBeGreaterThan(states.whilePaused.ball.x);
   expect(states.resumed.ball.y).toBeLessThan(states.whilePaused.ball.y);
+});
+
+test('botão de pausa permite pausar e retomar em dispositivos de toque', async ({ page }) => {
+  await page.goto('/');
+  const pauseButton = page.getByRole('button', { name: 'Pausar' });
+  await expect(pauseButton).toBeDisabled();
+
+  await page.getByRole('button', { name: 'Iniciar' }).click();
+  await expect(pauseButton).toBeEnabled();
+
+  await pauseButton.click();
+  await expect(page.getByRole('button', { name: 'Retomar' })).toHaveAttribute('aria-pressed', 'true');
+  expect((await page.evaluate(() => window.__GAME_DEBUG__.getState())).pausedByPlayer).toBe(true);
+
+  await page.getByRole('button', { name: 'Retomar' }).click();
+  await expect(page.getByRole('button', { name: 'Pausar' })).toHaveAttribute('aria-pressed', 'false');
+  expect((await page.evaluate(() => window.__GAME_DEBUG__.getState())).pausedByPlayer).toBe(false);
 });
 
 test('rebatida central mantém movimento horizontal mínimo', async ({ page }) => {
