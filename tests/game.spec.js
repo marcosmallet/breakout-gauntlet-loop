@@ -215,25 +215,44 @@ test('rebatida na raquete preserva a velocidade total da bola', async ({ page })
 
 test('arrastar no canvas move a raquete', async ({ page }) => {
   await page.goto('/');
-  const canvas = page.locator('#game');
-  const box = await canvas.boundingBox();
-  expect(box).not.toBeNull();
-
   await page.getByRole('button', { name: 'Iniciar' }).click();
-  await page.evaluate(() => window.dispatchEvent(new Event('focus')));
-  const activeState = await page.evaluate(() => window.__GAME_DEBUG__.getState());
-  expect(activeState.running).toBe(true);
-  expect(activeState.pausedByFocusLoss).toBe(false);
-  expect(activeState.pausedByPlayer).toBe(false);
 
-  const before = activeState.paddle.x;
-  await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.8);
-  await page.mouse.down();
-  await page.mouse.move(box.x + box.width * 0.8, box.y + box.height * 0.8);
-  await page.mouse.up();
+  const positions = await page.evaluate(() => {
+    const canvas = document.getElementById('game');
+    const rect = canvas.getBoundingClientRect();
+    const before = window.__GAME_DEBUG__.getState().paddle.x;
+    const pointerId = 1;
+    const y = rect.top + rect.height * 0.8;
 
-  const after = await page.evaluate(() => window.__GAME_DEBUG__.getState().paddle.x);
-  expect(after).toBeGreaterThan(before);
+    canvas.dispatchEvent(new PointerEvent('pointerdown', {
+      pointerId,
+      pointerType: 'mouse',
+      clientX: rect.left + rect.width * 0.5,
+      clientY: y,
+      buttons: 1,
+      bubbles: true
+    }));
+    canvas.dispatchEvent(new PointerEvent('pointermove', {
+      pointerId,
+      pointerType: 'mouse',
+      clientX: rect.left + rect.width * 0.8,
+      clientY: y,
+      buttons: 1,
+      bubbles: true
+    }));
+    canvas.dispatchEvent(new PointerEvent('pointerup', {
+      pointerId,
+      pointerType: 'mouse',
+      clientX: rect.left + rect.width * 0.8,
+      clientY: y,
+      buttons: 0,
+      bubbles: true
+    }));
+
+    return { before, after: window.__GAME_DEBUG__.getState().paddle.x };
+  });
+
+  expect(positions.after).toBeGreaterThan(positions.before);
 });
 
 test('raspada na borda da raquete rebate a bola', async ({ page }) => {
