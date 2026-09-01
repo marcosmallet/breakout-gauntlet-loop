@@ -62,3 +62,9 @@ button:focus-visible {
   outline-offset: 3px;
 }
 .controls p { opacity: .7; font-size: .95rem; }
+
+@media (orientation: landscape) and (max-height: 600px) {
+  .shell {
+    width: min(94vw, calc(62vh * 800 / 520));
+  }
+}

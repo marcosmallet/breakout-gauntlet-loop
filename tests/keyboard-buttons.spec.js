@@ -74,3 +74,13 @@ test('controles mantêm alvo de toque confortável em telas móveis', async ({ p
     expect(box.height).toBeGreaterThanOrEqual(44);
   }
 });
+
+test('canvas cabe melhor na altura de celulares em modo paisagem', async ({ page }) => {
+  await page.setViewportSize({ width: 844, height: 390 });
+  await page.goto('/');
+
+  const canvasBox = await page.locator('#game').boundingBox();
+  expect(canvasBox).not.toBeNull();
+  expect(canvasBox.height).toBeLessThanOrEqual(390 * 0.63);
+  expect(canvasBox.width / canvasBox.height).toBeCloseTo(800 / 520, 1);
+});
