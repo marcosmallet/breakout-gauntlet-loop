@@ -16,6 +16,7 @@
     <section class="hud" aria-label="Status do jogo" aria-live="polite" aria-atomic="true">
       <span>Pontos: <strong id="score">0</strong></span>
       <span>Vidas: <strong id="lives">3</strong></span>
+      <span>Rodada: <strong id="round">1</strong></span>
     </section>
 
     <canvas id="game" width="800" height="520" aria-label="Jogo Breakout" aria-describedby="controlInstructions" aria-keyshortcuts="ArrowLeft ArrowRight A D Space"></canvas>
@@ -41,6 +42,18 @@
       } else if (document.hasFocus()) {
         window.dispatchEvent(new Event('focus'));
       }
+    });
+
+    const roundEl = document.getElementById('round');
+    const gameStatusEl = document.getElementById('gameStatus');
+    const syncRoundHud = () => {
+      const currentRound = window.__GAME_DEBUG__?.getState().round;
+      if (currentRound) roundEl.textContent = currentRound;
+    };
+    new MutationObserver(syncRoundHud).observe(gameStatusEl, {
+      childList: true,
+      characterData: true,
+      subtree: true
     });
   </script>
   <script src="game.js"></script>
