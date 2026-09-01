@@ -28,6 +28,13 @@
     </div>
   </main>
 
+  <script>
+    window.addEventListener('pointerdown', (event) => {
+      if (event.target === document.getElementById('game')) {
+        window.dispatchEvent(new Event('focus'));
+      }
+    }, true);
+  </script>
   <script src="game.js"></script>
 </body>
 </html>
