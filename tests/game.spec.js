@@ -164,6 +164,17 @@ test('botão de pausa permite pausar e retomar em dispositivos de toque', async 
   await expect(page.getByRole('button', { name: 'Retomar' })).toHaveAttribute('aria-pressed', 'true');
   expect((await page.evaluate(() => window.__GAME_DEBUG__.getState())).pausedByPlayer).toBe(true);
 
+  const canvas = page.locator('#game');
+  const box = await canvas.boundingBox();
+  expect(box).not.toBeNull();
+  const paddleBeforeDrag = await page.evaluate(() => window.__GAME_DEBUG__.getState().paddle.x);
+  await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.8);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width * 0.8, box.y + box.height * 0.8);
+  await page.mouse.up();
+  const paddleAfterDrag = await page.evaluate(() => window.__GAME_DEBUG__.getState().paddle.x);
+  expect(paddleAfterDrag).toBe(paddleBeforeDrag);
+
   await page.getByRole('button', { name: 'Retomar' }).click();
   await expect(page.getByRole('button', { name: 'Pausar' })).toHaveAttribute('aria-pressed', 'false');
   expect((await page.evaluate(() => window.__GAME_DEBUG__.getState())).pausedByPlayer).toBe(false);
@@ -208,6 +219,7 @@ test('arrastar no canvas move a raquete', async ({ page }) => {
   const box = await canvas.boundingBox();
   expect(box).not.toBeNull();
 
+  await page.getByRole('button', { name: 'Iniciar' }).click();
   const before = await page.evaluate(() => window.__GAME_DEBUG__.getState().paddle.x);
   await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.8);
   await page.mouse.down();
