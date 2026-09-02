@@ -19,6 +19,7 @@
       <span>Combo: <strong id="combo">x0</strong></span>
       <span>Vidas: <strong id="lives">3</strong></span>
       <span>Rodada: <strong id="round">1</strong></span>
+      <span>Blocos: <strong id="bricksRemaining">50</strong></span>
     </section>
 
     <canvas id="game" width="800" height="520" aria-label="Jogo Breakout" aria-describedby="controlInstructions" aria-keyshortcuts="ArrowLeft ArrowRight A D Space"></canvas>
@@ -48,11 +49,22 @@
 
     const roundEl = document.getElementById('round');
     const gameStatusEl = document.getElementById('gameStatus');
+    const scoreEl = document.getElementById('score');
+    const bricksRemainingEl = document.getElementById('bricksRemaining');
     const syncRoundHud = () => {
       const currentRound = window.__GAME_DEBUG__?.getState().round;
       if (currentRound) roundEl.textContent = currentRound;
     };
+    const syncBrickProgress = () => {
+      const remaining = window.__GAME_DEBUG__?.getState().bricksRemaining;
+      if (Number.isInteger(remaining)) bricksRemainingEl.textContent = remaining;
+    };
     new MutationObserver(syncRoundHud).observe(gameStatusEl, {
+      childList: true,
+      characterData: true,
+      subtree: true
+    });
+    new MutationObserver(syncBrickProgress).observe(scoreEl, {
       childList: true,
       characterData: true,
       subtree: true
