@@ -32,3 +32,33 @@ test('rastro acompanha o movimento da bola sem afetar a simulação', async ({ p
   expect(result.trailLength).toBeLessThanOrEqual(result.maxTrailPoints);
   expect(result.maxTrailPoints).toBe(4);
 });
+
+test('countdown 3-2-1 acompanha a janela de preparação antes do lançamento', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Iniciar' }).click();
+
+  const values = await page.evaluate(() => {
+    const game = window.__GAME_DEBUG__;
+    const trail = window.__BALL_TRAIL_DEBUG__;
+    const countdown = [];
+
+    trail.refresh();
+    countdown.push(trail.getCountdownValue());
+
+    game.step(15);
+    trail.refresh();
+    countdown.push(trail.getCountdownValue());
+
+    game.step(15);
+    trail.refresh();
+    countdown.push(trail.getCountdownValue());
+
+    game.step(15);
+    trail.refresh();
+    countdown.push(trail.getCountdownValue());
+
+    return countdown;
+  });
+
+  expect(values).toEqual([3, 2, 1, null]);
+});
