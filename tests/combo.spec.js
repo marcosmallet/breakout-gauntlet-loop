@@ -18,6 +18,7 @@ test('acertos rápidos em sequência constroem combo, dão feedback e perder vid
   await expect(page.locator('#combo')).toHaveText('x2');
   await expect.poll(() => page.evaluate(() => window.__COMBO_DEBUG__?.getCombo())).toBe(2);
   await expect.poll(() => page.evaluate(() => window.__COMBO_DEBUG__?.getFeedbackCount())).toBe(1);
+  await expect.poll(() => page.evaluate(() => window.__COMBO_DEBUG__?.getScoreFeedbackCount())).toBe(2);
 
   await page.evaluate(() => {
     window.__GAME_DEBUG__.setBall({ y: 540, vx: 0, vy: 4 });
