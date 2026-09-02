@@ -10,9 +10,11 @@
   let previousScore = Number(scoreEl.textContent) || 0;
   let previousLives = Number(livesEl?.textContent) || 0;
   let previousRound = Number(roundEl?.textContent) || 1;
+  let previousPaddleFlash = 0;
   let impactCount = 0;
   let lifeLossCount = 0;
   let roundAdvanceCount = 0;
+  let paddleImpactCount = 0;
   let lastImpactFrequency = 420;
 
   function ensureAudioContext() {
@@ -45,6 +47,27 @@
     gain.connect(context.destination);
     oscillator.start(now);
     oscillator.stop(now + 0.05);
+  }
+
+  function playPaddleImpact() {
+    paddleImpactCount += 1;
+    const context = ensureAudioContext();
+    if (!context) return;
+
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    const now = context.currentTime;
+
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(180, now);
+    oscillator.frequency.exponentialRampToValueAtTime(280, now + 0.055);
+    gain.gain.setValueAtTime(0.04, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.065);
+
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start(now);
+    oscillator.stop(now + 0.07);
   }
 
   function playLifeLoss() {
@@ -117,6 +140,14 @@
     roundObserver.observe(roundEl, { childList: true, characterData: true, subtree: true });
   }
 
+  function watchPaddleImpact() {
+    const nextPaddleFlash = window.__GAME_DEBUG__?.getState?.().paddleFlash || 0;
+    if (nextPaddleFlash > previousPaddleFlash) playPaddleImpact();
+    previousPaddleFlash = nextPaddleFlash;
+    requestAnimationFrame(watchPaddleImpact);
+  }
+  requestAnimationFrame(watchPaddleImpact);
+
   canvas?.addEventListener('pointerdown', ensureAudioContext, { once: true });
   startButton?.addEventListener('click', ensureAudioContext, { once: true });
 
@@ -129,6 +160,9 @@
     },
     getRoundAdvanceCount() {
       return roundAdvanceCount;
+    },
+    getPaddleImpactCount() {
+      return paddleImpactCount;
     },
     getLastImpactFrequency() {
       return lastImpactFrequency;
