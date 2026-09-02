@@ -48,12 +48,17 @@
     });
 
     const roundEl = document.getElementById('round');
+    const gameCanvas = document.getElementById('game');
     const gameStatusEl = document.getElementById('gameStatus');
     const scoreEl = document.getElementById('score');
     const bricksRemainingEl = document.getElementById('bricksRemaining');
     const syncRoundHud = () => {
       const currentRound = window.__GAME_DEBUG__?.getState().round;
-      if (currentRound) roundEl.textContent = currentRound;
+      if (currentRound) {
+        roundEl.textContent = currentRound;
+        const accentHue = (205 + (currentRound - 1) * 38) % 360;
+        gameCanvas.style.setProperty('--round-accent-hue', accentHue);
+      }
     };
     const syncBrickProgress = () => {
       const remaining = window.__GAME_DEBUG__?.getState().bricksRemaining;
