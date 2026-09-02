@@ -3,12 +3,13 @@ const { test, expect } = require('@playwright/test');
 test('acertos rápidos em sequência constroem combo e perder vida o encerra', async ({ page }) => {
   await page.goto('/');
 
-  await page.evaluate(() => {
+  await page.evaluate(async () => {
     const game = window.__GAME_DEBUG__;
     game.start();
     game.step(45);
     game.setBall({ x: 50, y: 45, vx: 0, vy: 5 });
     game.step();
+    await Promise.resolve();
     game.setBall({ x: 120, y: 45, vx: 0, vy: 5 });
     game.step();
   });
