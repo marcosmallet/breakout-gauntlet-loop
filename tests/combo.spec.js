@@ -16,6 +16,7 @@ test('acertos rápidos em sequência constroem combo, multiplicam pontos e perde
 
   await expect(page.locator('#score')).toHaveText('30');
   await expect(page.locator('#combo')).toHaveText('x2');
+  await expect(page.locator('#combo')).toHaveClass(/combo-window/);
   await expect.poll(() => page.evaluate(() => window.__COMBO_DEBUG__?.getCombo())).toBe(2);
   await expect.poll(() => page.evaluate(() => window.__COMBO_DEBUG__?.getFeedbackCount())).toBe(1);
   await expect.poll(() => page.evaluate(() => window.__COMBO_DEBUG__?.getScoreFeedbackCount())).toBe(2);
@@ -27,4 +28,5 @@ test('acertos rápidos em sequência constroem combo, multiplicam pontos e perde
 
   await expect(page.locator('#lives')).toHaveText('2');
   await expect(page.locator('#combo')).toHaveText('x0');
+  await expect(page.locator('#combo')).not.toHaveClass(/combo-window/);
 });
