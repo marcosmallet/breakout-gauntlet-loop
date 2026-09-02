@@ -37,12 +37,18 @@
     comboEl.classList.add('combo-pop');
   }
 
+  function restartComboWindowFeedback() {
+    comboEl.classList.remove('combo-window');
+    void comboEl.offsetWidth;
+    comboEl.classList.add('combo-window');
+  }
+
   function resetCombo() {
     combo = 0;
     lastHitAt = 0;
     if (resetTimer) clearTimeout(resetTimer);
     resetTimer = null;
-    comboEl.classList.remove('combo-pop');
+    comboEl.classList.remove('combo-pop', 'combo-window');
     render();
   }
 
@@ -58,11 +64,12 @@
     pulseScore();
     render();
     pulseCombo();
+    restartComboWindowFeedback();
     scheduleReset();
   }
 
-  comboEl.addEventListener('animationend', () => {
-    comboEl.classList.remove('combo-pop');
+  comboEl.addEventListener('animationend', (event) => {
+    if (event.animationName === 'combo-pop') comboEl.classList.remove('combo-pop');
   });
 
   new MutationObserver(() => {
