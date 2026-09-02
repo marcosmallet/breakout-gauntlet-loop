@@ -15,8 +15,10 @@
 
   const ctx = trailCanvas.getContext('2d');
   const MAX_TRAIL_POINTS = 4;
+  const COUNTDOWN_SEGMENT_STEPS = 15;
   const trail = [];
   let lastSample = null;
+  let countdownValue = null;
 
   function syncOverlayBounds() {
     const rect = gameCanvas.getBoundingClientRect();
@@ -47,7 +49,23 @@
     return state;
   }
 
-  function render() {
+  function renderCountdown(state) {
+    countdownValue = null;
+    if (!state.running || state.respawnGrace <= 0 || state.pausedByFocusLoss || state.pausedByPlayer) return;
+
+    countdownValue = Math.max(1, Math.min(3, Math.ceil(state.respawnGrace / COUNTDOWN_SEGMENT_STEPS)));
+    ctx.save();
+    ctx.font = '700 34px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = '#0f172a';
+    ctx.shadowBlur = 10;
+    ctx.fillText(String(countdownValue), state.ball.x, state.ball.y - 42);
+    ctx.restore();
+  }
+
+  function render(state) {
     syncOverlayBounds();
     ctx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
 
@@ -61,11 +79,13 @@
       ctx.fill();
       ctx.restore();
     });
+
+    renderCountdown(state);
   }
 
   function refresh() {
-    sampleState();
-    render();
+    const state = sampleState();
+    render(state);
   }
 
   function frame() {
@@ -84,6 +104,9 @@
     },
     getMaxTrailPoints() {
       return MAX_TRAIL_POINTS;
+    },
+    getCountdownValue() {
+      return countdownValue;
     }
   };
 })();
