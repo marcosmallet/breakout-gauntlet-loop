@@ -11,9 +11,22 @@
   let lastHitAt = 0;
   let resetTimer = null;
   let feedbackCount = 0;
+  let scoreFeedbackCount = 0;
 
   function render() {
     comboEl.textContent = `x${combo}`;
+  }
+
+  function pulseScore() {
+    scoreFeedbackCount += 1;
+    scoreEl.animate(
+      [
+        { transform: 'scale(1)', textShadow: 'none' },
+        { transform: 'scale(1.18)', textShadow: '0 0 12px currentColor' },
+        { transform: 'scale(1)', textShadow: 'none' }
+      ],
+      { duration: 160, easing: 'ease-out' }
+    );
   }
 
   function pulseCombo() {
@@ -42,6 +55,7 @@
     const now = performance.now();
     combo = lastHitAt && now - lastHitAt <= COMBO_WINDOW_MS ? combo + 1 : 1;
     lastHitAt = now;
+    pulseScore();
     render();
     pulseCombo();
     scheduleReset();
@@ -70,6 +84,9 @@
     },
     getFeedbackCount() {
       return feedbackCount;
+    },
+    getScoreFeedbackCount() {
+      return scoreFeedbackCount;
     }
   };
 })();
