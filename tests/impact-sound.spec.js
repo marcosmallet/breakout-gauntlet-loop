@@ -15,6 +15,33 @@ test('destruir bloco dispara feedback sonoro uma vez', async ({ page }) => {
   await expect.poll(() => page.evaluate(() => window.__IMPACT_SOUND_DEBUG__.getImpactCount())).toBe(1);
 });
 
+test('combo crescente eleva o tom dos impactos', async ({ page }) => {
+  await page.goto('/');
+
+  const frequencies = await page.evaluate(async () => {
+    const game = window.__GAME_DEBUG__;
+    const sound = window.__IMPACT_SOUND_DEBUG__;
+    game.start();
+    game.step(45);
+
+    game.setBall({ x: 50, y: 45, vx: 0, vy: 5 });
+    game.step();
+    await Promise.resolve();
+    const first = sound.getLastImpactFrequency();
+
+    game.setBall({ x: 120, y: 45, vx: 0, vy: 5 });
+    game.step();
+    await Promise.resolve();
+    const second = sound.getLastImpactFrequency();
+
+    return { first, second };
+  });
+
+  await expect(page.locator('#combo')).toHaveText('x2');
+  expect(frequencies.first).toBe(420);
+  expect(frequencies.second).toBe(475);
+});
+
 test('perder vida dispara feedback sonoro próprio uma vez', async ({ page }) => {
   await page.goto('/');
 
