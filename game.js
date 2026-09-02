@@ -13,6 +13,8 @@
   const MIN_VERTICAL_SPEED = 1.5;
   const BRICK_SPEED_MULTIPLIER = 1.012;
   const MAX_BALL_SPEED = 8;
+  const ROUND_SPEED_STEP = 0.25;
+  const MAX_ROUND_START_COMPONENT = 5;
   const TARGET_FRAME_MS = 1000 / 60;
   const MAX_FRAME_STEP = 2;
   const RESPAWN_GRACE_STEPS = 45;
@@ -61,10 +63,14 @@
   }
 
   function resetBall(withGrace = false) {
+    const roundStartComponent = Math.min(
+      MAX_ROUND_START_COMPONENT,
+      4 + (round - 1) * ROUND_SPEED_STEP
+    );
     ball.x = W / 2;
     ball.y = H - 58;
-    ball.vx = 4 * (Math.random() < 0.5 ? -1 : 1);
-    ball.vy = -4;
+    ball.vx = roundStartComponent * (Math.random() < 0.5 ? -1 : 1);
+    ball.vy = -roundStartComponent;
     paddle.x = W / 2 - paddle.w / 2;
     respawnGrace = withGrace ? RESPAWN_GRACE_STEPS : 0;
     if (withGrace) gameStatusEl.textContent = 'Prepare-se...';
