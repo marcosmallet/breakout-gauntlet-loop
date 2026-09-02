@@ -62,3 +62,30 @@ test('countdown 3-2-1 acompanha a janela de preparação antes do lançamento', 
 
   expect(values).toEqual([3, 2, 1, null]);
 });
+
+test('popup mostra os pontos ganhos no local do impacto', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Iniciar' }).click();
+
+  const result = await page.evaluate(() => {
+    const game = window.__GAME_DEBUG__;
+    const trail = window.__BALL_TRAIL_DEBUG__;
+
+    game.step(60);
+    trail.refresh();
+    game.clearBricksExcept(0);
+    game.setBall({ x: 50, y: 49, vx: 0, vy: 4 });
+    game.step();
+    trail.refresh();
+
+    return {
+      score: game.getState().score,
+      popup: trail.getScorePopup()
+    };
+  });
+
+  expect(result.score).toBe(10);
+  expect(result.popup).not.toBeNull();
+  expect(result.popup.value).toBe(10);
+  expect(result.popup.life).toBeGreaterThan(0);
+});

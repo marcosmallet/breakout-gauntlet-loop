@@ -16,9 +16,12 @@
   const ctx = trailCanvas.getContext('2d');
   const MAX_TRAIL_POINTS = 4;
   const COUNTDOWN_SEGMENT_STEPS = 15;
+  const SCORE_POPUP_FRAMES = 42;
   const trail = [];
   let lastSample = null;
   let countdownValue = null;
+  let previousScore = gameDebug.getState().score;
+  let scorePopup = null;
 
   function syncOverlayBounds() {
     const rect = gameCanvas.getBoundingClientRect();
@@ -35,6 +38,19 @@
 
   function sampleState() {
     const state = gameDebug.getState();
+
+    if (state.score > previousScore) {
+      scorePopup = {
+        x: state.ball.x,
+        y: state.ball.y,
+        value: state.score - previousScore,
+        life: SCORE_POPUP_FRAMES
+      };
+    } else if (state.score < previousScore) {
+      scorePopup = null;
+    }
+    previousScore = state.score;
+
     if (!state.running || state.respawnGrace > 0 || state.pausedByFocusLoss || state.pausedByPlayer) {
       clearTrail();
       return state;
@@ -65,6 +81,25 @@
     ctx.restore();
   }
 
+  function renderScorePopup() {
+    if (!scorePopup) return;
+
+    const progress = 1 - scorePopup.life / SCORE_POPUP_FRAMES;
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, scorePopup.life / 12);
+    ctx.font = '700 20px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#fef08a';
+    ctx.shadowColor = '#0f172a';
+    ctx.shadowBlur = 8;
+    ctx.fillText(`+${scorePopup.value}`, scorePopup.x, scorePopup.y - 18 - progress * 18);
+    ctx.restore();
+
+    scorePopup.life -= 1;
+    if (scorePopup.life <= 0) scorePopup = null;
+  }
+
   function render(state) {
     syncOverlayBounds();
     ctx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
@@ -81,6 +116,7 @@
     });
 
     renderCountdown(state);
+    renderScorePopup();
   }
 
   function refresh() {
@@ -107,6 +143,9 @@
     },
     getCountdownValue() {
       return countdownValue;
+    },
+    getScorePopup() {
+      return scorePopup ? { ...scorePopup } : null;
     }
   };
 })();
