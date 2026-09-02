@@ -16,6 +16,7 @@
   const ROUND_SPEED_STEP = 0.25;
   const MAX_ROUND_START_COMPONENT = 5;
   const MAX_LIVES = 5;
+  const MAX_COMBO_MULTIPLIER = 5;
   const TARGET_FRAME_MS = 1000 / 60;
   const MAX_FRAME_STEP = 2;
   const RESPAWN_GRACE_STEPS = 45;
@@ -281,7 +282,9 @@
         impactFlash = { x: ball.x, y: ball.y, life: IMPACT_FLASH_STEPS };
         bounceBallOffBrick(brick, previousBallX, previousBallY);
         accelerateBallAfterBrick();
-        score += 10;
+        const activeCombo = window.__COMBO_DEBUG__?.getCombo?.() || 0;
+        const comboMultiplier = Math.min(MAX_COMBO_MULTIPLIER, activeCombo + 1);
+        score += 10 * comboMultiplier;
         scoreEl.textContent = score;
         break;
       }
