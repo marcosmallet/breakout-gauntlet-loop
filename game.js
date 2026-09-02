@@ -21,8 +21,11 @@
   const RESPAWN_GRACE_STEPS = 45;
   const IMPACT_FLASH_STEPS = 8;
   const PADDLE_FLASH_STEPS = 6;
+  const BASE_PADDLE_WIDTH = 110;
+  const ROUND_PADDLE_SHRINK = 8;
+  const MIN_PADDLE_WIDTH = 78;
 
-  const paddle = { x: W / 2 - 55, y: H - 38, w: 110, h: 14, speed: 8 };
+  const paddle = { x: W / 2 - BASE_PADDLE_WIDTH / 2, y: H - 38, w: BASE_PADDLE_WIDTH, h: 14, speed: 8 };
   const ball = { x: W / 2, y: H - 58, r: 8, vx: 4, vy: -4 };
   const keys = new Set();
 
@@ -81,6 +84,7 @@
     score = 0;
     lives = 3;
     round = 1;
+    paddle.w = BASE_PADDLE_WIDTH;
     impactFlash = null;
     paddleFlash = 0;
     scoreEl.textContent = score;
@@ -303,6 +307,10 @@
         livesEl.textContent = lives;
       }
       round += 1;
+      paddle.w = Math.max(
+        MIN_PADDLE_WIDTH,
+        BASE_PADDLE_WIDTH - (round - 1) * ROUND_PADDLE_SHRINK
+      );
       createBricks();
       resetBall(true);
       gameStatusEl.textContent = earnedExtraLife

@@ -26,6 +26,7 @@ test('limpar o tabuleiro inicia nova rodada e recompensa com vida extra', async 
   expect(state.lives).toBe(4);
   expect(state.bricksRemaining).toBe(50);
   expect(state.respawnGrace).toBe(45);
+  expect(state.paddle.w).toBe(102);
   await expect(page.getByRole('status')).toHaveText('Rodada 2! Vida extra.');
 });
 
@@ -47,5 +48,6 @@ test('vidas extras de rodada respeitam o limite de cinco', async ({ page }) => {
 
   expect(state.round).toBe(4);
   expect(state.lives).toBe(5);
+  expect(state.paddle.w).toBe(86);
   await expect(page.getByRole('status')).toHaveText('Rodada 4!');
 });
