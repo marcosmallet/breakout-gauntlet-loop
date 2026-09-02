@@ -1,5 +1,6 @@
 (() => {
   const scoreEl = document.getElementById('score');
+  const livesEl = document.getElementById('lives');
   const roundEl = document.getElementById('round');
   const canvas = document.getElementById('game');
   const startButton = document.getElementById('startButton');
@@ -7,8 +8,10 @@
 
   let audioContext = null;
   let previousScore = Number(scoreEl.textContent) || 0;
+  let previousLives = Number(livesEl?.textContent) || 0;
   let previousRound = Number(roundEl?.textContent) || 1;
   let impactCount = 0;
+  let lifeLossCount = 0;
   let roundAdvanceCount = 0;
 
   function ensureAudioContext() {
@@ -38,6 +41,27 @@
     gain.connect(context.destination);
     oscillator.start(now);
     oscillator.stop(now + 0.05);
+  }
+
+  function playLifeLoss() {
+    lifeLossCount += 1;
+    const context = ensureAudioContext();
+    if (!context) return;
+
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    const now = context.currentTime;
+
+    oscillator.type = 'triangle';
+    oscillator.frequency.setValueAtTime(220, now);
+    oscillator.frequency.exponentialRampToValueAtTime(110, now + 0.18);
+    gain.gain.setValueAtTime(0.045, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start(now);
+    oscillator.stop(now + 0.2);
   }
 
   function playRoundAdvance() {
@@ -71,6 +95,15 @@
 
   scoreObserver.observe(scoreEl, { childList: true, characterData: true, subtree: true });
 
+  if (livesEl) {
+    const livesObserver = new MutationObserver(() => {
+      const nextLives = Number(livesEl.textContent) || 0;
+      if (nextLives < previousLives) playLifeLoss();
+      previousLives = nextLives;
+    });
+    livesObserver.observe(livesEl, { childList: true, characterData: true, subtree: true });
+  }
+
   if (roundEl) {
     const roundObserver = new MutationObserver(() => {
       const nextRound = Number(roundEl.textContent) || 1;
@@ -86,6 +119,9 @@
   window.__IMPACT_SOUND_DEBUG__ = {
     getImpactCount() {
       return impactCount;
+    },
+    getLifeLossCount() {
+      return lifeLossCount;
     },
     getRoundAdvanceCount() {
       return roundAdvanceCount;
