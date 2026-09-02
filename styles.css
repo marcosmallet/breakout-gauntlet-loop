@@ -30,6 +30,15 @@ header p { margin-top: 4px; opacity: .7; }
   margin: 14px 2px 8px;
 }
 
+#combo {
+  display: inline-block;
+  transform-origin: center;
+}
+
+#combo.combo-pop {
+  animation: combo-pop 180ms ease-out;
+}
+
 canvas {
   width: 100%;
   height: auto;
@@ -47,6 +56,11 @@ canvas.impact-shake {
 
 canvas.life-loss-pulse {
   animation: life-loss-pulse 220ms ease-out;
+}
+
+@keyframes combo-pop {
+  0%, 100% { transform: scale(1); }
+  45% { transform: scale(1.35); text-shadow: 0 0 14px currentColor; }
 }
 
 @keyframes impact-shake {
@@ -90,6 +104,7 @@ button:focus-visible {
 .controls p { opacity: .7; font-size: .95rem; }
 
 @media (prefers-reduced-motion: reduce) {
+  #combo.combo-pop,
   canvas.impact-shake,
   canvas.life-loss-pulse { animation: none; }
 }

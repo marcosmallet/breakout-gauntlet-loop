@@ -1,6 +1,6 @@
 const { test, expect } = require('@playwright/test');
 
-test('acertos rápidos em sequência constroem combo e perder vida o encerra', async ({ page }) => {
+test('acertos rápidos em sequência constroem combo, dão feedback e perder vida o encerra', async ({ page }) => {
   await page.goto('/');
 
   await page.evaluate(async () => {
@@ -17,6 +17,7 @@ test('acertos rápidos em sequência constroem combo e perder vida o encerra', a
   await expect(page.locator('#score')).toHaveText('20');
   await expect(page.locator('#combo')).toHaveText('x2');
   await expect.poll(() => page.evaluate(() => window.__COMBO_DEBUG__?.getCombo())).toBe(2);
+  await expect.poll(() => page.evaluate(() => window.__COMBO_DEBUG__?.getFeedbackCount())).toBe(1);
 
   await page.evaluate(() => {
     window.__GAME_DEBUG__.setBall({ y: 540, vx: 0, vy: 4 });

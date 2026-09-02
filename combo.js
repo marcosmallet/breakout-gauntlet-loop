@@ -10,9 +10,18 @@
   let combo = 0;
   let lastHitAt = 0;
   let resetTimer = null;
+  let feedbackCount = 0;
 
   function render() {
     comboEl.textContent = `x${combo}`;
+  }
+
+  function pulseCombo() {
+    if (combo < 2) return;
+    feedbackCount += 1;
+    comboEl.classList.remove('combo-pop');
+    void comboEl.offsetWidth;
+    comboEl.classList.add('combo-pop');
   }
 
   function resetCombo() {
@@ -20,6 +29,7 @@
     lastHitAt = 0;
     if (resetTimer) clearTimeout(resetTimer);
     resetTimer = null;
+    comboEl.classList.remove('combo-pop');
     render();
   }
 
@@ -33,8 +43,13 @@
     combo = lastHitAt && now - lastHitAt <= COMBO_WINDOW_MS ? combo + 1 : 1;
     lastHitAt = now;
     render();
+    pulseCombo();
     scheduleReset();
   }
+
+  comboEl.addEventListener('animationend', () => {
+    comboEl.classList.remove('combo-pop');
+  });
 
   new MutationObserver(() => {
     const nextScore = Number(scoreEl.textContent) || 0;
@@ -52,6 +67,9 @@
   window.__COMBO_DEBUG__ = {
     getCombo() {
       return combo;
+    },
+    getFeedbackCount() {
+      return feedbackCount;
     }
   };
 })();
