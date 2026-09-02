@@ -13,6 +13,7 @@
   let impactCount = 0;
   let lifeLossCount = 0;
   let roundAdvanceCount = 0;
+  let lastImpactFrequency = 420;
 
   function ensureAudioContext() {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -24,6 +25,9 @@
 
   function playImpact() {
     impactCount += 1;
+    const combo = Math.max(1, window.__COMBO_DEBUG__?.getCombo?.() || 1);
+    lastImpactFrequency = 420 + Math.min(5, combo - 1) * 55;
+
     const context = ensureAudioContext();
     if (!context) return;
 
@@ -32,8 +36,8 @@
     const now = context.currentTime;
 
     oscillator.type = 'square';
-    oscillator.frequency.setValueAtTime(420, now);
-    oscillator.frequency.exponentialRampToValueAtTime(260, now + 0.045);
+    oscillator.frequency.setValueAtTime(lastImpactFrequency, now);
+    oscillator.frequency.exponentialRampToValueAtTime(lastImpactFrequency * 0.62, now + 0.045);
     gain.gain.setValueAtTime(0.035, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
 
@@ -125,6 +129,9 @@
     },
     getRoundAdvanceCount() {
       return roundAdvanceCount;
+    },
+    getLastImpactFrequency() {
+      return lastImpactFrequency;
     }
   };
 })();
