@@ -42,6 +42,21 @@ test('combo crescente eleva o tom dos impactos', async ({ page }) => {
   expect(frequencies.second).toBe(475);
 });
 
+test('rebater na raquete dispara feedback sonoro próprio uma vez', async ({ page }) => {
+  await page.goto('/');
+
+  await page.evaluate(() => {
+    const game = window.__GAME_DEBUG__;
+    game.start();
+    game.step(45);
+    game.setBall({ x: 400, y: 470, vx: 0, vy: 6 });
+    game.step();
+  });
+
+  await expect.poll(() => page.evaluate(() => window.__IMPACT_SOUND_DEBUG__.getPaddleImpactCount())).toBe(1);
+  expect(await page.evaluate(() => window.__GAME_DEBUG__.getState().ball.vy)).toBeLessThan(0);
+});
+
 test('perder vida dispara feedback sonoro próprio uma vez', async ({ page }) => {
   await page.goto('/');
 
