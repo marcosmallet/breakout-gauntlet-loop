@@ -36,6 +36,23 @@ header p { margin-top: 4px; opacity: .7; }
   transform-origin: center;
 }
 
+#combo {
+  position: relative;
+}
+
+#combo.combo-window::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+  transform-origin: left;
+  animation: combo-window 2s linear forwards;
+}
+
 #combo.combo-pop {
   animation: combo-pop 180ms ease-out;
 }
@@ -61,6 +78,11 @@ canvas.impact-shake {
 
 canvas.life-loss-pulse {
   animation: life-loss-pulse 220ms ease-out;
+}
+
+@keyframes combo-window {
+  from { transform: scaleX(1); opacity: .9; }
+  to { transform: scaleX(0); opacity: .35; }
 }
 
 @keyframes combo-pop {
@@ -118,6 +140,8 @@ button:focus-visible {
   #lives.life-gain-pop,
   canvas.impact-shake,
   canvas.life-loss-pulse { animation: none; }
+
+  #combo.combo-window::after { animation: none; }
 }
 
 @media (orientation: landscape) and (max-height: 600px) {
