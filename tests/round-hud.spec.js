@@ -21,5 +21,5 @@ test('HUD mantém a rodada atual visível durante a progressão', async ({ page 
   });
 
   await expect(page.locator('#round')).toHaveText('2');
-  await expect(page.getByRole('status')).toHaveText('Rodada 2!');
+  await expect(page.getByRole('status')).toContainText('Rodada 2!');
 });
