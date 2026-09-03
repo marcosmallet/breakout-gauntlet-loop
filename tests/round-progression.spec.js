@@ -29,6 +29,8 @@ test('limpar o tabuleiro inicia nova rodada, recompensa sobrevivência e concede
   expect(state.paddle.w).toBe(102);
   await expect(page.getByRole('status')).toHaveText('Rodada 2! Bônus +300. Vida extra.');
   await expect(page.locator('#game')).toHaveCSS('--round-accent-hue', '243');
+  await expect.poll(() => page.evaluate(() => window.__ROUND_CLEAR_FEEDBACK_DEBUG__.getPulseCount())).toBe(1);
+  await expect(page.locator('#game')).toHaveAttribute('data-round-clear-pulse', '1');
 });
 
 test('vidas extras de rodada respeitam o limite de cinco e o bônus usa as vidas preservadas', async ({ page }) => {
