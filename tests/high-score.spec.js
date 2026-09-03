@@ -20,3 +20,21 @@ test('recorde acompanha a pontuação e persiste entre partidas', async ({ page 
   await expect(page.locator('#score')).toHaveText('0');
   await expect(page.locator('#highScore')).toHaveText('310');
 });
+
+test('bater um recorde existente dispara celebração uma vez', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('breakoutHighScore', '300'));
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Iniciar' }).click();
+
+  await page.evaluate(() => {
+    const game = window.__GAME_DEBUG__;
+    while (game.getState().respawnGrace > 0) game.step();
+    game.clearBricksExcept(0);
+    game.setBall({ x: 21.6, y: 69, vx: 4, vy: 0 });
+    game.step();
+  });
+
+  await expect(page.locator('#score')).toHaveText('310');
+  await expect(page.locator('#highScore')).toHaveText('310');
+  await expect.poll(() => page.evaluate(() => window.__HIGH_SCORE_DEBUG__.getCelebrationCount())).toBe(1);
+});
