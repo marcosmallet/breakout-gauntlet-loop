@@ -17,6 +17,7 @@
   const MAX_ROUND_START_COMPONENT = 5;
   const MAX_LIVES = 5;
   const MAX_COMBO_MULTIPLIER = 5;
+  const ROUND_CLEAR_LIFE_BONUS = 100;
   const TARGET_FRAME_MS = 1000 / 60;
   const MAX_FRAME_STEP = 2;
   const RESPAWN_GRACE_STEPS = 45;
@@ -304,6 +305,10 @@
     }
 
     if (running && bricks.every((brick) => !brick.alive)) {
+      const roundClearBonus = lives * ROUND_CLEAR_LIFE_BONUS;
+      score += roundClearBonus;
+      scoreEl.textContent = score;
+
       const earnedExtraLife = lives < MAX_LIVES;
       if (earnedExtraLife) {
         lives += 1;
@@ -317,8 +322,8 @@
       createBricks();
       resetBall(true);
       gameStatusEl.textContent = earnedExtraLife
-        ? `Rodada ${round}! Vida extra.`
-        : `Rodada ${round}!`;
+        ? `Rodada ${round}! Bônus +${roundClearBonus}. Vida extra.`
+        : `Rodada ${round}! Bônus +${roundClearBonus}.`;
     }
   }
 
