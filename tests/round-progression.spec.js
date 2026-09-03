@@ -1,6 +1,6 @@
 const { test, expect } = require('@playwright/test');
 
-test('limpar o tabuleiro inicia nova rodada e recompensa com vida extra', async ({ page }) => {
+test('limpar o tabuleiro inicia nova rodada, recompensa sobrevivência e concede vida extra', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Iniciar' }).click();
 
@@ -22,16 +22,16 @@ test('limpar o tabuleiro inicia nova rodada e recompensa com vida extra', async 
 
   expect(state.running).toBe(true);
   expect(state.round).toBe(2);
-  expect(state.score).toBe(10);
+  expect(state.score).toBe(310);
   expect(state.lives).toBe(4);
   expect(state.bricksRemaining).toBe(50);
   expect(state.respawnGrace).toBe(45);
   expect(state.paddle.w).toBe(102);
-  await expect(page.getByRole('status')).toHaveText('Rodada 2! Vida extra.');
+  await expect(page.getByRole('status')).toHaveText('Rodada 2! Bônus +300. Vida extra.');
   await expect(page.locator('#game')).toHaveCSS('--round-accent-hue', '243');
 });
 
-test('vidas extras de rodada respeitam o limite de cinco', async ({ page }) => {
+test('vidas extras de rodada respeitam o limite de cinco e o bônus usa as vidas preservadas', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Iniciar' }).click();
 
@@ -48,8 +48,9 @@ test('vidas extras de rodada respeitam o limite de cinco', async ({ page }) => {
   });
 
   expect(state.round).toBe(4);
+  expect(state.score).toBe(1230);
   expect(state.lives).toBe(5);
   expect(state.paddle.w).toBe(86);
-  await expect(page.getByRole('status')).toHaveText('Rodada 4!');
+  await expect(page.getByRole('status')).toHaveText('Rodada 4! Bônus +500.');
   await expect(page.locator('#game')).toHaveCSS('--round-accent-hue', '319');
 });
