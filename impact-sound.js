@@ -11,11 +11,13 @@
   let previousLives = Number(livesEl?.textContent) || 0;
   let previousRound = Number(roundEl?.textContent) || 1;
   let previousPaddleFlash = 0;
+  let previousWallContact = false;
   let impactCount = 0;
   let lifeLossCount = 0;
   let gameOverCount = 0;
   let roundAdvanceCount = 0;
   let paddleImpactCount = 0;
+  let wallImpactCount = 0;
   let lastImpactFrequency = 420;
 
   function ensureAudioContext() {
@@ -69,6 +71,27 @@
     gain.connect(context.destination);
     oscillator.start(now);
     oscillator.stop(now + 0.07);
+  }
+
+  function playWallImpact() {
+    wallImpactCount += 1;
+    const context = ensureAudioContext();
+    if (!context) return;
+
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    const now = context.currentTime;
+
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(260, now);
+    oscillator.frequency.exponentialRampToValueAtTime(205, now + 0.032);
+    gain.gain.setValueAtTime(0.018, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.038);
+
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start(now);
+    oscillator.stop(now + 0.04);
   }
 
   function playLifeLoss() {
@@ -167,13 +190,24 @@
     roundObserver.observe(roundEl, { childList: true, characterData: true, subtree: true });
   }
 
-  function watchPaddleImpact() {
-    const nextPaddleFlash = window.__GAME_DEBUG__?.getState?.().paddleFlash || 0;
+  function watchGameImpacts() {
+    const state = window.__GAME_DEBUG__?.getState?.();
+    const nextPaddleFlash = state?.paddleFlash || 0;
     if (nextPaddleFlash > previousPaddleFlash) playPaddleImpact();
     previousPaddleFlash = nextPaddleFlash;
-    requestAnimationFrame(watchPaddleImpact);
+
+    const ball = state?.ball;
+    const wallContact = Boolean(ball && (
+      ball.x - ball.r <= 0 ||
+      ball.x + ball.r >= canvas.width ||
+      ball.y - ball.r <= 0
+    ));
+    if (wallContact && !previousWallContact) playWallImpact();
+    previousWallContact = wallContact;
+
+    requestAnimationFrame(watchGameImpacts);
   }
-  requestAnimationFrame(watchPaddleImpact);
+  requestAnimationFrame(watchGameImpacts);
 
   canvas?.addEventListener('pointerdown', ensureAudioContext, { once: true });
   startButton?.addEventListener('click', ensureAudioContext, { once: true });
@@ -193,6 +227,9 @@
     },
     getPaddleImpactCount() {
       return paddleImpactCount;
+    },
+    getWallImpactCount() {
+      return wallImpactCount;
     },
     getLastImpactFrequency() {
       return lastImpactFrequency;

@@ -57,6 +57,21 @@ test('rebater na raquete dispara feedback sonoro próprio uma vez', async ({ pag
   expect(await page.evaluate(() => window.__GAME_DEBUG__.getState().ball.vy)).toBeLessThan(0);
 });
 
+test('rebater na parede dispara feedback sonoro sutil uma vez', async ({ page }) => {
+  await page.goto('/');
+
+  await page.evaluate(() => {
+    const game = window.__GAME_DEBUG__;
+    game.start();
+    game.step(45);
+    game.setBall({ x: 9, y: 260, vx: -5, vy: -2 });
+    game.step();
+  });
+
+  await expect.poll(() => page.evaluate(() => window.__IMPACT_SOUND_DEBUG__.getWallImpactCount())).toBe(1);
+  expect(await page.evaluate(() => window.__GAME_DEBUG__.getState().ball.vx)).toBeGreaterThan(0);
+});
+
 test('perder vida dispara feedback sonoro próprio uma vez', async ({ page }) => {
   await page.goto('/');
 
