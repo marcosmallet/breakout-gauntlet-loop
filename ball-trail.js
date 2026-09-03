@@ -17,10 +17,14 @@
   const MAX_TRAIL_POINTS = 4;
   const COUNTDOWN_SEGMENT_STEPS = 15;
   const SCORE_POPUP_FRAMES = 42;
+  const ROUND_CLEAR_LIFE_BONUS = 100;
   const trail = [];
   let lastSample = null;
   let countdownValue = null;
-  let previousScore = gameDebug.getState().score;
+  const initialState = gameDebug.getState();
+  let previousScore = initialState.score;
+  let previousRound = initialState.round;
+  let previousLives = initialState.lives;
   let scorePopup = null;
 
   function syncOverlayBounds() {
@@ -40,16 +44,25 @@
     const state = gameDebug.getState();
 
     if (state.score > previousScore) {
-      scorePopup = {
-        x: state.ball.x,
-        y: state.ball.y,
-        value: state.score - previousScore,
-        life: SCORE_POPUP_FRAMES
-      };
+      const scoreDelta = state.score - previousScore;
+      const roundClearBonus = state.round > previousRound
+        ? previousLives * ROUND_CLEAR_LIFE_BONUS
+        : 0;
+      const impactPoints = Math.max(0, scoreDelta - roundClearBonus);
+      if (impactPoints > 0) {
+        scorePopup = {
+          x: state.ball.x,
+          y: state.ball.y,
+          value: impactPoints,
+          life: SCORE_POPUP_FRAMES
+        };
+      }
     } else if (state.score < previousScore) {
       scorePopup = null;
     }
     previousScore = state.score;
+    previousRound = state.round;
+    previousLives = state.lives;
 
     if (!state.running || state.respawnGrace > 0 || state.pausedByFocusLoss || state.pausedByPlayer) {
       clearTrail();
