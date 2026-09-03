@@ -17,6 +17,7 @@
   const MAX_ROUND_START_COMPONENT = 5;
   const MAX_LIVES = 5;
   const MAX_COMBO_MULTIPLIER = 5;
+  const BRICK_ROW_BASE_POINTS = [30, 25, 20, 15, 10];
   const ROUND_CLEAR_LIFE_BONUS = 100;
   const TARGET_FRAME_MS = 1000 / 60;
   const MAX_FRAME_STEP = 2;
@@ -285,7 +286,7 @@
         accelerateBallAfterBrick();
         const activeCombo = window.__COMBO_DEBUG__?.getCombo?.() || 0;
         const comboMultiplier = Math.min(MAX_COMBO_MULTIPLIER, activeCombo + 1);
-        score += 10 * comboMultiplier;
+        score += BRICK_ROW_BASE_POINTS[brick.row] * comboMultiplier;
         scoreEl.textContent = score;
         break;
       }
@@ -335,6 +336,17 @@
       const hue = 205 + brick.row * 18;
       ctx.fillStyle = `hsl(${hue} 80% 58%)`;
       ctx.fillRect(brick.x, brick.y, brick.w, brick.h);
+      ctx.save();
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.font = '600 11px system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(
+        String(BRICK_ROW_BASE_POINTS[brick.row]),
+        brick.x + brick.w / 2,
+        brick.y + brick.h / 2
+      );
+      ctx.restore();
     }
 
     if (impactFlash) {
