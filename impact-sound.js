@@ -13,6 +13,7 @@
   let previousPaddleFlash = 0;
   let impactCount = 0;
   let lifeLossCount = 0;
+  let gameOverCount = 0;
   let roundAdvanceCount = 0;
   let paddleImpactCount = 0;
   let lastImpactFrequency = 420;
@@ -91,6 +92,29 @@
     oscillator.stop(now + 0.2);
   }
 
+  function playGameOver() {
+    gameOverCount += 1;
+    const context = ensureAudioContext();
+    if (!context) return;
+
+    const now = context.currentTime;
+    [196, 146.83, 110].forEach((frequency, index) => {
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      const start = now + index * 0.09;
+
+      oscillator.type = 'triangle';
+      oscillator.frequency.setValueAtTime(frequency, start);
+      gain.gain.setValueAtTime(0.045, start);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.16);
+
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+      oscillator.start(start);
+      oscillator.stop(start + 0.17);
+    });
+  }
+
   function playRoundAdvance() {
     roundAdvanceCount += 1;
     const context = ensureAudioContext();
@@ -125,7 +149,10 @@
   if (livesEl) {
     const livesObserver = new MutationObserver(() => {
       const nextLives = Number(livesEl.textContent) || 0;
-      if (nextLives < previousLives) playLifeLoss();
+      if (nextLives < previousLives) {
+        if (nextLives === 0) playGameOver();
+        else playLifeLoss();
+      }
       previousLives = nextLives;
     });
     livesObserver.observe(livesEl, { childList: true, characterData: true, subtree: true });
@@ -157,6 +184,9 @@
     },
     getLifeLossCount() {
       return lifeLossCount;
+    },
+    getGameOverCount() {
+      return gameOverCount;
     },
     getRoundAdvanceCount() {
       return roundAdvanceCount;
