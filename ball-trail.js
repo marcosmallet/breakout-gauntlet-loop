@@ -14,18 +14,29 @@
   document.body.appendChild(trailCanvas);
 
   const ctx = trailCanvas.getContext('2d');
-  const MAX_TRAIL_POINTS = 4;
+  const MIN_TRAIL_POINTS = 4;
+  const MAX_TRAIL_POINTS = 8;
+  const BASE_BALL_SPEED = Math.hypot(4, 4);
+  const MAX_BALL_SPEED = 8;
   const COUNTDOWN_SEGMENT_STEPS = 15;
   const SCORE_POPUP_FRAMES = 42;
   const ROUND_CLEAR_LIFE_BONUS = 100;
   const trail = [];
   let lastSample = null;
+  let activeTrailLimit = MIN_TRAIL_POINTS;
   let countdownValue = null;
   const initialState = gameDebug.getState();
   let previousScore = initialState.score;
   let previousRound = initialState.round;
   let previousLives = initialState.lives;
   let scorePopup = null;
+
+  function trailLimitForSpeed(speed) {
+    const progress = Math.max(0, Math.min(1,
+      (speed - BASE_BALL_SPEED) / (MAX_BALL_SPEED - BASE_BALL_SPEED)
+    ));
+    return Math.round(MIN_TRAIL_POINTS + progress * (MAX_TRAIL_POINTS - MIN_TRAIL_POINTS));
+  }
 
   function syncOverlayBounds() {
     const rect = gameCanvas.getBoundingClientRect();
@@ -38,6 +49,7 @@
   function clearTrail() {
     trail.length = 0;
     lastSample = null;
+    activeTrailLimit = MIN_TRAIL_POINTS;
   }
 
   function sampleState() {
@@ -69,10 +81,11 @@
       return state;
     }
 
+    activeTrailLimit = trailLimitForSpeed(Math.hypot(state.ball.vx, state.ball.vy));
     const sample = { x: state.ball.x, y: state.ball.y, r: state.ball.r };
     if (!lastSample || sample.x !== lastSample.x || sample.y !== lastSample.y) {
       trail.push(sample);
-      if (trail.length > MAX_TRAIL_POINTS) trail.shift();
+      while (trail.length > activeTrailLimit) trail.shift();
       lastSample = sample;
     }
     return state;
@@ -154,6 +167,10 @@
     getMaxTrailPoints() {
       return MAX_TRAIL_POINTS;
     },
+    getActiveTrailLimit() {
+      return activeTrailLimit;
+    },
+    trailLimitForSpeed,
     getCountdownValue() {
       return countdownValue;
     },

@@ -22,6 +22,7 @@ test('rastro acompanha o movimento da bola sem afetar a simulação', async ({ p
       before,
       after,
       trailLength: trail.getTrailLength(),
+      activeTrailLimit: trail.getActiveTrailLimit(),
       maxTrailPoints: trail.getMaxTrailPoints()
     };
   });
@@ -29,8 +30,47 @@ test('rastro acompanha o movimento da bola sem afetar a simulação', async ({ p
   expect(result.after.x).not.toBe(result.before.x);
   expect(result.after.y).not.toBe(result.before.y);
   expect(result.trailLength).toBeGreaterThan(1);
-  expect(result.trailLength).toBeLessThanOrEqual(result.maxTrailPoints);
-  expect(result.maxTrailPoints).toBe(4);
+  expect(result.trailLength).toBeLessThanOrEqual(result.activeTrailLimit);
+  expect(result.activeTrailLimit).toBeGreaterThanOrEqual(4);
+  expect(result.maxTrailPoints).toBe(8);
+});
+
+test('rastro fica mais longo conforme a velocidade da bola aumenta', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Iniciar' }).click();
+
+  const result = await page.evaluate(() => {
+    const game = window.__GAME_DEBUG__;
+    const trail = window.__BALL_TRAIL_DEBUG__;
+
+    game.step(60);
+    game.setBall({ x: 300, y: 300, vx: 4, vy: -4 });
+    for (let index = 0; index < 10; index += 1) {
+      game.step();
+      trail.refresh();
+    }
+    const base = {
+      length: trail.getTrailLength(),
+      limit: trail.getActiveTrailLimit()
+    };
+
+    game.setBall({ x: 300, y: 300, vx: 8, vy: 0 });
+    for (let index = 0; index < 12; index += 1) {
+      game.step();
+      trail.refresh();
+    }
+    const fast = {
+      length: trail.getTrailLength(),
+      limit: trail.getActiveTrailLimit()
+    };
+
+    return { base, fast };
+  });
+
+  expect(result.base.limit).toBe(4);
+  expect(result.base.length).toBe(4);
+  expect(result.fast.limit).toBe(8);
+  expect(result.fast.length).toBe(8);
 });
 
 test('countdown 3-2-1 acompanha a janela de preparação antes do lançamento', async ({ page }) => {
