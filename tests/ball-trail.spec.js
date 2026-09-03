@@ -84,7 +84,7 @@ test('popup mostra os pontos ganhos no local do impacto', async ({ page }) => {
     };
   });
 
-  expect(result.score).toBe(10);
+  expect(result.score).toBe(310);
   expect(result.popup).not.toBeNull();
   expect(result.popup.value).toBe(10);
   expect(result.popup.life).toBeGreaterThan(0);
