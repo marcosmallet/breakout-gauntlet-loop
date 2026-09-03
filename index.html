@@ -58,6 +58,7 @@
         roundEl.textContent = currentRound;
         const accentHue = (205 + (currentRound - 1) * 38) % 360;
         gameCanvas.style.setProperty('--round-accent-hue', accentHue);
+        document.documentElement.style.setProperty('--round-accent-hue', accentHue);
       }
     };
     const syncBrickProgress = () => {
