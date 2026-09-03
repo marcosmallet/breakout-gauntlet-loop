@@ -6,6 +6,7 @@
   if (!scoreEl || !livesEl || !comboEl) return;
 
   const COMBO_WINDOW_MS = 2000;
+  const MAX_COMBO_MULTIPLIER = 5;
   const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
   let previousScore = Number(scoreEl.textContent) || 0;
   let previousLives = Number(livesEl.textContent) || 0;
@@ -18,7 +19,10 @@
   let audioContext = null;
 
   function render() {
-    comboEl.textContent = `x${combo}`;
+    const multiplier = Math.min(combo, MAX_COMBO_MULTIPLIER);
+    comboEl.textContent = combo >= MAX_COMBO_MULTIPLIER
+      ? `x${multiplier} MAX`
+      : `x${multiplier}`;
   }
 
   function primeAudio() {
