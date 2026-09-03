@@ -73,7 +73,7 @@ canvas {
   box-shadow:
     0 18px 60px rgba(0,0,0,.4),
     0 0 28px hsl(var(--round-accent-hue) 82% 58% / .14);
-  transition: border-color 240ms ease, box-shadow 240ms ease;
+  transition: border-color 240ms ease, box-shadow 240ms ease, filter 240ms ease;
 }
 
 canvas.impact-shake {
@@ -90,6 +90,15 @@ canvas.edge-shot-boost {
     0 18px 60px rgba(0,0,0,.4),
     0 0 34px rgba(250,204,21,.72);
   animation: edge-shot-boost 180ms ease-out;
+}
+
+canvas.game-over-feedback {
+  border-color: rgba(248,113,113,.9);
+  box-shadow:
+    0 18px 60px rgba(0,0,0,.4),
+    0 0 40px rgba(248,113,113,.5);
+  filter: saturate(.45) brightness(.72);
+  animation: game-over-feedback 520ms ease-out;
 }
 
 @keyframes combo-window {
@@ -132,6 +141,12 @@ canvas.edge-shot-boost {
   45% { transform: scale(1.004); }
 }
 
+@keyframes game-over-feedback {
+  0% { transform: scale(1); filter: saturate(1) brightness(1); }
+  35% { transform: scale(.996); filter: saturate(.25) brightness(.62); }
+  100% { transform: scale(1); filter: saturate(.45) brightness(.72); }
+}
+
 .controls { margin-top: 16px; }
 button {
   appearance: none;
@@ -159,7 +174,8 @@ button:focus-visible {
   #lives.life-gain-pop,
   canvas.impact-shake,
   canvas.life-loss-pulse,
-  canvas.edge-shot-boost { animation: none; }
+  canvas.edge-shot-boost,
+  canvas.game-over-feedback { animation: none; }
 
   #combo.combo-window::after { animation: none; }
 
