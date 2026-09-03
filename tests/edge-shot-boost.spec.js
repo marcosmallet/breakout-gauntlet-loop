@@ -1,6 +1,6 @@
 const { test, expect } = require('@playwright/test');
 
-test('rebatida perto da borda da raquete recebe pequeno boost de velocidade', async ({ page }) => {
+test('rebatida perto da borda da raquete recebe pequeno boost de velocidade e feedback visual', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Iniciar' }).click();
 
@@ -21,7 +21,10 @@ test('rebatida perto da borda da raquete recebe pequeno boost de velocidade', as
     return Math.hypot(2, 4);
   });
 
-  await page.waitForFunction(() => window.__EDGE_SHOT_BOOST_DEBUG__.getBoostCount() === 1);
+  await page.waitForFunction(() => (
+    window.__EDGE_SHOT_BOOST_DEBUG__.getBoostCount() === 1
+    && document.getElementById('game').classList.contains('edge-shot-boost')
+  ));
 
   const result = await page.evaluate(() => {
     const state = window.__GAME_DEBUG__.getState();
@@ -29,16 +32,18 @@ test('rebatida perto da borda da raquete recebe pequeno boost de velocidade', as
       speed: Math.hypot(state.ball.vx, state.ball.vy),
       vy: state.ball.vy,
       boosts: window.__EDGE_SHOT_BOOST_DEBUG__.getBoostCount(),
-      scale: window.__EDGE_SHOT_BOOST_DEBUG__.speedScale
+      scale: window.__EDGE_SHOT_BOOST_DEBUG__.speedScale,
+      feedbackActive: document.getElementById('game').classList.contains('edge-shot-boost')
     };
   });
 
   expect(result.vy).toBeLessThan(0);
   expect(result.boosts).toBe(1);
+  expect(result.feedbackActive).toBe(true);
   expect(result.speed).toBeCloseTo(initialSpeed * result.scale, 4);
 });
 
-test('rebatida central preserva a velocidade normal', async ({ page }) => {
+test('rebatida central preserva a velocidade normal e não mostra feedback de boost', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Iniciar' }).click();
 
@@ -64,10 +69,12 @@ test('rebatida central preserva a velocidade normal', async ({ page }) => {
     const state = window.__GAME_DEBUG__.getState();
     return {
       speed: Math.hypot(state.ball.vx, state.ball.vy),
-      boosts: window.__EDGE_SHOT_BOOST_DEBUG__.getBoostCount()
+      boosts: window.__EDGE_SHOT_BOOST_DEBUG__.getBoostCount(),
+      feedbackActive: document.getElementById('game').classList.contains('edge-shot-boost')
     };
   });
 
   expect(result.boosts).toBe(0);
+  expect(result.feedbackActive).toBe(false);
   expect(result.speed).toBeCloseTo(initialSpeed, 4);
 });

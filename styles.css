@@ -84,6 +84,14 @@ canvas.life-loss-pulse {
   animation: life-loss-pulse 220ms ease-out;
 }
 
+canvas.edge-shot-boost {
+  border-color: rgba(250,204,21,.95);
+  box-shadow:
+    0 18px 60px rgba(0,0,0,.4),
+    0 0 34px rgba(250,204,21,.72);
+  animation: edge-shot-boost 180ms ease-out;
+}
+
 @keyframes combo-window {
   from { transform: scaleX(1); opacity: .9; }
   to { transform: scaleX(0); opacity: .35; }
@@ -119,6 +127,11 @@ canvas.life-loss-pulse {
   }
 }
 
+@keyframes edge-shot-boost {
+  0%, 100% { transform: scale(1); }
+  45% { transform: scale(1.004); }
+}
+
 .controls { margin-top: 16px; }
 button {
   appearance: none;
@@ -145,7 +158,8 @@ button:focus-visible {
   #combo.combo-pop,
   #lives.life-gain-pop,
   canvas.impact-shake,
-  canvas.life-loss-pulse { animation: none; }
+  canvas.life-loss-pulse,
+  canvas.edge-shot-boost { animation: none; }
 
   #combo.combo-window::after { animation: none; }
 

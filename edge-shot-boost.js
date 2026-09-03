@@ -2,8 +2,24 @@
   const EDGE_THRESHOLD = 0.72;
   const EDGE_SPEED_SCALE = 1.06;
   const MAX_BALL_SPEED = 8;
+  const FEEDBACK_DURATION_MS = 180;
+  const canvas = document.getElementById('game');
   let wasFlashing = false;
   let boostCount = 0;
+  let feedbackTimer = null;
+
+  function showBoostFeedback() {
+    if (!canvas) return;
+
+    if (feedbackTimer) clearTimeout(feedbackTimer);
+    canvas.classList.remove('edge-shot-boost');
+    void canvas.offsetWidth;
+    canvas.classList.add('edge-shot-boost');
+    feedbackTimer = setTimeout(() => {
+      canvas.classList.remove('edge-shot-boost');
+      feedbackTimer = null;
+    }, FEEDBACK_DURATION_MS);
+  }
 
   function tick() {
     const state = window.__GAME_DEBUG__?.getState?.();
@@ -24,6 +40,7 @@
           vy: state.ball.vy * scale
         });
         boostCount += 1;
+        showBoostFeedback();
       }
     }
 
