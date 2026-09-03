@@ -19,7 +19,7 @@
       <span>Combo: <strong id="combo">x0</strong></span>
       <span>Vidas: <strong id="lives">3</strong></span>
       <span>Rodada: <strong id="round">1</strong></span>
-      <span>Blocos: <strong id="bricksRemaining">50</strong></span>
+      <span>Blocos: <strong id="bricksRemaining" data-final-stretch="false">50</strong></span>
     </section>
 
     <canvas id="game" width="800" height="520" aria-label="Jogo Breakout" aria-describedby="controlInstructions" aria-keyshortcuts="ArrowLeft ArrowRight A D Space"></canvas>
@@ -52,6 +52,8 @@
     const gameStatusEl = document.getElementById('gameStatus');
     const scoreEl = document.getElementById('score');
     const bricksRemainingEl = document.getElementById('bricksRemaining');
+    const FINAL_STRETCH_THRESHOLD = 5;
+    let previousBricksRemaining = 50;
     const syncRoundHud = () => {
       const currentRound = window.__GAME_DEBUG__?.getState().round;
       if (currentRound) {
@@ -61,9 +63,34 @@
         document.documentElement.style.setProperty('--round-accent-hue', accentHue);
       }
     };
+    const pulseFinalStretch = () => {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      bricksRemainingEl.animate(
+        [
+          { transform: 'scale(1)', textShadow: 'none' },
+          { transform: 'scale(1.25)', textShadow: '0 0 12px currentColor' },
+          { transform: 'scale(1)', textShadow: 'none' }
+        ],
+        { duration: 300, easing: 'ease-out' }
+      );
+      gameCanvas.animate(
+        [
+          { filter: 'brightness(1)' },
+          { filter: 'brightness(1.12)' },
+          { filter: 'brightness(1)' }
+        ],
+        { duration: 300, easing: 'ease-out' }
+      );
+    };
     const syncBrickProgress = () => {
       const remaining = window.__GAME_DEBUG__?.getState().bricksRemaining;
-      if (Number.isInteger(remaining)) bricksRemainingEl.textContent = remaining;
+      if (Number.isInteger(remaining)) {
+        bricksRemainingEl.textContent = remaining;
+        const isFinalStretch = remaining > 0 && remaining <= FINAL_STRETCH_THRESHOLD;
+        bricksRemainingEl.dataset.finalStretch = String(isFinalStretch);
+        if (isFinalStretch && remaining < previousBricksRemaining) pulseFinalStretch();
+        previousBricksRemaining = remaining;
+      }
     };
     new MutationObserver(syncRoundHud).observe(gameStatusEl, {
       childList: true,
