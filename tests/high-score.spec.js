@@ -12,11 +12,11 @@ test('recorde acompanha a pontuação e persiste entre partidas', async ({ page 
     game.step();
   });
 
-  await expect(page.locator('#score')).toHaveText('10');
-  await expect(page.locator('#highScore')).toHaveText('10');
-  await expect.poll(() => page.evaluate(() => localStorage.getItem('breakoutHighScore'))).toBe('10');
+  await expect(page.locator('#score')).toHaveText('310');
+  await expect(page.locator('#highScore')).toHaveText('310');
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('breakoutHighScore'))).toBe('310');
 
   await page.reload();
   await expect(page.locator('#score')).toHaveText('0');
-  await expect(page.locator('#highScore')).toHaveText('10');
+  await expect(page.locator('#highScore')).toHaveText('310');
 });
