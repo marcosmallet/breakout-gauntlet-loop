@@ -78,3 +78,79 @@ test('voltar a raquete ao centro remove a mira sem manter direção escolhida ob
   expect(result.neutral.direction).toBe(0);
   expect(result.neutral.vx).toBe(result.initialVx);
 });
+
+
+test('distância da raquete controla o ângulo de lançamento sem alterar a velocidade total', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Iniciar' }).click();
+
+  const result = await page.evaluate(async () => {
+    const game = window.__GAME_DEBUG__;
+    const initial = game.getState().ball;
+    const initialSpeed = Math.hypot(initial.vx, initial.vy);
+
+    game.movePaddleTo(180);
+    await new Promise(requestAnimationFrame);
+    await new Promise(requestAnimationFrame);
+    const moderate = {
+      ...game.getState().ball,
+      strength: window.__LAUNCH_COUNTDOWN_DEBUG__.getAimStrength()
+    };
+
+    game.movePaddleTo(0);
+    await new Promise(requestAnimationFrame);
+    await new Promise(requestAnimationFrame);
+    const strong = {
+      ...game.getState().ball,
+      strength: window.__LAUNCH_COUNTDOWN_DEBUG__.getAimStrength()
+    };
+
+    return {
+      initialSpeed,
+      moderate,
+      strong
+    };
+  });
+
+  expect(result.moderate.vx).toBeLessThan(0);
+  expect(result.strong.vx).toBeLessThan(0);
+  expect(result.strong.strength).toBeGreaterThan(result.moderate.strength);
+  expect(Math.abs(result.strong.vx)).toBeGreaterThan(Math.abs(result.moderate.vx));
+  expect(Math.abs(result.strong.vy)).toBeLessThan(Math.abs(result.moderate.vy));
+  expect(Math.hypot(result.moderate.vx, result.moderate.vy)).toBeCloseTo(result.initialSpeed, 5);
+  expect(Math.hypot(result.strong.vx, result.strong.vy)).toBeCloseTo(result.initialSpeed, 5);
+});
+
+test('mira proporcional é simétrica entre esquerda e direita', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Iniciar' }).click();
+
+  const result = await page.evaluate(async () => {
+    const game = window.__GAME_DEBUG__;
+
+    game.movePaddleTo(0);
+    await new Promise(requestAnimationFrame);
+    await new Promise(requestAnimationFrame);
+    const left = {
+      ...game.getState().ball,
+      strength: window.__LAUNCH_COUNTDOWN_DEBUG__.getAimStrength()
+    };
+
+    const paddle = game.getState().paddle;
+    game.movePaddleTo(800 - paddle.w);
+    await new Promise(requestAnimationFrame);
+    await new Promise(requestAnimationFrame);
+    const right = {
+      ...game.getState().ball,
+      strength: window.__LAUNCH_COUNTDOWN_DEBUG__.getAimStrength()
+    };
+
+    return { left, right };
+  });
+
+  expect(result.left.vx).toBeLessThan(0);
+  expect(result.right.vx).toBeGreaterThan(0);
+  expect(result.left.strength).toBeCloseTo(result.right.strength, 5);
+  expect(Math.abs(result.left.vx)).toBeCloseTo(Math.abs(result.right.vx), 5);
+  expect(result.left.vy).toBeCloseTo(result.right.vy, 5);
+});
