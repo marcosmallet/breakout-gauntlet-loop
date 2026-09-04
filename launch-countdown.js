@@ -9,6 +9,8 @@
   const AIM_GUIDE_RISE = 70;
   let currentCountdown = 0;
   let currentAimDirection = 0;
+  let defaultLaunchVx = null;
+  let previousGrace = 0;
   let rafId = null;
 
   function countdownForGrace(grace) {
@@ -76,18 +78,30 @@
   function frame() {
     const state = window.__GAME_DEBUG__?.getState?.();
     const grace = Math.max(0, Math.min(GRACE_STEPS, state?.respawnGrace || 0));
+
+    if (grace > previousGrace && state?.ball) {
+      defaultLaunchVx = state.ball.vx;
+    }
+
     currentCountdown = state?.running ? countdownForGrace(grace) : 0;
     currentAimDirection = currentCountdown > 0 ? aimDirectionForState(state) : 0;
 
     if (currentCountdown > 0 && !state?.pausedByFocusLoss && !state?.pausedByPlayer) {
-      if (currentAimDirection !== 0 && state?.ball) {
-        window.__GAME_DEBUG__?.setBall?.({
-          vx: Math.abs(state.ball.vx) * currentAimDirection
-        });
+      if (state?.ball) {
+        const aimedVx = currentAimDirection === 0
+          ? defaultLaunchVx
+          : Math.abs(state.ball.vx) * currentAimDirection;
+        if (Number.isFinite(aimedVx)) {
+          window.__GAME_DEBUG__?.setBall?.({ vx: aimedVx });
+        }
       }
       drawAimGuide(state, currentAimDirection);
       drawCountdown(currentCountdown, currentAimDirection);
+    } else if (currentCountdown === 0) {
+      defaultLaunchVx = null;
     }
+
+    previousGrace = grace;
     rafId = requestAnimationFrame(frame);
   }
 
