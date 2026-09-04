@@ -13,6 +13,20 @@ test('respawn grace exposes a clear 3-2-1 launch countdown', async ({ page }) =>
     .toBeGreaterThan(0);
 });
 
+test('contagem ensina a mirar antes de o jogador escolher uma direção', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Iniciar' }).click();
+
+  await expect.poll(() => page.evaluate(() => window.__LAUNCH_COUNTDOWN_DEBUG__.getAimHintVisible()))
+    .toBe(true);
+
+  await page.evaluate(() => window.__GAME_DEBUG__.movePaddleTo(80));
+  await expect.poll(() => page.evaluate(() => window.__LAUNCH_COUNTDOWN_DEBUG__.getAimDirection()))
+    .toBe(-1);
+  await expect.poll(() => page.evaluate(() => window.__LAUNCH_COUNTDOWN_DEBUG__.getAimHintVisible()))
+    .toBe(false);
+});
+
 test('posição da raquete durante a contagem escolhe o lado do lançamento', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Iniciar' }).click();
