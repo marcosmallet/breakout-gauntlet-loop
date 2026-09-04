@@ -11,7 +11,7 @@ Esse modelo melhorou rapidamente o baseline, mas o histórico mostrou diminishin
 O experimento agora entrou na fase **Meta-Critic**.
 
 ```text
-ChatGPT Scheduled Task — every 12h
+ChatGPT Scheduled Task — hourly
              ↓
           CI gate
              ↓
@@ -101,4 +101,6 @@ npm run test:e2e
 
 ## Frequência atual
 
-**1 execução Meta-Critic a cada 12 horas.**
+**1 execução Meta-Critic por hora.**
+
+A frequência alta serve para aumentar o número de avaliações independentes. Ela **não** aumenta a agressividade: o estado SATURATED, o gate de CI e os modos MICRO/DESIGN/NO-OP continuam impedindo commits de baixo valor.
