@@ -5,13 +5,15 @@
 
   const GRACE_STEPS = 45;
   const COUNTDOWN_STEPS = 15;
-  const AIM_GUIDE_LENGTH = 88;
-  const AIM_GUIDE_RISE = 70;
+  const AIM_GUIDE_LENGTH = 112;
+  const MIN_AIM_ANGLE_RAD = Math.PI / 6;
+  const MAX_AIM_ANGLE_RAD = (58 * Math.PI) / 180;
   const AIM_HINT_TEXT = 'Mova para mirar';
   let currentCountdown = 0;
   let currentAimDirection = 0;
+  let currentAimStrength = 0;
   let aimHintVisible = false;
-  let defaultLaunchVx = null;
+  let defaultLaunchVelocity = null;
   let previousGrace = 0;
   let rafId = null;
 
@@ -29,13 +31,42 @@
     return 0;
   }
 
-  function drawAimGuide(state, aimDirection) {
-    if (aimDirection === 0 || !state?.ball) return;
+  function aimStrengthForState(state) {
+    if (!state?.paddle) return 0;
+    const paddleCenter = state.paddle.x + state.paddle.w / 2;
+    const distanceFromCenter = Math.abs(paddleCenter - canvas.width / 2);
+    const deadZone = state.paddle.w / 4;
+    if (distanceFromCenter <= deadZone) return 0;
+
+    const maxReach = canvas.width / 2 - state.paddle.w / 2;
+    const usableReach = Math.max(1, maxReach - deadZone);
+    return Math.max(0, Math.min(1, (distanceFromCenter - deadZone) / usableReach));
+  }
+
+  function aimedVelocityForState(state, direction, strength) {
+    if (!state?.ball || direction === 0 || !(strength > 0)) return null;
+    const speed = Math.hypot(state.ball.vx, state.ball.vy);
+    if (!(speed > 0)) return null;
+
+    const angle = MIN_AIM_ANGLE_RAD
+      + (MAX_AIM_ANGLE_RAD - MIN_AIM_ANGLE_RAD) * strength;
+
+    return {
+      vx: Math.sin(angle) * speed * direction,
+      vy: -Math.cos(angle) * speed
+    };
+  }
+
+  function drawAimGuide(state, aimedVelocity) {
+    if (!aimedVelocity || !state?.ball) return;
+
+    const speed = Math.hypot(aimedVelocity.vx, aimedVelocity.vy);
+    if (!(speed > 0)) return;
 
     const startX = state.ball.x;
     const startY = state.ball.y - state.ball.r - 5;
-    const endX = startX + aimDirection * AIM_GUIDE_LENGTH;
-    const endY = startY - AIM_GUIDE_RISE;
+    const endX = startX + (aimedVelocity.vx / speed) * AIM_GUIDE_LENGTH;
+    const endY = startY + (aimedVelocity.vy / speed) * AIM_GUIDE_LENGTH;
 
     ctx.save();
     ctx.strokeStyle = 'rgba(103, 232, 249, 0.72)';
@@ -87,26 +118,34 @@
     const grace = Math.max(0, Math.min(GRACE_STEPS, state?.respawnGrace || 0));
 
     if (grace > previousGrace && state?.ball) {
-      defaultLaunchVx = state.ball.vx;
+      defaultLaunchVelocity = { vx: state.ball.vx, vy: state.ball.vy };
     }
 
     currentCountdown = state?.running ? countdownForGrace(grace) : 0;
     currentAimDirection = currentCountdown > 0 ? aimDirectionForState(state) : 0;
+    currentAimStrength = currentCountdown > 0 ? aimStrengthForState(state) : 0;
     aimHintVisible = currentCountdown > 0 && currentAimDirection === 0;
 
     if (currentCountdown > 0 && !state?.pausedByFocusLoss && !state?.pausedByPlayer) {
-      if (state?.ball) {
-        const aimedVx = currentAimDirection === 0
-          ? defaultLaunchVx
-          : Math.abs(state.ball.vx) * currentAimDirection;
-        if (Number.isFinite(aimedVx)) {
-          window.__GAME_DEBUG__?.setBall?.({ vx: aimedVx });
-        }
+      const aimedVelocity = aimedVelocityForState(
+        state,
+        currentAimDirection,
+        currentAimStrength
+      );
+      const launchVelocity = aimedVelocity || defaultLaunchVelocity;
+
+      if (
+        Number.isFinite(launchVelocity?.vx)
+        && Number.isFinite(launchVelocity?.vy)
+      ) {
+        window.__GAME_DEBUG__?.setBall?.(launchVelocity);
       }
-      drawAimGuide(state, currentAimDirection);
+
+      drawAimGuide(state, aimedVelocity);
       drawCountdown(currentCountdown, currentAimDirection);
     } else if (currentCountdown === 0) {
-      defaultLaunchVx = null;
+      defaultLaunchVelocity = null;
+      currentAimStrength = 0;
       aimHintVisible = false;
     }
 
@@ -123,11 +162,16 @@
     getAimDirection() {
       return currentAimDirection;
     },
+    getAimStrength() {
+      return currentAimStrength;
+    },
     getAimHintVisible() {
       return aimHintVisible;
     },
     countdownForGrace,
     aimDirectionForState,
+    aimStrengthForState,
+    aimedVelocityForState,
     stop() {
       if (rafId) cancelAnimationFrame(rafId);
       rafId = null;
