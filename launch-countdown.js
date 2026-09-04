@@ -5,6 +5,8 @@
 
   const GRACE_STEPS = 45;
   const COUNTDOWN_STEPS = 15;
+  const AIM_GUIDE_LENGTH = 88;
+  const AIM_GUIDE_RISE = 70;
   let currentCountdown = 0;
   let currentAimDirection = 0;
   let rafId = null;
@@ -21,6 +23,27 @@
     if (paddleCenter < canvas.width / 2 - deadZone) return -1;
     if (paddleCenter > canvas.width / 2 + deadZone) return 1;
     return 0;
+  }
+
+  function drawAimGuide(state, aimDirection) {
+    if (aimDirection === 0 || !state?.ball) return;
+
+    const startX = state.ball.x;
+    const startY = state.ball.y - state.ball.r - 5;
+    const endX = startX + aimDirection * AIM_GUIDE_LENGTH;
+    const endY = startY - AIM_GUIDE_RISE;
+
+    ctx.save();
+    ctx.strokeStyle = 'rgba(103, 232, 249, 0.72)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([7, 7]);
+    ctx.shadowColor = 'rgba(103, 232, 249, 0.45)';
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+    ctx.restore();
   }
 
   function drawCountdown(value, aimDirection) {
@@ -62,6 +85,7 @@
           vx: Math.abs(state.ball.vx) * currentAimDirection
         });
       }
+      drawAimGuide(state, currentAimDirection);
       drawCountdown(currentCountdown, currentAimDirection);
     }
     rafId = requestAnimationFrame(frame);
