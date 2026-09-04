@@ -2,7 +2,7 @@
 
 Este projeto começou como um experimento de melhoria incremental de um Breakout simples por uma tarefa agendada do ChatGPT executada de hora em hora.
 
-Após mais de 100 ciclos, o experimento entrou em uma nova fase: **Meta-Critic**. A frequência agora é **a cada 12 horas** e o objetivo deixa de ser produzir um microincremento sempre que possível; passa a ser escolher o modo de trabalho com melhor retorno marginal.
+Após mais de 100 ciclos, o experimento entrou em uma nova fase: **Meta-Critic**. A frequência operacional volta a ser **de hora em hora** e o objetivo deixa de ser produzir um microincremento sempre que possível; passa a ser escolher o modo de trabalho com melhor retorno marginal.
 
 Consulte também [`GAUNTLET_STATE.md`](GAUNTLET_STATE.md), que contém o estado condensado, decisões vigentes, mecânicas existentes e experimentos rejeitados/revertidos.
 
@@ -124,5 +124,9 @@ Ao fim de cada execução, comentar na issue #1:
 - decisão do JUDGE;
 - contador de no-ops;
 - atualização necessária em `GAUNTLET_STATE.md`.
+
+## Frequência e agressividade
+
+O Meta-Critic roda **de hora em hora**. Essa frequência aumenta a quantidade de avaliações independentes, mas não autoriza mudanças mais agressivas. Em estado SATURATED, várias execuções consecutivas podem terminar legitimamente em NO-OP. Frequência alta e propensão a commit são controles separados.
 
 A issue #1 deve permanecer aberta como memória histórica do experimento.
