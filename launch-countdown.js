@@ -7,8 +7,10 @@
   const COUNTDOWN_STEPS = 15;
   const AIM_GUIDE_LENGTH = 88;
   const AIM_GUIDE_RISE = 70;
+  const AIM_HINT_TEXT = 'Mova para mirar';
   let currentCountdown = 0;
   let currentAimDirection = 0;
+  let aimHintVisible = false;
   let defaultLaunchVx = null;
   let previousGrace = 0;
   let rafId = null;
@@ -71,6 +73,11 @@
         canvas.width / 2 + aimDirection * 68,
         canvas.height * 0.62 + 1
       );
+    } else {
+      ctx.font = '600 15px Inter, system-ui, sans-serif';
+      ctx.fillStyle = 'rgba(248, 250, 252, 0.88)';
+      ctx.shadowBlur = 8;
+      ctx.fillText(AIM_HINT_TEXT, canvas.width / 2, canvas.height * 0.62 + 58);
     }
     ctx.restore();
   }
@@ -85,6 +92,7 @@
 
     currentCountdown = state?.running ? countdownForGrace(grace) : 0;
     currentAimDirection = currentCountdown > 0 ? aimDirectionForState(state) : 0;
+    aimHintVisible = currentCountdown > 0 && currentAimDirection === 0;
 
     if (currentCountdown > 0 && !state?.pausedByFocusLoss && !state?.pausedByPlayer) {
       if (state?.ball) {
@@ -99,6 +107,7 @@
       drawCountdown(currentCountdown, currentAimDirection);
     } else if (currentCountdown === 0) {
       defaultLaunchVx = null;
+      aimHintVisible = false;
     }
 
     previousGrace = grace;
@@ -113,6 +122,9 @@
     },
     getAimDirection() {
       return currentAimDirection;
+    },
+    getAimHintVisible() {
+      return aimHintVisible;
     },
     countdownForGrace,
     aimDirectionForState,
