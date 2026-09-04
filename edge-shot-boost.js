@@ -4,9 +4,39 @@
   const MAX_BALL_SPEED = 8;
   const FEEDBACK_DURATION_MS = 180;
   const canvas = document.getElementById('game');
+  const startButton = document.getElementById('startButton');
+  const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
   let wasFlashing = false;
   let boostCount = 0;
+  let soundFeedbackCount = 0;
   let feedbackTimer = null;
+  let audioContext = null;
+
+  function primeAudio() {
+    if (!AudioContextCtor) return;
+    if (!audioContext) audioContext = new AudioContextCtor();
+    if (audioContext.state === 'suspended') audioContext.resume().catch(() => {});
+  }
+
+  function playBoostSound() {
+    soundFeedbackCount += 1;
+    if (!audioContext || audioContext.state !== 'running') return;
+
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    const now = audioContext.currentTime;
+
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(520, now);
+    oscillator.frequency.exponentialRampToValueAtTime(820, now + 0.085);
+    gain.gain.setValueAtTime(0.035, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+    oscillator.start(now);
+    oscillator.stop(now + 0.105);
+  }
 
   function showBoostFeedback() {
     if (!canvas) return;
@@ -41,6 +71,7 @@
         });
         boostCount += 1;
         showBoostFeedback();
+        playBoostSound();
       }
     }
 
@@ -48,10 +79,13 @@
     requestAnimationFrame(tick);
   }
 
+  startButton?.addEventListener('click', primeAudio, { once: true });
+  canvas?.addEventListener('pointerdown', primeAudio, { once: true });
   requestAnimationFrame(tick);
 
   window.__EDGE_SHOT_BOOST_DEBUG__ = {
     getBoostCount: () => boostCount,
+    getSoundFeedbackCount: () => soundFeedbackCount,
     threshold: EDGE_THRESHOLD,
     speedScale: EDGE_SPEED_SCALE
   };
