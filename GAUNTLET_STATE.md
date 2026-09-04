@@ -4,15 +4,15 @@ Este arquivo resume o estado operacional e de produto do experimento para que ca
 
 ## Estado atual
 
-- Fase: **Meta-Critic / ativo após DESIGN aceito**
+- Fase: **Meta-Critic / SATURATED**
 - HEAD de gameplay atual: `9ed5465d60889c971a0327d3fb9cc120eb2a428b` — mira proporcional no lançamento
 - Último ciclo do protocolo anterior: **Cycle 114**
 - Histórico de saturação: Cycles 105–114 tiveram **10 no-ops deliberados consecutivos**
-- Contador atual de no-ops: **2**
-- Validação do baseline atual: GitHub Actions CI e job Playwright do HEAD anterior `26abb861d86e7484ee014b99e20a355da55068ec` concluídos em **success**
+- Contador atual de no-ops: **3**
+- Validação do baseline atual: GitHub Actions run `33926371567` do HEAD `1252a521331969fd5a5f1ef6aa33af5e23dd2599` concluído em **success**; job Playwright `101195676053` e etapa `npm run test:e2e` também em **success**
 - Escopo preservado: HTML, CSS, JavaScript e Canvas 2D, sem game framework
 
-O projeto atingiu SATURATED após a sequência de no-ops dos Cycles 105–114, mas saiu desse estado operacional ao encontrar e aprovar o experimento DESIGN de mira proporcional. Desde a integração, ocorreram **2 NO-OPs consecutivos**. O projeto ainda não está SATURATED; um terceiro NO-OP consecutivo o recolocará nesse estado.
+O projeto atingiu SATURATED após a sequência de no-ops dos Cycles 105–114, saiu desse estado ao aprovar o DESIGN de mira proporcional e agora retorna a **SATURATED** após **3 NO-OPs consecutivos** desde essa integração. A partir daqui, MICRO exige bug/regressão real, nova evidência de jogador ou oportunidade independente de ganho perceptível claramente alto; mudanças de maior impacto devem ser consideradas como DESIGN com hipótese explícita.
 
 ## Mecânicas e qualidade já existentes
 
@@ -126,6 +126,16 @@ A área já tem cobertura extensa. Só priorizar diante de regressão observáve
 - JUDGE: **PASS para NO-OP**. Preservar o baseline oferece melhor relação ganho/risco do que iniciar uma mudança sem evidência clara.
 - Efeito: contador de no-ops passa para **2**; ainda não SATURATED.
 - Próxima execução: procurar primeiro regressão ou nova evidência de jogador; se nenhuma oportunidade superar claramente custo/risco e ocorrer um terceiro NO-OP consecutivo, marcar o projeto como **SATURATED**.
+
+### NO-OP #3 após o DESIGN de mira proporcional
+- Gate: `main` em `1252a521331969fd5a5f1ef6aa33af5e23dd2599`; GitHub Actions run `33926371567` concluído em **success**, job `playwright` `101195676053` concluído em **success** e etapa `npm run test:e2e` em **success**.
+- Decisão: **NO-OP**.
+- Análise ampla: como jogador, não há lacuna concreta nova depois da recente melhoria de agência no lançamento; como game designer, os ganhos restantes mais promissores estão em profundidade/progressão/replayability e exigiriam hipótese e balanceamento, portanto seriam DESIGN; como engenheiro, o baseline está verde e a dívida de `window.__GAME_DEBUG__`/polling não bloqueia uma oportunidade de produto atual.
+- Alternativas consideradas: um sistema novo de progressão/recompensa (DESIGN potencial, mas sem hipótese suficientemente superior ao baseline nesta execução); revisitar pontuação diferenciada por fileira (somente DESIGN e com evidência histórica negativa); novo refinamento da mira proporcional (recém-integrada, sem evidência nova); feedback audiovisual ou lifecycle (sem deficiência concreta); refatoração arquitetural (sem bloqueio de produto e sem ganho direto ao jogador).
+- Motivo de maior ganho marginal: preservar um baseline amplo e verde é superior a introduzir uma mecânica ou refatoração sem evidência de retorno perceptível suficiente.
+- JUDGE: **PASS para NO-OP**. Nenhuma alternativa supera claramente custo, risco e complexidade.
+- Efeito: contador de no-ops passa para **3** e o projeto retorna a **SATURATED**.
+- Próxima execução: em SATURATED, elevar o limiar para MICRO; priorizar apenas regressão/bug real, nova evidência de jogador ou oportunidade independente de ganho claramente alto. Avaliar DESIGN somente quando houver hipótese de produto de médio porte claramente superior e critérios de aceite defensáveis.
 
 ## Protocolo de decisão
 
