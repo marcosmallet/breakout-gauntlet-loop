@@ -144,9 +144,9 @@ Quando houver oportunidade DESIGN:
 
 ## Frequência
 
-O Meta-Critic deve rodar **a cada 12 horas**, em vez de de hora em hora.
+O Meta-Critic deve rodar **de hora em hora**.
 
-O objetivo agora é maximizar ganho marginal por execução, não quantidade de ciclos ou commits.
+A frequência alta aumenta o número de avaliações independentes, não a obrigação de alterar o produto. Em SATURATED, o resultado esperado pode continuar sendo NO-OP por muitas execuções. O objetivo é maximizar ganho marginal por commit, mantendo alta frequência de avaliação.
 
 ## Memória persistente
 
