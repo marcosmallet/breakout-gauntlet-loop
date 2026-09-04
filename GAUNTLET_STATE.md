@@ -8,11 +8,11 @@ Este arquivo resume o estado operacional e de produto do experimento para que ca
 - HEAD de gameplay atual: `9ed5465d60889c971a0327d3fb9cc120eb2a428b` — mira proporcional no lançamento
 - Último ciclo do protocolo anterior: **Cycle 114**
 - Histórico de saturação: Cycles 105–114 tiveram **10 no-ops deliberados consecutivos**
-- Contador atual de no-ops: **0**
+- Contador atual de no-ops: **1**
 - Validação do DESIGN aceito: **73/73 Playwright passando**, CI da `main` verde
 - Escopo preservado: HTML, CSS, JavaScript e Canvas 2D, sem game framework
 
-O projeto atingiu SATURATED após a sequência de no-ops, mas saiu desse estado operacional ao encontrar e aprovar um experimento DESIGN com ganho perceptível. A regra de três no-ops continua ativa e poderá colocar o projeto novamente em SATURATED.
+O projeto atingiu SATURATED após a sequência de no-ops, mas saiu desse estado operacional ao encontrar e aprovar um experimento DESIGN com ganho perceptível. A regra de três no-ops continua ativa e poderá colocar o projeto novamente em SATURATED. A primeira avaliação após esse DESIGN foi um NO-OP deliberado: nenhuma nova oportunidade superou o custo/risco imediatamente após a integração.
 
 ## Mecânicas e qualidade já existentes
 
@@ -111,6 +111,16 @@ O jogo já possui feedback abundante. Exigir deficiência perceptível concreta 
 
 ### Novos edge cases de lifecycle/focus
 A área já tem cobertura extensa. Só priorizar diante de regressão observável ou falha reproduzível.
+
+## Última avaliação Meta-Critic
+
+### NO-OP após o DESIGN de mira proporcional
+- Gate: `main` em `0fb59f0e58bb98d42b85e95ef7541dd1419410b5` com GitHub Actions CI concluído em **success** e job Playwright concluído em **success**.
+- Decisão: **NO-OP**.
+- Motivo: não houve bug/regressão, nova evidência de jogador ou oportunidade MICRO independente com ganho perceptível claramente alto; iniciar outro DESIGN imediatamente após a mira proporcional também não tem evidência suficiente para justificar custo e risco.
+- Alternativas descartadas: reabrir mira recém-polida; pontuação por fileira; novas camadas audiovisuais; novos edge cases de lifecycle; expansão arquitetural de `window.__GAME_DEBUG__`.
+- JUDGE: preservar o baseline saudável supera adicionar complexidade de retorno marginal baixo.
+- Efeito no estado: contador de no-ops passa para **1**; projeto ainda não está SATURATED.
 
 ## Protocolo de decisão
 
