@@ -1,40 +1,45 @@
 # Breakout — ChatGPT Gauntlet Loop Experiment
 
-Um jogo Breakout simples em **HTML, CSS e JavaScript**, criado como ponto de partida para um experimento de evolução autônoma por meio de um **Gauntlet Loop**.
+Um jogo Breakout em **HTML, CSS e JavaScript + Canvas 2D** usado para estudar evolução autônoma de produto por ciclos de crítica, implementação e validação.
 
 ## O experimento
 
-A proposta deste repositório é observar como um jogo deliberadamente simples pode evoluir por pequenas melhorias sucessivas realizadas por uma **tarefa agendada do ChatGPT executada de hora em hora**.
+O projeto começou com uma tarefa agendada do ChatGPT executada **de hora em hora**, sempre procurando uma única melhoria pequena.
 
-A cada ciclo, o ChatGPT deve analisar o estado atual do jogo, identificar o problema ou oportunidade de maior impacto, implementar somente uma melhoria, validar a alteração e usar o resultado como ponto de partida para o próximo ciclo.
+Esse modelo melhorou rapidamente o baseline, mas o histórico mostrou diminishing returns: depois de mais de 100 ciclos, as oportunidades pequenas passaram a ser raras e vários ciclos corretamente terminaram em no-op.
+
+O experimento agora entrou na fase **Meta-Critic**.
 
 ```text
-ChatGPT Scheduled Task — hourly
-        ↓
-      CRITIC
-        ↓
-choose 1 improvement
-        ↓
-   IMPLEMENTER
-        ↓
-      commit
-        ↓
- GitHub Actions
-        ↓
-   Playwright
-        ↓
+ChatGPT Scheduled Task — every 12h
+             ↓
+          CI gate
+             ↓
+        META-CRITIC
+       ↙     ↓      ↘
+    MICRO  DESIGN   NO-OP
+      ↓      ↓        ↓
+  1 small  branch   preserve
+  change   experiment baseline
+      ↓      ↓
+ Playwright / CI
+       ↓
       JUDGE
-   ↙         ↘
- PASS        FAIL
-  ↓            ↓
-next cycle   fix regression
+       ↓
+ update GAUNTLET_STATE.md + issue #1
 ```
 
-O objetivo não é construir o melhor Breakout possível em uma única execução. O objetivo é medir quanto de qualidade pode emergir de **muitos ciclos pequenos, objetivos e verificáveis**.
+Após **3 no-ops consecutivos**, o projeto entra em estado **SATURATED**: o agente deixa de procurar micro-polimento repetitivo e faz uma análise de produto mais ampla. Melhorias de médio porte passam a ser tratadas como **Design Experiments em branch**, com hipótese e critérios de aceite, em vez de serem artificialmente quebradas em microcommits.
+
+## Estado e memória
+
+- [`GAUNTLET.md`](GAUNTLET.md): protocolo operacional.
+- [`GAUNTLET_STATE.md`](GAUNTLET_STATE.md): estado condensado, mecânicas existentes, decisões e experimentos rejeitados.
+- Issue #1 — **Gauntlet Loop — Continuous Quality Backlog**: memória histórica completa dos ciclos.
 
 ## Estado inicial
 
-A versão inicial é intencionalmente básica:
+O baseline original era intencionalmente básico:
 
 - Canvas 2D
 - bola
@@ -42,21 +47,23 @@ A versão inicial é intencionalmente básica:
 - 50 blocos
 - pontuação
 - 3 vidas
-- controles por teclado (`←`, `→`, `A`, `D`)
+- controles por teclado
 - sem framework de jogo
-- sem sistema complexo de partículas, áudio, power-ups ou progressão
+- sem progressão ou camada audiovisual relevante
 
-Esse baseline simples torna a evolução do Gauntlet observável ao longo do histórico de commits.
+Esse baseline simples permite observar a evolução pelo histórico do Git.
 
 ## Validação automática
 
-O repositório inclui Playwright e GitHub Actions. O jogo também expõe uma interface mínima de depuração em:
+O repositório usa Playwright e GitHub Actions.
+
+O jogo expõe uma interface de depuração:
 
 ```js
 window.__GAME_DEBUG__
 ```
 
-Isso permite que os testes inspecionem estado do jogo sem depender apenas de screenshots.
+Ela permite testes determinísticos sem depender apenas de screenshots. No protocolo atual, deve ser tratada principalmente como interface de teste e não como event bus de produção.
 
 ## Rodando localmente
 
@@ -68,19 +75,19 @@ npm run serve
 
 Abra `http://localhost:4173`.
 
-Para os testes:
+Para executar os testes:
 
 ```bash
 npm run test:e2e
 ```
 
-## Princípios do Gauntlet
-
-Consulte [`GAUNTLET.md`](GAUNTLET.md) para as regras do ciclo autônomo.
-
-## Hipótese
+## Hipótese original
 
 > Um jogo pequeno e funcional pode atingir um nível de polimento significativamente maior quando uma IA executa ciclos frequentes de crítica, implementação e validação, desde que cada ciclo seja limitado, mensurável e reversível.
+
+## Hipótese da fase Meta-Critic
+
+> Depois que microincrementos entram em diminishing returns, um agente que sabe alternar entre MICRO, DESIGN e NO-OP pode continuar aumentando qualidade com melhor relação ganho/complexidade do que um loop que tenta produzir uma alteração em toda execução.
 
 ## Stack
 
@@ -92,6 +99,6 @@ Consulte [`GAUNTLET.md`](GAUNTLET.md) para as regras do ciclo autônomo.
 - GitHub Actions
 - ChatGPT Scheduled Tasks
 
-## Frequência do experimento
+## Frequência atual
 
-**1 ciclo por hora.**
+**1 execução Meta-Critic a cada 12 horas.**
