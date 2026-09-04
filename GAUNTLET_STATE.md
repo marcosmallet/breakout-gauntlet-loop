@@ -4,14 +4,15 @@ Este arquivo resume o estado operacional e de produto do experimento para que ca
 
 ## Estado atual
 
-- Fase: **Meta-Critic / saturação de microincrementos**
-- Último commit de gameplay validado antes da migração de protocolo: `4ff2e6f1aa0192b2fec674b3808e585fd8060547`
-- Último ciclo do protocolo horário anterior: **Cycle 114**
-- Cycles 105–114: **10 no-ops deliberados consecutivos**
-- CI/Playwright do último baseline de gameplay: **verde**
+- Fase: **Meta-Critic / ativo após DESIGN aceito**
+- HEAD de gameplay atual: `9ed5465d60889c971a0327d3fb9cc120eb2a428b` — mira proporcional no lançamento
+- Último ciclo do protocolo anterior: **Cycle 114**
+- Histórico de saturação: Cycles 105–114 tiveram **10 no-ops deliberados consecutivos**
+- Contador atual de no-ops: **0**
+- Validação do DESIGN aceito: **73/73 Playwright passando**, CI da `main` verde
 - Escopo preservado: HTML, CSS, JavaScript e Canvas 2D, sem game framework
 
-O histórico recente mostrou diminishing returns claros. A partir deste estado, três no-ops consecutivos são um sinal de saturação e bloqueiam novos microincrementos cosméticos ou técnicos sem evidência nova.
+O projeto atingiu SATURATED após a sequência de no-ops, mas saiu desse estado operacional ao encontrar e aprovar um experimento DESIGN com ganho perceptível. A regra de três no-ops continua ativa e poderá colocar o projeto novamente em SATURATED.
 
 ## Mecânicas e qualidade já existentes
 
@@ -37,9 +38,11 @@ O histórico recente mostrou diminishing returns claros. A partir deste estado, 
 - Pointer/touch drag para o paddle.
 - Pausa manual e automática por perda de foco/visibilidade.
 - Countdown de lançamento/respawn.
-- Durante o countdown o jogador pode escolher a direção inicial esquerda/direita movendo o paddle.
+- Durante o countdown, o jogador controla **proporcionalmente o ângulo de lançamento** pela distância do paddle ao centro.
+- Quanto mais distante do centro, mais aberto é o ângulo, preservando a velocidade total da bola.
+- A mira é simétrica entre esquerda/direita e o guia visual acompanha o vetor real escolhido.
 - Guia visual de trajetória e dica contextual "Mova para mirar".
-- Estado neutro restaura corretamente a direção de lançamento original.
+- Estado neutro restaura corretamente o vetor de lançamento aleatório original.
 
 ### Game feel e audiovisual
 - Flash de impacto em blocos e paddle.
@@ -75,6 +78,22 @@ Isso foi eficiente para mudanças pequenas, porém novas mudanças transversais 
 
 Não refatorar apenas por estética. Se essa dívida bloquear uma melhoria de produto relevante, tratá-la como **Design Experiment** em branch, com objetivo e critérios de aceite explícitos.
 
+## Experimentos DESIGN aceitos
+
+### Mira proporcional no lançamento
+Executada na primeira avaliação Meta-Critic após a migração do protocolo.
+
+- Hipótese: transformar a escolha binária esquerda/direita em ângulo proporcional aumenta agência e replayability sem alterar a física durante a rodada.
+- Branch: `design/20260904-proportional-launch-aim`.
+- PR: #2.
+- Commits experimentais: `7606985` (implementação) e `3903a4e` (testes).
+- Merge aceito na `main`: `9ed5465d60889c971a0327d3fb9cc120eb2a428b`.
+- Playwright no PR: **73 passed / 0 failed**.
+- CI pós-merge na `main`: **success**.
+- GitHub Pages pós-merge: **success**.
+- Resultado: aprovado pelo JUDGE; o ganho de agência é perceptível e a complexidade ficou localizada em `launch-countdown.js` e seus testes.
+- Efeito no estado: contador de no-ops zerado; SATURATED deixou de ser o estado operacional atual.
+
 ## Experimentos rejeitados ou revertidos
 
 ### Pontuação diferenciada por fileira
@@ -86,9 +105,6 @@ Resultado:
 - revertida integralmente no Cycle 91.
 
 Conclusão: não reintroduzir como microincremento. Só reconsiderar como experimento de balanceamento de médio porte, com atualização completa dos contratos e validação da economia de score.
-
-### Mira proporcional/contínua
-Tem potencial perceptível, mas amplia física/controle de uma mecânica recém-estabilizada. Não executar como microincremento sem hipótese de produto e critérios claros.
 
 ### Mais camadas de feedback audiovisual
 O jogo já possui feedback abundante. Exigir deficiência perceptível concreta antes de adicionar novos efeitos para evitar ruído e redundância.
@@ -121,7 +137,7 @@ Após **3 no-ops consecutivos**, entrar em **SATURATED**:
 - executar análise ampla de produto;
 - só sair de SATURATED com bug/regressão real, nova evidência de jogador ou uma hipótese DESIGN claramente superior.
 
-O estado atual já está em SATURATED porque Cycles 105–114 foram no-op.
+A sequência dos Cycles 105–114 levou o projeto a SATURATED. O DESIGN de mira proporcional foi aceito e zerou o contador; o estado atual não está SATURATED.
 
 ### 4. MICRO
 Quando houver oportunidade MICRO:
