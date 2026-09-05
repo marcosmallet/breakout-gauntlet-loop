@@ -19,11 +19,22 @@
       <span>Combo: <strong id="combo">x0</strong></span>
       <span>Vidas: <strong id="lives">3</strong></span>
       <span>Rodada: <strong id="round">1</strong></span>
-      <span>Modo: <strong id="roundMode" data-elite="false">Normal</strong></span>
+      <span>Modo: <strong id="roundMode" data-elite="false" data-choice="false">Normal</strong></span>
       <span>Blocos: <strong id="bricksRemaining" data-final-stretch="false">50</strong></span>
     </section>
 
     <canvas id="game" width="800" height="520" aria-label="Jogo Breakout" aria-description="Durante a contagem antes do lançamento, mova a raquete para mirar a direção da bola." aria-describedby="controlInstructions" aria-keyshortcuts="ArrowLeft ArrowRight A D Space"></canvas>
+
+    <section id="eliteChoice" class="elite-choice" aria-label="Escolha de desafio Elite" hidden>
+      <div>
+        <strong>Domínio perfeito desbloqueado</strong>
+        <p>Jogue a próxima rodada no modo Normal ou aceite Elite: bola até +0,5 mais rápida e janela de combo ampliada de 2,0 s para 2,5 s.</p>
+      </div>
+      <div class="elite-choice-actions">
+        <button id="standardModeButton" type="button">Continuar Normal</button>
+        <button id="eliteModeButton" type="button">Aceitar Elite</button>
+      </div>
+    </section>
 
     <div class="controls">
       <button id="startButton" type="button">Iniciar</button>
