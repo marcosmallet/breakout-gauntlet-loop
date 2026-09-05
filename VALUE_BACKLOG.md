@@ -103,7 +103,7 @@ Perguntas iniciais úteis:
 
 - **Evidência:** tentativa anterior causou regressão transversal em score/combo/high score e múltiplos testes.
 - **Status:** `rejected` como MICRO.
-- Só reconsiderar como DESIGN com evidência nova, hipótese de economia de score e contratos completos.
+- Só reconsiderar como DESIGN ou como parte causalmente necessária de MACRO com evidência nova, hipótese de economia de score e contratos completos.
 
 ### Mira proporcional/contínua
 
