@@ -63,7 +63,9 @@
 
   function syncRoundContractHud() {
     if (!roundContractEl) return;
-    roundContractEl.textContent = roundContract === 'risk' ? 'Risco +50%' : 'Padrão';
+    roundContractEl.textContent = roundContract === 'risk'
+      ? 'Risco +50%'
+      : (roundContract === 'pending' ? 'Escolher' : 'Padrão');
   }
 
   function hideRoundChoice() {
@@ -374,6 +376,8 @@
         livesEl.textContent = lives;
       }
       round += 1;
+      roundContract = 'pending';
+      syncRoundContractHud();
       paddle.w = basePaddleWidthForRound(round);
       createBricks();
       resetBall(false);
