@@ -6,36 +6,42 @@ Um jogo Breakout em **HTML, CSS e JavaScript + Canvas 2D** usado para estudar ev
 
 O projeto começou com uma tarefa agendada do ChatGPT executada **de hora em hora**, sempre procurando uma única melhoria pequena.
 
-Esse modelo melhorou rapidamente o baseline, mas o histórico mostrou diminishing returns: depois de mais de 100 ciclos, as oportunidades pequenas passaram a ser raras e vários ciclos corretamente terminaram em no-op.
-
-O experimento agora entrou na fase **Meta-Critic**.
+Esse modelo melhorou rapidamente o baseline, mas o histórico mostrou diminishing returns. Depois de mais de 100 ciclos, o experimento evoluiu para **Meta-Critic orientado a valor**: cada execução pergunta primeiro se existe evidência suficiente para justificar um commit.
 
 ```text
 ChatGPT Scheduled Task — hourly
              ↓
-          CI gate
+       BASELINE GATE
+       CI / Playwright
              ↓
-        META-CRITIC
+       EVIDENCE GATE
+             ↓
+        VALUE CASE
        ↙     ↓      ↘
     MICRO  DESIGN   NO-OP
       ↓      ↓        ↓
-  1 small  branch   preserve
-  change   experiment baseline
-      ↓      ↓
- Playwright / CI
-       ↓
-      JUDGE
-       ↓
- update GAUNTLET_STATE.md + issue #1
+ Correctness Gate   preserve
+      ↓      ↓       baseline
+       VALUE JUDGE
+             ↓
+    commit only if valuable
 ```
 
-Após **3 no-ops consecutivos**, o projeto entra em estado **SATURATED**: o agente deixa de procurar micro-polimento repetitivo e faz uma análise de produto mais ampla. Melhorias de médio porte passam a ser tratadas como **Design Experiments em branch**, com hipótese e critérios de aceite, em vez de serem artificialmente quebradas em microcommits.
+Após **3 NO-OPs consecutivos**, o projeto entra em **SATURATED**. Nesse estado, o agente deixa de procurar micro-polimento repetitivo e só sai de NO-OP diante de regressão/bug real, nova evidência de jogador ou hipótese DESIGN claramente superior.
 
-## Estado e memória
+## Estado, evidência e memória
 
-- [`GAUNTLET.md`](GAUNTLET.md): protocolo operacional.
-- [`GAUNTLET_STATE.md`](GAUNTLET_STATE.md): estado condensado, mecânicas existentes, decisões e experimentos rejeitados.
-- Issue #1 — **Gauntlet Loop — Continuous Quality Backlog**: memória histórica completa dos ciclos.
+- [`GAUNTLET.md`](GAUNTLET.md): protocolo operacional e Value Gates.
+- [`GAUNTLET_STATE.md`](GAUNTLET_STATE.md): memória condensada, mecânicas, decisões e estado de saturação.
+- [`VALUE_BACKLOG.md`](VALUE_BACKLOG.md): problemas e hipóteses organizados por evidência; não é uma fila de features.
+- Issue #1 — **Gauntlet Loop — Continuous Quality Backlog**: log histórico permanente das execuções.
+
+A separação é intencional:
+
+- **Issue #1** = log temporal.
+- **GAUNTLET_STATE.md** = memória condensada.
+- **VALUE_BACKLOG.md** = oportunidades/evidências.
+- **Git history** = mudanças materiais.
 
 ## Estado inicial
 
@@ -63,7 +69,24 @@ O jogo expõe uma interface de depuração:
 window.__GAME_DEBUG__
 ```
 
-Ela permite testes determinísticos sem depender apenas de screenshots. No protocolo atual, deve ser tratada principalmente como interface de teste e não como event bus de produção.
+Ela permite testes determinísticos sem depender apenas de screenshots. No protocolo atual, deve permanecer principalmente interface de teste e não se tornar event bus/API de produção por conveniência.
+
+A validação é separada em dois níveis:
+
+1. **Correctness Gate** — prova que a mudança funciona e não introduz regressão.
+2. **Value Judge** — decide se o ganho perceptível justifica a complexidade.
+
+CI verde, sozinho, não torna um commit valioso.
+
+## Evidência de jogador
+
+O próximo salto de qualidade deve preferencialmente vir de:
+
+```text
+jogador → evidência → hipótese → mudança → teste → avaliação
+```
+
+O protocolo considera métricas como duração de sessão, rodada máxima, mortes por rodada, reinícios, abandono precoce, uso da mira proporcional e método de controle. Isso **não autoriza telemetria automática**: qualquer instrumentação deve ter caso de valor, privacidade e complexidade proporcionais.
 
 ## Rodando localmente
 
@@ -85,9 +108,9 @@ npm run test:e2e
 
 > Um jogo pequeno e funcional pode atingir um nível de polimento significativamente maior quando uma IA executa ciclos frequentes de crítica, implementação e validação, desde que cada ciclo seja limitado, mensurável e reversível.
 
-## Hipótese da fase Meta-Critic
+## Hipótese atual
 
-> Depois que microincrementos entram em diminishing returns, um agente que sabe alternar entre MICRO, DESIGN e NO-OP pode continuar aumentando qualidade com melhor relação ganho/complexidade do que um loop que tenta produzir uma alteração em toda execução.
+> Depois que microincrementos entram em diminishing returns, um agente que exige evidência e Value Case antes de modificar o produto pode continuar aumentando qualidade sem confundir frequência de avaliação com frequência de commit.
 
 ## Stack
 
@@ -101,6 +124,8 @@ npm run test:e2e
 
 ## Frequência atual
 
-**1 execução Meta-Critic por hora.**
+**1 avaliação Meta-Critic por hora.**
 
-A frequência alta serve para aumentar o número de avaliações independentes. Ela **não** aumenta a agressividade: o estado SATURATED, o gate de CI e os modos MICRO/DESIGN/NO-OP continuam impedindo commits de baixo valor.
+A frequência aumenta o número de avaliações independentes. Ela não cria obrigação de mudança.
+
+> Se não houver evidência suficiente para justificar valor real, não há commit.

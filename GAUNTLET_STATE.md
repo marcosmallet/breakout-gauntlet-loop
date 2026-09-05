@@ -1,18 +1,39 @@
 # Gauntlet State
 
-Este arquivo resume o estado operacional e de produto do experimento para que cada execução não precise reconstruir contexto a partir de todo o histórico da issue #1.
+Este arquivo é a memória operacional condensada do experimento. Ele não é um log de execução.
 
 ## Estado atual
 
-- Fase: **Meta-Critic / SATURATED**
+- Fase: **Value-Driven Meta-Critic / SATURATED**
 - HEAD de gameplay atual: `9ed5465d60889c971a0327d3fb9cc120eb2a428b` — mira proporcional no lançamento
+- Baseline de protocolo anterior: `789385d6eb60bf77acb82620c6586c0617c0dc00`
 - Último ciclo do protocolo anterior: **Cycle 114**
-- Histórico de saturação: Cycles 105–114 tiveram **10 no-ops deliberados consecutivos**
-- Contador atual de no-ops: **6**
-- Validação do baseline atual: GitHub Actions run `33936656380` do HEAD `7f1a8771e89b030fdc685af62b98b3c4b1a1506f` concluído em **success**; job Playwright `101225793958` e etapa `npm run test:e2e` também em **success**
+- Histórico de saturação: Cycles 105–114 tiveram **10 NO-OPs deliberados consecutivos**
+- Execuções após o DESIGN de mira proporcional: a issue #1 registra **11 NO-OPs consecutivos** antes da adoção formal do Value Gate
 - Escopo preservado: HTML, CSS, JavaScript e Canvas 2D, sem game framework
+- Regra operacional vigente: **commit exige evidência + Value Case + Correctness Gate + Value Judge**
 
-O projeto atingiu SATURATED após a sequência de no-ops dos Cycles 105–114, saiu desse estado ao aprovar o DESIGN de mira proporcional e agora permanece **SATURATED** após **6 NO-OPs consecutivos** desde essa integração. A partir daqui, MICRO exige bug/regressão real, nova evidência de jogador ou oportunidade independente de ganho perceptível claramente alto; mudanças de maior impacto devem ser consideradas como DESIGN com hipótese explícita.
+O projeto permanece SATURATED. A frequência horária serve para reavaliar evidências, não para procurar atividade.
+
+## Evidências abertas
+
+### Confirmadas
+
+#### Falta de evidência externa limita a próxima decisão de produto
+- A sequência prolongada de NO-OPs após a mira proporcional indica diminishing returns da análise baseada apenas em código, testes e histórico.
+- Problema validado: o próximo ganho relevante tende a depender de evidência nova de jogador, métrica, bug/regressão ou hipótese DESIGN diferenciada.
+- Isso **não autoriza telemetria automaticamente**. Instrumentação só deve ocorrer como DESIGN com caso de valor, privacidade e complexidade proporcionais.
+
+### Hipóteses ainda sem evidência suficiente
+
+- Profundidade/progressão adicional após as primeiras rodadas.
+- Ajustes na curva de dificuldade/ritmo.
+- Mudanças adicionais de replayability.
+- Novas camadas audiovisuais.
+- Novos edge cases de lifecycle.
+- Refatoração de `window.__GAME_DEBUG__`/polling sem bloqueio concreto de produto.
+
+Essas hipóteses permanecem candidatas, não tarefas.
 
 ## Mecânicas e qualidade já existentes
 
@@ -38,19 +59,17 @@ O projeto atingiu SATURATED após a sequência de no-ops dos Cycles 105–114, s
 - Pointer/touch drag para o paddle.
 - Pausa manual e automática por perda de foco/visibilidade.
 - Countdown de lançamento/respawn.
-- Durante o countdown, o jogador controla **proporcionalmente o ângulo de lançamento** pela distância do paddle ao centro.
-- Quanto mais distante do centro, mais aberto é o ângulo, preservando a velocidade total da bola.
-- A mira é simétrica entre esquerda/direita e o guia visual acompanha o vetor real escolhido.
-- Guia visual de trajetória e dica contextual "Mova para mirar".
-- Estado neutro restaura corretamente o vetor de lançamento aleatório original.
+- Durante o countdown, o jogador controla proporcionalmente o ângulo de lançamento pela distância do paddle ao centro.
+- A mira preserva velocidade total, é simétrica e possui guia visual coerente com o vetor real.
+- Estado neutro restaura corretamente o vetor de lançamento original.
 
 ### Game feel e audiovisual
 - Flash de impacto em blocos e paddle.
 - Micro-shake de impacto.
 - Trilha da bola responsiva à velocidade.
-- Sons procedurais para blocos, paddle, paredes, edge shots, perda de vida, avanço de rodada e game over.
-- Feedback visual para combo, score, perda/ganho de vida, última vida, round clear, high score e game over.
-- Identidade/ambiente visual varia por rodada.
+- Sons procedurais para eventos principais.
+- Feedback visual para combo, score, vidas, round clear, high score e game over.
+- Identidade visual varia por rodada.
 
 ### Mobile, acessibilidade e lifecycle
 - Touch targets adequados.
@@ -61,31 +80,40 @@ O projeto atingiu SATURATED após a sequência de no-ops dos Cycles 105–114, s
 
 ## Validação
 
+A validação agora tem dois níveis.
+
+### Correctness Gate
 - GitHub Actions + Playwright são o gate objetivo.
 - A suíte cobre core gameplay, colisões, progressão, score/combo, feedback audiovisual, lançamento, lifecycle, mobile/keyboard e estados de rodada.
-- `window.__GAME_DEBUG__` existe principalmente para inspeção/testes. Evitar expandi-lo como event bus de produção sem uma decisão arquitetural explícita.
+- Uma mudança não pode ser integrada se criar regressão relevante ou não estiver suficientemente validada.
+
+### Value Judge
+Mesmo com CI verde, a mudança só deve permanecer se:
+- resolver problema ligado a evidência;
+- produzir ganho perceptível;
+- justificar complexidade e dívida;
+- não possuir alternativa claramente mais simples;
+- merecer existir mesmo sob um limite hipotético de **um commit por semana**.
 
 ## Dívida arquitetural observada
 
-O crescimento incremental criou vários módulos satélites de feedback que consultam o estado do jogo por `window.__GAME_DEBUG__` e/ou `requestAnimationFrame`.
+O crescimento incremental criou módulos satélites que consultam o estado por `window.__GAME_DEBUG__` e/ou `requestAnimationFrame`.
 
-Isso foi eficiente para mudanças pequenas, porém novas mudanças transversais podem aumentar acoplamento implícito, polling, dependência de ordem de scripts, duplicação de feedback e custo de validação.
+`window.__GAME_DEBUG__` deve permanecer principalmente interface de testes. Não expandi-lo como event bus/API de produção por conveniência.
 
-Não refatorar apenas por estética. Se essa dívida bloquear uma melhoria de produto relevante, tratá-la como **Design Experiment** em branch, com objetivo e critérios de aceite explícitos.
+Não refatorar por estética. Se a dívida bloquear uma melhoria de produto relevante, tratá-la como DESIGN com objetivo e critérios de aceite explícitos.
 
 ## Experimentos DESIGN aceitos
 
 ### Mira proporcional no lançamento
-- Hipótese: transformar a escolha binária esquerda/direita em ângulo proporcional aumenta agência e replayability sem alterar a física durante a rodada.
+- Hipótese: transformar escolha binária esquerda/direita em ângulo proporcional aumenta agência e replayability sem alterar a física durante a rodada.
 - Branch: `design/20260904-proportional-launch-aim`.
 - PR: #2.
-- Commits experimentais: `7606985` (implementação) e `3903a4e` (testes).
+- Commits experimentais: `7606985` e `3903a4e`.
 - Merge aceito na `main`: `9ed5465d60889c971a0327d3fb9cc120eb2a428b`.
 - Playwright no PR: **73 passed / 0 failed**.
-- CI pós-merge na `main`: **success**.
-- GitHub Pages pós-merge: **success**.
-- Resultado: aprovado pelo JUDGE; ganho de agência perceptível com complexidade localizada em `launch-countdown.js` e testes.
-- Efeito no estado: contador de no-ops zerado; SATURATED deixou de ser o estado operacional atual.
+- CI pós-merge: **success**.
+- Resultado: aprovado pelo JUDGE.
 
 ## Experimentos rejeitados ou restritos
 
@@ -94,106 +122,38 @@ Tentada no Cycle 90 com valores `30/25/20/15/10`.
 
 Resultado:
 - 10 testes E2E falharam;
-- a regra atravessou combo, high score, feedback e contratos de score;
+- regra atravessou combo, high score, feedback e contratos de score;
 - revertida integralmente no Cycle 91.
 
-Conclusão: não reintroduzir como MICRO. Só reconsiderar como DESIGN de balanceamento, com hipótese explícita, atualização completa dos contratos e validação da economia de score.
+Conclusão: não reintroduzir como MICRO. Só reconsiderar como DESIGN com evidência nova, hipótese explícita, atualização completa dos contratos e validação da economia de score.
 
 ### Mira proporcional/contínua
-A hipótese foi posteriormente tratada corretamente como DESIGN e aceita. Não reabrir ou continuar refinando a mecânica como MICRO sem nova evidência forte de jogador ou regressão concreta.
+Já foi tratada corretamente como DESIGN e aceita. Não continuar refinando como MICRO sem nova evidência forte de jogador ou regressão concreta.
 
-### Mais camadas de feedback audiovisual
-O jogo já possui feedback abundante. Exigir deficiência perceptível concreta antes de adicionar novos efeitos para evitar ruído e redundância.
+### Mais feedback audiovisual
+O jogo já possui feedback abundante. Exigir deficiência concreta antes de adicionar efeitos.
 
-### Novos edge cases de lifecycle/focus
-A área já tem cobertura extensa. Só priorizar diante de regressão observável ou falha reproduzível.
+### Lifecycle/focus
+Área já possui cobertura extensa. Só priorizar diante de regressão observável.
 
-## Últimas avaliações Meta-Critic
+## Novo protocolo orientado a valor
 
-### NO-OP #1 após o DESIGN de mira proporcional
-- Gate: `main` em `0fb59f0e58bb98d42b85e95ef7541dd1419410b5` com GitHub Actions CI e Playwright em **success**.
-- Decisão: **NO-OP**.
-- Motivo: não houve bug/regressão, nova evidência de jogador ou oportunidade MICRO independente de ganho perceptível claramente alto; iniciar outro DESIGN imediatamente após a mira proporcional também não tinha evidência suficiente.
-- Alternativas descartadas: reabrir mira recém-polida; pontuação por fileira; novas camadas audiovisuais; novos edge cases de lifecycle; expansão arquitetural de `window.__GAME_DEBUG__`.
-- JUDGE: preservar o baseline saudável supera adicionar complexidade de retorno marginal baixo.
-- Efeito: contador de no-ops passou para **1**.
+Toda execução deve seguir:
 
-### NO-OP #2 após o DESIGN de mira proporcional
-- Gate: `main` em `26abb861d86e7484ee014b99e20a355da55068ec`; GitHub Actions run `33921674789` concluído em **success**, job `playwright` `101181168113` concluído em **success** e etapa `npm run test:e2e` em **success**.
-- Decisão: **NO-OP**.
-- Análise ampla: como jogador, o loop já oferece agência no lançamento, progressão contínua, combo, edge shots, assistência discreta e feedback abundante; como game designer, candidatas de maior impacto restantes implicam balanceamento/progressão e deixam de ser MICRO; como engenheiro, não há regressão que justifique ampliar lifecycle, feedback ou `window.__GAME_DEBUG__`.
-- Alternativas consideradas: nova regra de progressão/recompensa (potencial DESIGN, mas sem hipótese/evidência nova suficiente); pontuação diferenciada por fileira (somente DESIGN, histórico regressivo); refinamento adicional da mira proporcional (recém-polida, sem nova evidência); audiovisual/lifecycle (retorno marginal baixo); refatoração do debug/polling (dívida real, mas sem bloqueio de produto).
-- JUDGE: **PASS para NO-OP**. Preservar o baseline oferece melhor relação ganho/risco do que iniciar uma mudança sem evidência clara.
-- Efeito: contador de no-ops passa para **2**; ainda não SATURATED.
-- Próxima execução: procurar primeiro regressão ou nova evidência de jogador; se nenhuma oportunidade superar claramente custo/risco e ocorrer um terceiro NO-OP consecutivo, marcar o projeto como **SATURATED**.
-
-### NO-OP #3 após o DESIGN de mira proporcional
-- Gate: `main` em `1252a521331969fd5a5f1ef6aa33af5e23dd2599`; GitHub Actions run `33926371567` concluído em **success**, job `playwright` `101195676053` concluído em **success** e etapa `npm run test:e2e` em **success**.
-- Decisão: **NO-OP**.
-- Análise ampla: como jogador, não há lacuna concreta nova depois da recente melhoria de agência no lançamento; como game designer, os ganhos restantes mais promissores estão em profundidade/progressão/replayability e exigiriam hipótese e balanceamento, portanto seriam DESIGN; como engenheiro, o baseline está verde e a dívida de `window.__GAME_DEBUG__`/polling não bloqueia uma oportunidade de produto atual.
-- Alternativas consideradas: um sistema novo de progressão/recompensa (DESIGN potencial, mas sem hipótese suficientemente superior ao baseline nesta execução); revisitar pontuação diferenciada por fileira (somente DESIGN e com evidência histórica negativa); novo refinamento da mira proporcional (recém-integrada, sem evidência nova); feedback audiovisual ou lifecycle (sem deficiência concreta); refatoração arquitetural (sem bloqueio de produto e sem ganho direto ao jogador).
-- Motivo de maior ganho marginal: preservar um baseline amplo e verde é superior a introduzir uma mecânica ou refatoração sem evidência de retorno perceptível suficiente.
-- JUDGE: **PASS para NO-OP**. Nenhuma alternativa supera claramente custo, risco e complexidade.
-- Efeito: contador de no-ops passa para **3** e o projeto retorna a **SATURATED**.
-- Próxima execução: em SATURATED, elevar o limiar para MICRO; priorizar apenas regressão/bug real, nova evidência de jogador ou oportunidade independente de ganho claramente alto. Avaliar DESIGN somente quando houver hipótese de produto de médio porte claramente superior e critérios de aceite defensáveis.
-
-### NO-OP #4 em SATURATED
-- Gate: `main` em `fa2b609a2eccbf39f7e81c956fa53ca0f9383112`; GitHub Actions run `33930097044` concluído em **success**, job `playwright` `101206752735` concluído em **success** e etapa `npm run test:e2e` em **success**.
-- Decisão: **NO-OP**.
-- Análise ampla: como jogador, o baseline continua coerente e já cobre agência no lançamento, progressão contínua, combo, edge shots, assistência discreta e feedback abundante; como game designer, os ganhos de maior impacto restantes exigem balanceamento ou hipótese transversal e portanto pertencem a DESIGN; como engenheiro, não há regressão concreta nem dívida arquitetural bloqueando valor de produto.
-- Alternativas consideradas: ampliar progressão/recompensas como DESIGN, revisitar pontuação por fileira como DESIGN, refinar novamente a mira proporcional, adicionar feedback audiovisual/lifecycle e refatorar `window.__GAME_DEBUG__`/polling. Nenhuma apresentou evidência nova ou benefício esperado suficientemente alto para romper SATURATED.
-- Motivo de maior ganho marginal: preservar o baseline verde evita transformar frequência de avaliação em obrigação de produzir mudança.
-- JUDGE: **PASS para NO-OP**. O custo/risco de qualquer alternativa atual excede o ganho demonstrável.
-- Efeito: contador de no-ops passa para **4**; o projeto permanece **SATURATED**.
-- Próxima execução: manter o limiar alto. Só sair de NO-OP com regressão/bug real, evidência nova de jogador ou hipótese DESIGN claramente superior com critérios de aceite defensáveis.
-
-### NO-OP #5 em SATURATED
-- Gate: `main` em `f87de33039189b69ad8c5c3652452609bccb9a73`; GitHub Actions run `33933567672` concluído em **success**, job `playwright` `101216980017` concluído em **success** e etapa `npm run test:e2e` em **success**.
-- Decisão: **NO-OP**.
-- Análise ampla: como jogador, não surgiu nova deficiência perceptível no loop já polido; como game designer, as oportunidades de maior impacto restantes continuam em progressão, ritmo e replayability e exigem hipótese/balanceamento de DESIGN; como engenheiro, o baseline está saudável e a dívida de `window.__GAME_DEBUG__`/polling segue não bloqueando valor de produto.
-- Alternativas consideradas: nova camada de progressão/recompensas como DESIGN; pontuação por fileira somente como DESIGN, respeitando a regressão histórica; refinamento adicional da mira proporcional; novo feedback audiovisual/lifecycle; refatoração arquitetural do debug/polling. Nenhuma apresentou nova evidência ou retorno esperado claramente suficiente para romper SATURATED.
-- Motivo de maior ganho marginal: preservar o baseline saudável continua oferecendo melhor relação ganho/risco do que iniciar trabalho sem hipótese forte, especialmente após quatro no-ops consecutivos já confirmarem diminishing returns.
-- JUDGE: **PASS para NO-OP**. Nenhuma alternativa supera claramente custo, risco e complexidade nesta execução.
-- Efeito: contador de no-ops passa para **5**; o projeto permanece **SATURATED**.
-- Próxima execução: manter o limiar alto e procurar primeiro nova evidência externa/jogador ou regressão real; considerar DESIGN apenas quando houver hipótese claramente diferenciada, benefício observável e critérios de aceite defensáveis.
-
-### NO-OP #6 em SATURATED
-- Gate: `main` em `7f1a8771e89b030fdc685af62b98b3c4b1a1506f`; GitHub Actions run `33936656380` concluído em **success**, job `playwright` `101225793958` concluído em **success** e etapa `npm run test:e2e` em **success**.
-- Decisão: **NO-OP**.
-- Análise ampla: como jogador, o loop atual permanece legível, responsivo e com agência suficiente sem nova deficiência observável; como game designer, profundidade/progressão/replayability seguem sendo a área potencialmente mais valiosa, mas nenhuma hipótese concreta desta execução supera claramente o custo de balanceamento e contratos de um DESIGN; como engenheiro, não há regressão e a dívida de `window.__GAME_DEBUG__`/polling continua sem bloquear uma melhoria de produto.
-- Alternativas consideradas: progressão/recompensas em DESIGN, pontuação por fileira somente como DESIGN, refinamento da mira proporcional, audiovisual/lifecycle e refatoração do debug/polling. Todas carecem de evidência nova ou benefício esperado suficientemente alto para romper SATURATED.
-- Motivo de maior ganho marginal: preservar o baseline verde e evitar atividade artificial continua sendo a decisão de maior retorno marginal.
-- JUDGE: **PASS para NO-OP**. Nenhuma alternativa supera claramente custo, risco, complexidade e dívida potencial.
-- Efeito: contador de no-ops passa para **6**; o projeto permanece **SATURATED**.
-- Próxima execução: manter o limiar alto; só considerar MICRO com bug/regressão real, nova evidência de jogador ou ganho independente claramente alto, e DESIGN apenas com hipótese diferenciada e critérios de aceite defensáveis.
-
-## Protocolo de decisão
-
-### 1. Gate
-Sempre verificar HEAD da `main`, CI do HEAD, Playwright e regressões recentes. CI pendente: registrar e encerrar. Regressão causada pelo HEAD: corrigir exclusivamente a regressão.
-
-### 2. Meta-Critic
-Com baseline saudável, classificar a melhor oportunidade como:
-- **MICRO** — uma única melhoria pequena, independente, segura, reversível e claramente perceptível.
-- **DESIGN** — melhoria de médio porte que exige balanceamento, mudança transversal, hipótese de produto ou múltiplos arquivos/testes coordenados.
-- **NO-OP** — nenhuma oportunidade com retorno marginal suficiente.
-
-### 3. Regra de saturação
-Após **3 no-ops consecutivos**, entrar em **SATURATED**: não procurar microefeitos apenas para gerar atividade; só sair com bug/regressão real, nova evidência de jogador ou hipótese DESIGN claramente superior.
-
-### 4. MICRO
-Implementar exatamente uma melhoria, validar, julgar e integrar diretamente na `main` somente se verde/coerente. Uma mudança aprovada zera o contador de no-ops.
-
-### 5. DESIGN
-Formular hipótese, benefício, riscos e critérios de aceite; criar `design/<data>-<slug>` a partir da `main` verde; implementar coesamente; atualizar Playwright; validar; julgar; integrar somente se aprovado e suficientemente validado.
-
-## Frequência
-
-O Meta-Critic deve rodar **de hora em hora**. Frequência alta aumenta o número de avaliações independentes, não a obrigação de alterar o produto.
+1. **Baseline Gate** — CI/Playwright e regressões.
+2. **Evidence Gate** — existe problema real sustentado por evidência?
+3. **Value Case** — benefício, comportamento esperado, alternativa simples, risco e complexidade.
+4. **MICRO / DESIGN / NO-OP**.
+5. **Correctness Gate**.
+6. **Value Judge**.
+7. Commit somente se a mudança material merece existir.
 
 ## Memória persistente
 
-- `GAUNTLET_STATE.md`: estado condensado e decisões vigentes.
+- `GAUNTLET_STATE.md`: memória condensada e decisões vigentes.
+- `VALUE_BACKLOG.md`: problemas/hipóteses orientados por evidência.
 - Issue #1: log histórico completo e permanente.
 - `GAUNTLET.md`: protocolo operacional.
 - `README.md`: visão do experimento.
+
+NO-OPs saturados sem mudança material são registrados somente na issue #1.

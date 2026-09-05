@@ -1,97 +1,238 @@
-# Gauntlet Loop — Meta-Critic Protocol
+# Gauntlet Loop — Value-Driven Meta-Critic Protocol
 
 Este projeto começou como um experimento de melhoria incremental de um Breakout simples por uma tarefa agendada do ChatGPT executada de hora em hora.
 
-Após mais de 100 ciclos, o experimento entrou em uma nova fase: **Meta-Critic**. A frequência operacional volta a ser **de hora em hora** e o objetivo deixa de ser produzir um microincremento sempre que possível; passa a ser escolher o modo de trabalho com melhor retorno marginal.
+Após mais de 100 ciclos, o experimento entrou na fase **Meta-Critic**. A frequência operacional continua **de hora em hora**, mas a execução não existe para produzir mudanças: ela existe para decidir se há **evidência suficiente de valor** para justificar uma mudança.
 
-Consulte também [`GAUNTLET_STATE.md`](GAUNTLET_STATE.md), que contém o estado condensado, decisões vigentes, mecânicas existentes e experimentos rejeitados/revertidos.
+Consulte também:
+- [`GAUNTLET_STATE.md`](GAUNTLET_STATE.md): memória condensada, decisões vigentes, mecânicas existentes e evidências.
+- [`VALUE_BACKLOG.md`](VALUE_BACKLOG.md): problemas, hipóteses e oportunidades organizados por evidência.
+- Issue #1: log histórico permanente das execuções.
 
-## Objetivo
+## Princípio central
 
-Observar até onde um jogo Breakout propositalmente simples pode evoluir por crítica, implementação e validação autônomas sem confundir atividade com ganho real de qualidade.
+**Todo commit deve representar ganho real de produto, correção real de regressão ou evolução material do protocolo.**
 
-## Gate obrigatório
+A finalidade de uma execução não é produzir commit. A pergunta principal é:
+
+> Existe evidência suficiente para justificar um commit que eu manteria se o projeto pudesse receber apenas um commit de valor por semana?
+
+Não criar commits para:
+- registrar execução;
+- incrementar contador;
+- trocar SHA/CI de baseline semanticamente idêntico;
+- repetir análise;
+- documentar NO-OP;
+- demonstrar atividade.
+
+A issue #1 é o **log de execução**.  
+`GAUNTLET_STATE.md` é **memória condensada**.  
+`VALUE_BACKLOG.md` é **fila de problemas e hipóteses orientada por evidência**.  
+O histórico Git é reservado a **mudanças materiais**.
+
+## GATE 1 — Saúde do baseline
 
 Toda execução começa por:
 
-1. Ler a branch `main`, `README.md`, este arquivo, `GAUNTLET_STATE.md` e a issue #1.
+1. Ler a branch `main`, `README.md`, `GAUNTLET.md`, `GAUNTLET_STATE.md`, `VALUE_BACKLOG.md` e a issue #1.
 2. Ler comentários recentes/relevantes da issue #1.
 3. Verificar GitHub Actions/CI e Playwright do HEAD.
-4. Se o CI estiver pendente, não alterar código: registrar a pendência e encerrar.
-5. Se o CI falhar por causa da alteração mais recente, corrigir exclusivamente essa regressão antes de qualquer outra iniciativa.
+4. Se CI estiver pendente, não alterar código: registrar a pendência e encerrar.
+5. Se houver regressão causada pelo HEAD, corrigir exclusivamente essa regressão.
+6. Se houver falha preexistente, flaky ou de infraestrutura, registrar a evidência e não inventar sucesso.
+
+Somente prosseguir ao Value Gate com baseline saudável.
+
+## GATE 2 — Evidência de valor
+
+Antes de propor qualquer mudança, identificar **qual problema real** justificaria o commit.
+
+Uma mudança só pode prosseguir quando houver pelo menos uma fonte defensável de evidência:
+
+1. bug ou regressão reproduzível;
+2. comportamento observado de jogador;
+3. métrica de uso/gameplay indicando deficiência;
+4. feedback explícito de jogador;
+5. problema claro de acessibilidade/mobile;
+6. oportunidade independente cujo ganho perceptível seja claramente alto e demonstrável;
+7. dívida técnica que esteja bloqueando uma melhoria concreta de produto.
+
+Não são evidência suficiente por si só:
+- preferência estética;
+- possibilidade abstrata de melhoria;
+- desejo de variar o gameplay;
+- “poderia ser mais polido” sem deficiência concreta;
+- dívida técnica sem impacto atual;
+- frequência alta de execução;
+- existência de uma ideia interessante.
+
+Se nenhuma evidência suficiente existir, o modo obrigatório é **NO-OP**.
+
+## GATE 3 — Value Case
+
+Antes de codificar qualquer MICRO ou DESIGN, responder:
+
+- Qual é o problema real?
+- Qual é a evidência?
+- Quem percebe o problema?
+- Qual comportamento do jogador deve mudar?
+- Qual benefício esperado?
+- Como o benefício será observado ou testado?
+- Existe solução mais simples?
+- Qual complexidade e risco serão adicionados?
+- Por que este commit merece existir agora?
+
+Se as respostas não formarem um caso convincente, escolher **NO-OP**.
 
 ## Meta-Critic
 
-Com o baseline saudável, avaliar o produto amplamente como jogador, game designer e engenheiro. Não procurar apenas o próximo patch local.
-
-Classificar a melhor oportunidade em exatamente uma destas categorias:
+Com baseline saudável e evidência suficiente, avaliar como jogador, game designer e engenheiro e escolher exatamente um modo:
 
 ### MICRO
-Use quando existir uma melhoria que seja simultaneamente:
+
+Use apenas quando houver **uma única mudança** que seja:
 - pequena;
 - independente;
 - segura;
 - reversível;
 - claramente perceptível ao jogador;
+- ligada diretamente à evidência;
 - testável sem rebalanceamento amplo.
 
-Nesse caso, executar o Micro Gauntlet:
-CRITIC → IMPLEMENTER → Playwright/CI → JUDGE → commit em `main` se aprovado.
+Em estado SATURATED, MICRO exige bug/regressão real, nova evidência de jogador ou oportunidade independente de ganho claramente alto.
+
+Fluxo:
+
+`EVIDÊNCIA → CRITIC → IMPLEMENTER → Correctness Gate → Value Judge → main`
+
+Implementar exatamente uma melhoria, sem refatorações não relacionadas ou dependências novas salvo necessidade excepcional. Atualizar/adicionar Playwright quando aplicável.
 
 ### DESIGN
-Use quando o ganho potencial for relevante, mas exigir:
+
+Use quando evidência forte apontar para uma melhoria relevante que exija:
+- hipótese de produto;
 - balanceamento;
 - mudança transversal;
-- hipótese de produto;
-- alteração coordenada de vários contratos/testes;
-- ou exploração que não cabe honestamente em uma única microalteração.
+- vários contratos/testes coordenados;
+- progressão, ritmo ou replayability;
+- exploração que não cabe honestamente em uma microalteração.
 
-Nesse caso:
-1. Definir hipótese, benefício esperado, riscos e critérios de aceite.
-2. Criar uma branch `design/<data>-<slug>` a partir da `main` verde.
-3. Implementar o experimento de forma coesa na branch.
-4. Atualizar/adicionar testes Playwright e validar o conjunto relevante.
-5. Atuar como JUDGE.
-6. Se a hipótese for aprovada e a branch estiver suficientemente validada, integrar na `main`.
-7. Se a hipótese falhar ou o custo superar o benefício, não integrar; registrar o descarte como evidência.
+Antes de codificar, definir:
+- hipótese;
+- evidência;
+- benefício esperado;
+- riscos;
+- critérios de aceite;
+- critérios de rejeição.
 
-Uma execução DESIGN continua sendo **um único experimento**, embora possa exigir vários arquivos ou commits coordenados na branch.
+Criar uma branch `design/<YYYYMMDD>-<slug>` a partir da `main` verde.
+
+Implementar um único experimento coeso. Não fragmentar DESIGN em microciclos artificiais. Atualizar Playwright e validar toda a superfície relevante.
+
+Somente integrar na `main` se o Value Judge aprovar e a validação for suficiente.
 
 ### NO-OP
-Use quando nenhuma oportunidade superar claramente o custo/risco.
 
-Não criar código, efeitos, edge cases ou refatorações apenas para produzir atividade. Registrar a conclusão na issue #1 e preservar o baseline.
+Escolher NO-OP quando:
+- não houver evidência suficiente;
+- nenhuma hipótese superar claramente o baseline;
+- a melhoria depender principalmente de gosto ou especulação;
+- o ganho for marginal;
+- a área já estiver suficientemente polida;
+- custo, risco ou validação superarem o benefício provável.
 
-Em estado **SATURATED**, um novo NO-OP que não traga evidência nova e não altere nenhuma decisão operacional **não deve modificar arquivos nem criar commit**. O comentário na issue #1 é o registro histórico suficiente dessa execução.
+NO-OP é resultado válido e desejável.
 
-`GAUNTLET_STATE.md` só deve ser atualizado por um NO-OP quando houver mudança material na memória condensada, por exemplo:
-- entrada ou saída de `SATURATED`;
-- nova evidência de jogador ou regressão relevante;
-- mudança de decisão/restrição vigente;
-- experimento DESIGN iniciado, aprovado ou rejeitado;
-- alteração material do baseline ou da estratégia da próxima execução.
+Em NO-OP:
+- não alterar arquivos;
+- não criar branch;
+- não criar commit;
+- registrar somente na issue #1.
 
-Incrementar apenas o número de NO-OPs, repetir a mesma análise ou atualizar somente o SHA/CI de um baseline semanticamente idêntico **não é mudança material** e não justifica commit.
+## Regra de saturação
 
-## Regra dos três no-ops
+Após **3 NO-OPs consecutivos**, entrar em **SATURATED**.
 
-Após **3 no-ops consecutivos**:
+Em SATURATED:
+- parar de procurar micro-polimento apenas para gerar atividade;
+- elevar o limiar de evidência;
+- MICRO só diante de bug/regressão real, evidência nova de jogador ou ganho independente claramente alto;
+- DESIGN só com hipótese claramente diferenciada e critérios defensáveis;
+- novos NO-OPs não atualizam `GAUNTLET_STATE.md` apenas para incrementar contador ou SHA.
 
-- entrar em estado **SATURATED**;
-- parar de procurar micro-polimento repetitivo;
-- executar uma análise ampla de produto no próximo Meta-Critic;
-- só voltar a MICRO diante de bug/regressão real, evidência nova de jogador ou oportunidade independente de ganho claramente alto;
-- considerar DESIGN quando a próxima melhoria valiosa for grande demais para um microincremento.
+O contador é zerado quando uma mudança aprovada de produto é integrada.
 
-O contador é zerado quando uma mudança aprovada é integrada à `main`.
+## VALUE_BACKLOG.md
 
-Depois que `SATURATED` é atingido, o contador pode continuar sendo informado nos comentários da issue #1, mas **não precisa ser persistido em `GAUNTLET_STATE.md` a cada execução**. O arquivo deve representar estado e decisões, não funcionar como log de execução; a issue #1 é o log histórico.
+O backlog não é uma fila de features. É uma fila de **problemas e hipóteses**.
+
+Cada item deve conter, quando aplicável:
+- problema;
+- evidência;
+- impacto esperado;
+- jogadores afetados;
+- hipótese;
+- métrica/comportamento esperado;
+- risco;
+- tamanho;
+- status: `candidate`, `validated`, `experiment`, `rejected`, `resolved`.
+
+Um item `candidate` sem evidência suficiente **não autoriza implementação**.
+
+Quando evidência nova surgir, atualizar o backlog somente se isso alterar materialmente a decisão.
+
+## Validação em dois níveis
+
+### Correctness Gate
+
+Prova que a mudança funciona tecnicamente:
+- CI;
+- Playwright;
+- ausência de regressão relevante;
+- contratos e estados afetados validados;
+- falhas preexistentes diferenciadas de regressões novas.
+
+Passar o Correctness Gate **não significa** que a mudança merece ser mantida.
+
+### Value Gate / Value Judge
+
+Prova que a mudança vale a complexidade adicionada:
+
+1. O jogador percebe a diferença?
+2. A mudança resolve o problema que originou a hipótese?
+3. Existe evidência suficiente de que o problema importava?
+4. O ganho é maior que a complexidade adicionada?
+5. A implementação evita dívida desnecessária?
+6. Os testes validam comportamento relevante, não apenas implementação?
+7. Uma solução menor produziria resultado equivalente?
+8. Eu manteria esta mudança se commits fossem limitados a **um por semana**?
+
+Se a resposta global não for claramente positiva, reverter/rejeitar e não integrar na `main`.
+
+## Evidência externa de jogador
+
+O próximo salto de qualidade deve preferencialmente vir de informação externa ao próprio loop:
+
+`jogador → evidência → hipótese → mudança → teste → avaliação`
+
+Métricas candidatas, quando houver mecanismo apropriado de coleta:
+- duração de sessão;
+- rodada máxima atingida;
+- mortes por rodada;
+- reinícios;
+- abandono antes da primeira rodada;
+- uso da mira proporcional;
+- teclado vs pointer/touch;
+- mortes logo após lançamento;
+- sessões que chegam às rodadas 3, 5 e 10.
+
+**Não adicionar telemetria invasiva ou infraestrutura de analytics apenas para gerar dados.** Instrumentação deve ser tratada como DESIGN quando houver forma proporcional, privacidade adequada e utilidade clara.
 
 ## Prioridades
 
 Salvo regressão, bug grave ou problema crítico de acessibilidade/mobile:
 
-1. game feel e feedback audiovisual **quando houver lacuna concreta**;
+1. game feel quando houver lacuna concreta;
 2. profundidade, progressão, ritmo e replayability;
 3. controles e UX/mobile;
 4. acessibilidade;
@@ -99,51 +240,47 @@ Salvo regressão, bug grave ou problema crítico de acessibilidade/mobile:
 
 O histórico já contém muito feedback audiovisual e muitos edge cases de lifecycle. Não repetir essas áreas sem evidência de necessidade.
 
-## JUDGE
-
-Antes de manter qualquer mudança, responder:
-
-- o jogador percebe a melhoria?
-- o ganho é maior que a complexidade adicionada?
-- a mudança cria ou agrava acoplamento?
-- a hipótese original foi realmente atendida?
-- os testes validam o comportamento relevante?
-- existe alternativa mais simples?
-
-Se a resposta global for negativa, reverter/descartar.
-
-## Regras gerais
+## Restrições vigentes
 
 - Preservar HTML/CSS/JavaScript + Canvas 2D.
 - Não adicionar dependências sem justificativa excepcional.
 - Não deixar `main` deliberadamente quebrada.
-- Não fazer refatorações não relacionadas.
-- Usar Playwright/GitHub Actions como evidência objetiva.
-- Não reintroduzir uma ideia revertida como MICRO sem considerar a evidência da reversão.
-- `window.__GAME_DEBUG__` é principalmente uma interface de testes; não expandi-la como arquitetura de produção por conveniência.
+- Não fazer refatorações não relacionadas ou puramente estéticas.
+- `window.__GAME_DEBUG__` é principalmente interface de testes; não expandi-la como event bus/API de produção por conveniência.
+- Pontuação diferenciada por fileira não volta como MICRO; só pode ser reconsiderada como DESIGN com evidência, hipótese e contratos completos.
+- Mira proporcional/contínua não recebe refinamentos adicionais sem nova evidência forte.
+- Novas camadas audiovisuais e novos edge cases de lifecycle exigem deficiência concreta.
 
-## Registro
+## Registro final na issue #1
 
-Ao fim de cada execução, comentar na issue #1:
-
-- modo escolhido: MICRO, DESIGN ou NO-OP;
-- estado do gate/CI;
+Ao fim de cada execução, comentar:
+- execução Meta-Critic;
+- modo: MICRO, DESIGN ou NO-OP;
+- HEAD;
+- estado do CI/Playwright;
+- evidência encontrada;
+- problema;
 - alternativas consideradas;
-- motivo da decisão;
-- hipótese/problema;
-- solução ou experimento;
-- arquivos/branch/commits quando aplicável;
+- Value Case;
+- hipótese;
+- solução/experimento;
+- arquivos alterados;
+- branch e SHA quando aplicável;
 - validações;
-- decisão do JUDGE;
-- contador de no-ops;
-- se houve ou não mudança material que justifique atualizar `GAUNTLET_STATE.md`.
+- decisão do Value Judge;
+- ganho esperado ao jogador;
+- complexidade adicionada;
+- motivo pelo qual o commit merece existir;
+- contador de NO-OPs;
+- se houve mudança material que justifique atualizar `GAUNTLET_STATE.md` ou `VALUE_BACKLOG.md`.
 
-A issue #1 é o **log de execução**. `GAUNTLET_STATE.md` é **memória condensada**. Evitar duplicar o log da issue em commits documentais sucessivos.
+A issue #1 permanece aberta permanentemente.
 
-## Frequência e agressividade
+## Frequência
 
-O Meta-Critic roda **de hora em hora**. Essa frequência aumenta a quantidade de avaliações independentes, mas não autoriza mudanças mais agressivas. Em estado SATURATED, várias execuções consecutivas podem terminar legitimamente em NO-OP. Frequência alta e propensão a commit são controles separados.
+O Meta-Critic roda **de hora em hora**.
 
-Em particular, **frequência de avaliação não implica frequência de commit**: uma sequência estável de NO-OPs em SATURATED deve produzir comentários na issue, não uma cadeia de commits documentais.
+Frequência mede quantas vezes o projeto é avaliado.  
+Ela **não determina quantas vezes o projeto deve mudar**.
 
-A issue #1 deve permanecer aberta como memória histórica do experimento.
+Se não houver evidência suficiente para justificar valor real, **não fazer commit**.
