@@ -3,7 +3,8 @@
   const livesEl = document.getElementById('lives');
   const comboEl = document.getElementById('combo');
   const startButton = document.getElementById('startButton');
-  if (!scoreEl || !livesEl || !comboEl) return;
+  const gameStatusEl = document.getElementById('gameStatus');
+  if (!scoreEl || !livesEl || !comboEl || !gameStatusEl) return;
 
   const COMBO_WINDOW_MS = 2000;
   const MAX_COMBO_MULTIPLIER = 5;
@@ -13,6 +14,9 @@
   let combo = 0;
   let lastHitAt = 0;
   let resetTimer = null;
+  let comboWindowExpiresAt = 0;
+  let comboWindowRemainingMs = 0;
+  let pauseStartedAt = null;
   let feedbackCount = 0;
   let scoreFeedbackCount = 0;
   let soundFeedbackCount = 0;
@@ -79,13 +83,41 @@
     lastHitAt = 0;
     if (resetTimer) clearTimeout(resetTimer);
     resetTimer = null;
+    comboWindowExpiresAt = 0;
+    comboWindowRemainingMs = 0;
+    pauseStartedAt = null;
     comboEl.classList.remove('combo-pop', 'combo-window');
     render();
   }
 
-  function scheduleReset() {
+  function scheduleReset(delay = COMBO_WINDOW_MS) {
     if (resetTimer) clearTimeout(resetTimer);
-    resetTimer = setTimeout(resetCombo, COMBO_WINDOW_MS);
+    comboWindowRemainingMs = Math.max(0, delay);
+    comboWindowExpiresAt = performance.now() + comboWindowRemainingMs;
+    resetTimer = setTimeout(resetCombo, comboWindowRemainingMs);
+  }
+
+  function suspendComboWindow() {
+    if (pauseStartedAt !== null) return;
+    pauseStartedAt = performance.now();
+    if (!resetTimer || combo <= 0) return;
+
+    comboWindowRemainingMs = Math.max(0, comboWindowExpiresAt - pauseStartedAt);
+    clearTimeout(resetTimer);
+    resetTimer = null;
+  }
+
+  function resumeComboWindow() {
+    if (pauseStartedAt === null) return;
+
+    const now = performance.now();
+    const pausedDuration = now - pauseStartedAt;
+    pauseStartedAt = null;
+    if (lastHitAt) lastHitAt += pausedDuration;
+
+    if (combo > 0 && comboWindowRemainingMs > 0) {
+      scheduleReset(comboWindowRemainingMs);
+    }
   }
 
   function registerHit() {
@@ -118,6 +150,14 @@
     if (nextLives < previousLives) resetCombo();
     previousLives = nextLives;
   }).observe(livesEl, { childList: true, characterData: true, subtree: true });
+
+  let wasPaused = gameStatusEl.textContent.trim() === 'Pausado.';
+  new MutationObserver(() => {
+    const isPaused = gameStatusEl.textContent.trim() === 'Pausado.';
+    if (isPaused && !wasPaused) suspendComboWindow();
+    if (!isPaused && wasPaused) resumeComboWindow();
+    wasPaused = isPaused;
+  }).observe(gameStatusEl, { childList: true, characterData: true, subtree: true });
 
   window.__COMBO_DEBUG__ = {
     getCombo() {
