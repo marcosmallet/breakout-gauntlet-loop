@@ -127,12 +127,6 @@
   setEliteRound(false);
   renderChoice();
 
-  window.EliteRound = Object.freeze({
-    isAwaitingChoice: () => awaitingChoice,
-    chooseStandard: () => chooseMode('standard'),
-    chooseElite: () => chooseMode('elite')
-  });
-
   window.__ELITE_ROUND_DEBUG__ = {
     getState() {
       return {
