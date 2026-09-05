@@ -30,13 +30,19 @@ Status permitidos:
 
 O agente deve usar este backlog como fonte de perguntas investigáveis, não como fila automática de trabalho.
 
+Há duas lentes:
+- **FOCAL** — uma área/pergunta local;
+- **SYSTEMIC** — uma pergunta estratégica que pode atravessar 2–4 subsistemas causalmente relacionados.
+
+Ao entrar em SATURATED, a próxima execução deve usar SYSTEMIC.
+
 Regras:
 - começar por **uma área/pergunta focal por execução**; expandir para outros subsistemas apenas quando houver caminho causal demonstrável ligado ao mesmo problema;
 - preferir áreas não investigadas nas 3 execuções anteriores;
 - tentar falsificar a hipótese, não confirmá-la;
 - usar Playwright, `window.__GAME_DEBUG__`, inspeção de código e medições determinísticas antes de propor nova instrumentação;
 - promover `candidate` para `validated` somente com evidência reproduzível ou mensurável;
-- promover para `strategic` somente quando múltiplas evidências independentes convergirem para a mesma causa sistêmica;
+- promover para `strategic` quando múltiplas evidências independentes convergirem para a mesma causa sistêmica **ou para o mesmo limite estrutural mensurável do baseline**;
 - não alterar este arquivo por uma investigação que não mudou materialmente a evidência.
 
 Perguntas iniciais úteis:
