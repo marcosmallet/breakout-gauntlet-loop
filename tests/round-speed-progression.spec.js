@@ -61,6 +61,7 @@ test('progressão tardia continua elevando o teto de velocidade após a rodada 5
     game.clearBricksExcept(0);
     game.setBall({ x: 21.6, y: 69, vx: 4, vy: 0 });
     game.step();
+    if (game.getState().awaitingRoundChoice) game.chooseRoundContract('standard');
 
     drainGrace();
     game.setBall({ x: 21.6, y: 69, vx: 8, vy: 0 });
