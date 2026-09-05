@@ -3,8 +3,11 @@
   const LATE_ROUND_START = 5;
   const LATE_ROUND_MAX_SPEED_STEP = 0.2;
   const HARD_MAX_BALL_SPEED = 9;
+  const ELITE_ROUND_SPEED_BONUS = 0.5;
 
-  function maxBallSpeedForRound(round = 1) {
+  let eliteRoundActive = false;
+
+  function baseMaxBallSpeedForRound(round = 1) {
     const safeRound = Number.isFinite(round)
       ? Math.max(1, Math.floor(round))
       : 1;
@@ -16,7 +19,19 @@
     );
   }
 
+  function maxBallSpeedForRound(round = 1) {
+    return baseMaxBallSpeedForRound(round) + (eliteRoundActive ? ELITE_ROUND_SPEED_BONUS : 0);
+  }
+
+  function setEliteRoundActive(active) {
+    eliteRoundActive = Boolean(active);
+  }
+
   window.GameDifficulty = Object.freeze({
-    maxBallSpeedForRound
+    maxBallSpeedForRound,
+    baseMaxBallSpeedForRound,
+    setEliteRoundActive,
+    isEliteRoundActive: () => eliteRoundActive,
+    eliteRoundSpeedBonus: ELITE_ROUND_SPEED_BONUS
   });
 })();

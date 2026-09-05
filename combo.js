@@ -6,8 +6,10 @@
   const gameStatusEl = document.getElementById('gameStatus');
   if (!scoreEl || !livesEl || !comboEl || !gameStatusEl) return;
 
-  const COMBO_WINDOW_MS = 2000;
+  const BASE_COMBO_WINDOW_MS = 2000;
+  const ELITE_COMBO_WINDOW_MS = 2500;
   const MAX_COMBO_MULTIPLIER = 5;
+  const MAX_BRICK_SCORE_DELTA = 50;
   const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
   let previousScore = Number(scoreEl.textContent) || 0;
   let previousLives = Number(livesEl.textContent) || 0;
@@ -21,6 +23,12 @@
   let scoreFeedbackCount = 0;
   let soundFeedbackCount = 0;
   let audioContext = null;
+
+  function comboWindowMs() {
+    return window.GameDifficulty?.isEliteRoundActive?.()
+      ? ELITE_COMBO_WINDOW_MS
+      : BASE_COMBO_WINDOW_MS;
+  }
 
   function render() {
     const multiplier = Math.min(combo, MAX_COMBO_MULTIPLIER);
@@ -90,7 +98,7 @@
     render();
   }
 
-  function scheduleReset(delay = COMBO_WINDOW_MS) {
+  function scheduleReset(delay = comboWindowMs()) {
     if (resetTimer) clearTimeout(resetTimer);
     comboWindowRemainingMs = Math.max(0, delay);
     comboWindowExpiresAt = performance.now() + comboWindowRemainingMs;
@@ -124,14 +132,15 @@
 
   function registerHit() {
     const now = performance.now();
-    combo = lastHitAt && now - lastHitAt <= COMBO_WINDOW_MS ? combo + 1 : 1;
+    const windowMs = comboWindowMs();
+    combo = lastHitAt && now - lastHitAt <= windowMs ? combo + 1 : 1;
     lastHitAt = now;
     playHitSound();
     pulseScore();
     render();
     pulseCombo();
     restartComboWindowFeedback();
-    scheduleReset();
+    scheduleReset(windowMs);
   }
 
   startButton?.addEventListener('click', primeAudio);
@@ -142,8 +151,9 @@
 
   new MutationObserver(() => {
     const nextScore = Number(scoreEl.textContent) || 0;
-    if (nextScore > previousScore) registerHit();
-    if (nextScore < previousScore) resetCombo();
+    const delta = nextScore - previousScore;
+    if (delta > 0 && delta <= MAX_BRICK_SCORE_DELTA) registerHit();
+    if (delta < 0 || delta > MAX_BRICK_SCORE_DELTA) resetCombo();
     previousScore = nextScore;
   }).observe(scoreEl, { childList: true, characterData: true, subtree: true });
 
@@ -173,6 +183,9 @@
     },
     getSoundFeedbackCount() {
       return soundFeedbackCount;
+    },
+    getWindowMs() {
+      return comboWindowMs();
     }
   };
 })();
