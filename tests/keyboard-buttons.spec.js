@@ -24,6 +24,17 @@ test('Espaço preserva a ativação nativa dos botões do jogo', async ({ page }
   await expect(page.getByRole('button', { name: 'Pausar' })).toHaveAttribute('aria-pressed', 'false');
 });
 
+test('instruções acessíveis explicam a mira antes do lançamento', async ({ page }) => {
+  await page.goto('/');
+
+  const canvas = page.locator('#game');
+  await expect(canvas).toHaveAttribute('aria-describedby', 'controlInstructions');
+  await expect(canvas).toHaveAttribute(
+    'aria-description',
+    'Durante a contagem antes do lançamento, mova a raquete para mirar a direção da bola.'
+  );
+});
+
 test('controles exibem foco visível para navegação por teclado', async ({ page }) => {
   await page.goto('/');
 
@@ -110,4 +121,3 @@ test('HUD permanece contido em telas móveis estreitas', async ({ page }) => {
     expect(metrics.childrenContained).toBe(true);
   }
 });
-
