@@ -1,7 +1,6 @@
 (() => {
   const EDGE_THRESHOLD = 0.72;
   const EDGE_SPEED_SCALE = 1.06;
-  const MAX_BALL_SPEED = 8;
   const FEEDBACK_DURATION_MS = 180;
   const canvas = document.getElementById('game');
   const startButton = document.getElementById('startButton');
@@ -61,9 +60,10 @@
         (state.ball.x - paddleCenter) / (state.paddle.w / 2)
       );
       const speed = Math.hypot(state.ball.vx, state.ball.vy);
+      const maxBallSpeed = window.GameDifficulty.maxBallSpeedForRound(state.round);
 
-      if (normalizedHit >= EDGE_THRESHOLD && speed > 0 && speed < MAX_BALL_SPEED) {
-        const nextSpeed = Math.min(MAX_BALL_SPEED, speed * EDGE_SPEED_SCALE);
+      if (normalizedHit >= EDGE_THRESHOLD && speed > 0 && speed < maxBallSpeed) {
+        const nextSpeed = Math.min(maxBallSpeed, speed * EDGE_SPEED_SCALE);
         const scale = nextSpeed / speed;
         window.__GAME_DEBUG__.setBall({
           vx: state.ball.vx * scale,
