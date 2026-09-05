@@ -15,22 +15,25 @@ ChatGPT Scheduled Task — hourly
        CI / Playwright
              ↓
    EVIDENCE DISCOVERY
-   1 focused investigation
+   focal investigation
+   + causal expansion if needed
              ↓
        EVIDENCE GATE
              ↓
+   STRATEGIC SYNTHESIS
+             ↓
         VALUE CASE
-       ↙     ↓      ↘
-    MICRO  DESIGN   NO-OP
-      ↓      ↓        ↓
- Correctness Gate   preserve
-      ↓      ↓       baseline
+      ↙    ↓    ↓    ↘
+ MICRO  DESIGN MACRO NO-OP
+   ↓      ↓     ↓      ↓
+   Correctness Gate  preserve
+        ↓             baseline
        VALUE JUDGE
              ↓
     commit only if valuable
 ```
 
-Após **3 NO-OPs consecutivos**, o projeto entra em **SATURATED**. Nesse estado, o agente deixa de procurar micro-polimento repetitivo e só sai de NO-OP diante de regressão/bug real, nova evidência de jogador ou hipótese DESIGN claramente superior.
+Após **3 NO-OPs consecutivos**, o projeto entra em **SATURATED**. Nesse estado, o agente deixa de procurar micro-polimento repetitivo e só sai de NO-OP diante de regressão/bug real, nova evidência de jogador, hipótese DESIGN claramente superior ou problema sistêmico que sustente um MACRO.
 
 ## Estado, evidência e memória
 
@@ -113,7 +116,7 @@ npm run test:e2e
 
 ## Hipótese atual
 
-> Depois que microincrementos entram em diminishing returns, um agente que investiga ativamente o produto, exige evidência e Value Case antes de modificar e aceita NO-OP quando a investigação não encontra sinal pode continuar aumentando qualidade sem confundir frequência de avaliação com frequência de commit.
+> Depois que microincrementos entram em diminishing returns, um agente pode continuar aumentando qualidade se investigar ativamente o produto, ajustar a escala da solução à escala do problema, aceitar NO-OP sem pressão por atividade e permitir DESIGN/MACRO quando evidências mostram que fragmentar a solução reduziria o valor.
 
 ## Stack
 
@@ -129,6 +132,6 @@ npm run test:e2e
 
 **1 avaliação Meta-Critic por hora.**
 
-A frequência aumenta o número de avaliações e **investigações independentes**. Cada execução saudável deve examinar uma área concreta, mas isso não cria obrigação de mudança.
+A frequência aumenta o número de avaliações e investigações. Cada execução saudável começa por uma área focal; se surgir caminho causal demonstrável, pode expandir para subsistemas relacionados. Isso não cria obrigação de mudança nem obrigação de manter mudanças pequenas.
 
 > Se não houver evidência suficiente para justificar valor real, não há commit.
