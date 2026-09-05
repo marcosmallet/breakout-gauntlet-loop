@@ -21,7 +21,8 @@ Cada oportunidade deve responder, quando aplicável:
 Status permitidos:
 - `candidate` — hipótese sem evidência suficiente;
 - `validated` — evidência suficiente para formular Value Case;
-- `experiment` — DESIGN em andamento;
+- `strategic` — múltiplas evidências independentes convergem para um problema sistêmico que pode justificar investigação MACRO;
+- `experiment` — DESIGN ou MACRO em andamento;
 - `rejected` — hipótese testada/rejeitada ou custo superior ao ganho;
 - `resolved` — problema resolvido e validado.
 
@@ -30,11 +31,12 @@ Status permitidos:
 O agente deve usar este backlog como fonte de perguntas investigáveis, não como fila automática de trabalho.
 
 Regras:
-- escolher no máximo **uma área/pergunta focal por execução**;
+- começar por **uma área/pergunta focal por execução**; expandir para outros subsistemas apenas quando houver caminho causal demonstrável ligado ao mesmo problema;
 - preferir áreas não investigadas nas 3 execuções anteriores;
 - tentar falsificar a hipótese, não confirmá-la;
 - usar Playwright, `window.__GAME_DEBUG__`, inspeção de código e medições determinísticas antes de propor nova instrumentação;
 - promover `candidate` para `validated` somente com evidência reproduzível ou mensurável;
+- promover para `strategic` somente quando múltiplas evidências independentes convergirem para a mesma causa sistêmica;
 - não alterar este arquivo por uma investigação que não mudou materialmente a evidência.
 
 Perguntas iniciais úteis:
@@ -68,7 +70,7 @@ Perguntas iniciais úteis:
 - **Hipótese:** uma progressão adicional bem balanceada poderia manter decisões interessantes por mais tempo.
 - **Métrica/comportamento esperado:** maior duração de sessão e maior proporção de sessões chegando a rodadas avançadas.
 - **Risco:** alto risco de rebalanceamento e complexidade transversal.
-- **Tamanho:** DESIGN.
+- **Tamanho:** DESIGN ou MACRO se evidências futuras demonstrarem necessidade de mudanças coordenadas.
 - **Status:** `candidate`.
 
 ### Ritmo e dificuldade por rodada
@@ -92,7 +94,7 @@ Perguntas iniciais úteis:
 - **Hipótese:** evidência externa sobre sessões, progressão e controles permitirá priorizar problemas reais em vez de inventar microfeatures.
 - **Métrica/comportamento esperado:** surgimento de Value Cases baseados em comportamento real.
 - **Risco:** analytics pode adicionar complexidade, privacidade e infraestrutura sem benefício proporcional.
-- **Tamanho:** DESIGN se instrumentação for necessária.
+- **Tamanho:** DESIGN se instrumentação focal for necessária; MACRO somente se o problema exigir solução sistêmica coesa.
 - **Status:** `validated` quanto ao problema de falta de evidência; **não autoriza telemetria automaticamente**.
 
 ## Restrições / evidência histórica
