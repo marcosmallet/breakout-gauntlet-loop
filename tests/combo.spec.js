@@ -70,15 +70,32 @@ test('pausa congela a janela do combo e preserva o multiplicador ao retomar', as
 
   await page.getByRole('button', { name: 'Pausar' }).click();
   const pausedBall = await page.evaluate(() => window.__GAME_DEBUG__.getState().ball);
+  const combo = page.locator('#combo');
+
+  await expect.poll(() => combo.evaluate((element) =>
+    getComputedStyle(element, '::after').animationPlayState
+  )).toBe('paused');
+
+  const indicatorAtPause = await combo.evaluate((element) =>
+    getComputedStyle(element, '::after').transform
+  );
 
   await page.waitForTimeout(2100);
 
-  await expect(page.locator('#combo')).toHaveText('x1');
+  await expect(combo).toHaveText('x1');
+  const indicatorAfterWait = await combo.evaluate((element) =>
+    getComputedStyle(element, '::after').transform
+  );
+  expect(indicatorAfterWait).toBe(indicatorAtPause);
   const stillPausedBall = await page.evaluate(() => window.__GAME_DEBUG__.getState().ball);
   expect(stillPausedBall.x).toBe(pausedBall.x);
   expect(stillPausedBall.y).toBe(pausedBall.y);
 
   await page.getByRole('button', { name: 'Retomar' }).click();
+  await expect.poll(() => combo.evaluate((element) =>
+    getComputedStyle(element, '::after').animationPlayState
+  )).toBe('running');
+
   await page.evaluate(async () => {
     const game = window.__GAME_DEBUG__;
     game.setBall({ x: 120, y: 45, vx: 0, vy: 5 });
