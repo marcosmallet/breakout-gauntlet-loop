@@ -84,3 +84,30 @@ test('canvas cabe melhor na altura de celulares em modo paisagem', async ({ page
   expect(canvasBox.height).toBeLessThanOrEqual(390 * 0.63);
   expect(canvasBox.width / canvasBox.height).toBeCloseTo(800 / 520, 1);
 });
+
+test('HUD permanece contido em telas móveis estreitas', async ({ page }) => {
+  for (const viewport of [
+    { width: 320, height: 568 },
+    { width: 360, height: 800 }
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto('/');
+
+    const metrics = await page.locator('.hud').evaluate((hud) => {
+      const bounds = hud.getBoundingClientRect();
+      const children = [...hud.children].map((child) => child.getBoundingClientRect());
+
+      return {
+        scrollWidth: hud.scrollWidth,
+        clientWidth: hud.clientWidth,
+        childrenContained: children.every(
+          (child) => child.left >= bounds.left && child.right <= bounds.right
+        )
+      };
+    });
+
+    expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.clientWidth);
+    expect(metrics.childrenContained).toBe(true);
+  }
+});
+
