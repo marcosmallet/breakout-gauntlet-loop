@@ -143,18 +143,46 @@
     scheduleReset(windowMs);
   }
 
+  function applyScoreDelta(nextScore) {
+    const delta = nextScore - previousScore;
+    if (delta > 0 && delta <= MAX_BRICK_SCORE_DELTA) registerHit();
+    if (delta < 0 || delta > MAX_BRICK_SCORE_DELTA) resetCombo();
+    previousScore = nextScore;
+  }
+
+  function scoreFromMutation(mutation) {
+    if (mutation.type === 'characterData') {
+      const value = Number(mutation.target.textContent);
+      return Number.isFinite(value) ? value : null;
+    }
+
+    if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+      const text = Array.from(mutation.addedNodes)
+        .map((node) => node.textContent || '')
+        .join('');
+      const value = Number(text);
+      return Number.isFinite(value) ? value : null;
+    }
+
+    return null;
+  }
+
   startButton?.addEventListener('click', primeAudio);
 
   comboEl.addEventListener('animationend', (event) => {
     if (event.animationName === 'combo-pop') comboEl.classList.remove('combo-pop');
   });
 
-  new MutationObserver(() => {
-    const nextScore = Number(scoreEl.textContent) || 0;
-    const delta = nextScore - previousScore;
-    if (delta > 0 && delta <= MAX_BRICK_SCORE_DELTA) registerHit();
-    if (delta < 0 || delta > MAX_BRICK_SCORE_DELTA) resetCombo();
-    previousScore = nextScore;
+  new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      const mutationScore = scoreFromMutation(mutation);
+      if (mutationScore !== null && mutationScore !== previousScore) {
+        applyScoreDelta(mutationScore);
+      }
+    }
+
+    const finalScore = Number(scoreEl.textContent) || 0;
+    if (finalScore !== previousScore) applyScoreDelta(finalScore);
   }).observe(scoreEl, { childList: true, characterData: true, subtree: true });
 
   new MutationObserver(() => {
