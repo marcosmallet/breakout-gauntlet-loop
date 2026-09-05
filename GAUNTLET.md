@@ -41,7 +41,70 @@ Toda execução começa por:
 5. Se houver regressão causada pelo HEAD, corrigir exclusivamente essa regressão.
 6. Se houver falha preexistente, flaky ou de infraestrutura, registrar a evidência e não inventar sucesso.
 
-Somente prosseguir ao Value Gate com baseline saudável.
+Somente prosseguir à Evidence Discovery com baseline saudável.
+
+## ETAPA 2 — Evidence Discovery autônoma
+
+Com baseline saudável, **não espere passivamente por evidência externa**. Antes do Evidence Gate, investigue ativamente uma única área do produto por execução.
+
+O objetivo desta etapa é **descobrir evidência**, não inventar uma melhoria.
+
+### Rotação de investigação
+
+Escolha preferencialmente a área relevante menos investigada nos comentários recentes da issue #1. Evite repetir a mesma área nas 3 execuções anteriores, salvo se uma descoberta exigir confirmação.
+
+Áreas de investigação:
+
+1. **core/física/game feel** — colisões, velocidade, estados impossíveis, edge shots, previsibilidade;
+2. **progressão/dificuldade/ritmo** — evolução entre rodadas, largura do paddle, velocidade, duração e picos de dificuldade;
+3. **controles/mobile** — teclado, touch/pointer, responsividade, landscape e diferenças entre métodos;
+4. **acessibilidade/first-run UX** — entendimento inicial, estados anunciados, instruções e recuperação;
+5. **lifecycle/performance** — somente procurando falha reproduzível, degradação ou custo observável;
+6. **replayability/decisões** — existência de escolhas significativas e repetição mensurável do loop;
+7. **arquitetura/test blind spots** — somente quando houver risco concreto de comportamento do jogador não coberto.
+
+### Como investigar
+
+Use os recursos já existentes antes de criar infraestrutura nova:
+
+- ler implementação e testes relevantes;
+- usar Playwright para reproduzir cenários;
+- usar `window.__GAME_DEBUG__` apenas como interface de inspeção/teste;
+- executar simulações determinísticas ou medições locais quando possível;
+- comparar rodadas, estados, velocidades, dimensões e transições;
+- procurar divergência entre comportamento documentado, testado e realmente implementado.
+
+Pode criar código/scripts **temporários de investigação** apenas no ambiente de execução quando a ferramenta permitir, mas não commitar artefatos exploratórios. Se uma descoberta virar mudança aprovada, somente os testes/arquivos necessários ao comportamento final entram no Git.
+
+### Qualidade mínima da evidência descoberta
+
+Prioridade de evidência:
+
+1. bug/regressão reproduzível;
+2. comportamento mensurável que prejudica jogador ou contradiz hipótese existente;
+3. discrepância verificável entre estados/rodadas/controles;
+4. blind spot de teste associado a risco de produto concreto;
+5. observação estática com caminho causal claro até impacto no jogador.
+
+Não promover:
+- preferência estética;
+- sensação não reproduzida;
+- hipótese sem medição;
+- possibilidade abstrata;
+- “seria legal ter”.
+
+Se a investigação não encontrar evidência suficiente, prosseguir para NO-OP. Uma investigação sem descoberta **é uma execução válida**.
+
+### Registro da investigação
+
+O comentário da issue #1 deve registrar:
+- área investigada;
+- método;
+- cenários/medições executados;
+- evidência encontrada ou ausência dela;
+- se a área deve ser evitada nas próximas 3 execuções por não ter produzido sinal.
+
+A issue registra a rotação. Não atualizar `GAUNTLET_STATE.md` ou `VALUE_BACKLOG.md` apenas para registrar que uma área foi investigada sem descoberta material.
 
 ## GATE 2 — Evidência de valor
 
@@ -280,7 +343,7 @@ A issue #1 permanece aberta permanentemente.
 
 O Meta-Critic roda **de hora em hora**.
 
-Frequência mede quantas vezes o projeto é avaliado.  
-Ela **não determina quantas vezes o projeto deve mudar**.
+Frequência mede quantas vezes o projeto é avaliado e investigado.  
+Ela **não determina quantas vezes o projeto deve mudar**. Cada execução saudável deve produzir ao menos uma investigação focal, mas pode legitimamente terminar em NO-OP.
 
 Se não houver evidência suficiente para justificar valor real, **não fazer commit**.

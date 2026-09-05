@@ -11,9 +11,9 @@ Este arquivo é a memória operacional condensada do experimento. Ele não é um
 - Histórico de saturação: Cycles 105–114 tiveram **10 NO-OPs deliberados consecutivos**
 - Execuções após o DESIGN de mira proporcional: a issue #1 registra **11 NO-OPs consecutivos** antes da adoção formal do Value Gate
 - Escopo preservado: HTML, CSS, JavaScript e Canvas 2D, sem game framework
-- Regra operacional vigente: **commit exige evidência + Value Case + Correctness Gate + Value Judge**
+- Regra operacional vigente: **Baseline Gate + Evidence Discovery + Evidence Gate + Value Case + Correctness Gate + Value Judge**
 
-O projeto permanece SATURATED. A frequência horária serve para reavaliar evidências, não para procurar atividade.
+O projeto permanece SATURATED. A frequência horária agora serve para **investigar ativamente uma área do produto por execução** e reavaliar evidências, sem criar obrigação de mudança.
 
 ## Evidências abertas
 
@@ -141,12 +141,19 @@ O jogo já possui feedback abundante. Exigir deficiência concreta antes de adic
 Toda execução deve seguir:
 
 1. **Baseline Gate** — CI/Playwright e regressões.
-2. **Evidence Gate** — existe problema real sustentado por evidência?
-3. **Value Case** — benefício, comportamento esperado, alternativa simples, risco e complexidade.
-4. **MICRO / DESIGN / NO-OP**.
-5. **Correctness Gate**.
-6. **Value Judge**.
-7. Commit somente se a mudança material merece existir.
+2. **Evidence Discovery** — investigar ativamente uma única área relevante, preferindo a menos examinada recentemente.
+3. **Evidence Gate** — a investigação encontrou problema real reproduzível/mensurável?
+4. **Value Case** — benefício, comportamento esperado, alternativa simples, risco e complexidade.
+5. **MICRO / DESIGN / NO-OP**.
+6. **Correctness Gate**.
+7. **Value Judge**.
+8. Commit somente se a mudança material merece existir.
+
+### Política de descoberta
+- A rotação detalhada de áreas fica em `GAUNTLET.md`.
+- Issue #1 registra qual área foi investigada e como.
+- Ausência de descoberta não altera memória condensada.
+- Não adicionar telemetria apenas para alimentar o loop; primeiro explorar testes, simulações e inspeção local já disponíveis.
 
 ## Memória persistente
 

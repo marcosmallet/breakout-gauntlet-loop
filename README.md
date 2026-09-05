@@ -6,13 +6,16 @@ Um jogo Breakout em **HTML, CSS e JavaScript + Canvas 2D** usado para estudar ev
 
 O projeto começou com uma tarefa agendada do ChatGPT executada **de hora em hora**, sempre procurando uma única melhoria pequena.
 
-Esse modelo melhorou rapidamente o baseline, mas o histórico mostrou diminishing returns. Depois de mais de 100 ciclos, o experimento evoluiu para **Meta-Critic orientado a valor**: cada execução pergunta primeiro se existe evidência suficiente para justificar um commit.
+Esse modelo melhorou rapidamente o baseline, mas o histórico mostrou diminishing returns. Depois de mais de 100 ciclos, o experimento evoluiu para **Meta-Critic orientado a valor**: cada execução verifica o baseline, realiza uma **investigação focal de Evidence Discovery** e só considera commit quando a descoberta sustenta um Value Case.
 
 ```text
 ChatGPT Scheduled Task — hourly
              ↓
        BASELINE GATE
        CI / Playwright
+             ↓
+   EVIDENCE DISCOVERY
+   1 focused investigation
              ↓
        EVIDENCE GATE
              ↓
@@ -110,7 +113,7 @@ npm run test:e2e
 
 ## Hipótese atual
 
-> Depois que microincrementos entram em diminishing returns, um agente que exige evidência e Value Case antes de modificar o produto pode continuar aumentando qualidade sem confundir frequência de avaliação com frequência de commit.
+> Depois que microincrementos entram em diminishing returns, um agente que investiga ativamente o produto, exige evidência e Value Case antes de modificar e aceita NO-OP quando a investigação não encontra sinal pode continuar aumentando qualidade sem confundir frequência de avaliação com frequência de commit.
 
 ## Stack
 
@@ -126,6 +129,6 @@ npm run test:e2e
 
 **1 avaliação Meta-Critic por hora.**
 
-A frequência aumenta o número de avaliações independentes. Ela não cria obrigação de mudança.
+A frequência aumenta o número de avaliações e **investigações independentes**. Cada execução saudável deve examinar uma área concreta, mas isso não cria obrigação de mudança.
 
 > Se não houver evidência suficiente para justificar valor real, não há commit.

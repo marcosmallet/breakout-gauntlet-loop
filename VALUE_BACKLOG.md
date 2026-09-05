@@ -2,7 +2,7 @@
 
 Este arquivo organiza **problemas, evidências e hipóteses de valor** do Breakout Gauntlet Loop.
 
-Ele não é uma lista de features. Uma ideia sem evidência permanece `candidate` e não autoriza implementação.
+Ele não é uma lista de features. Uma ideia sem evidência permanece `candidate` e não autoriza implementação. Itens `candidate` podem orientar **Evidence Discovery**, mas investigação não implica implementação.
 
 ## Regras
 
@@ -24,6 +24,25 @@ Status permitidos:
 - `experiment` — DESIGN em andamento;
 - `rejected` — hipótese testada/rejeitada ou custo superior ao ganho;
 - `resolved` — problema resolvido e validado.
+
+## Evidence Discovery
+
+O agente deve usar este backlog como fonte de perguntas investigáveis, não como fila automática de trabalho.
+
+Regras:
+- escolher no máximo **uma área/pergunta focal por execução**;
+- preferir áreas não investigadas nas 3 execuções anteriores;
+- tentar falsificar a hipótese, não confirmá-la;
+- usar Playwright, `window.__GAME_DEBUG__`, inspeção de código e medições determinísticas antes de propor nova instrumentação;
+- promover `candidate` para `validated` somente com evidência reproduzível ou mensurável;
+- não alterar este arquivo por uma investigação que não mudou materialmente a evidência.
+
+Perguntas iniciais úteis:
+- A curva de velocidade + redução do paddle cria algum salto desproporcional entre rodadas?
+- Há estados de lançamento/respawn em que a mira produz comportamento inesperado?
+- Touch e teclado produzem capacidade de controle materialmente diferente?
+- Existe estado de partida longa que acumula velocidade/dificuldade de forma injusta?
+- Algum comportamento importante ao jogador está sem cobertura e possui risco causal concreto?
 
 ## Oportunidades atuais
 
