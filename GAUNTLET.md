@@ -60,7 +60,18 @@ Uma execução DESIGN continua sendo **um único experimento**, embora possa exi
 ### NO-OP
 Use quando nenhuma oportunidade superar claramente o custo/risco.
 
-Não criar código, efeitos, edge cases ou refatorações apenas para produzir atividade. Registrar a conclusão e preservar o baseline.
+Não criar código, efeitos, edge cases ou refatorações apenas para produzir atividade. Registrar a conclusão na issue #1 e preservar o baseline.
+
+Em estado **SATURATED**, um novo NO-OP que não traga evidência nova e não altere nenhuma decisão operacional **não deve modificar arquivos nem criar commit**. O comentário na issue #1 é o registro histórico suficiente dessa execução.
+
+`GAUNTLET_STATE.md` só deve ser atualizado por um NO-OP quando houver mudança material na memória condensada, por exemplo:
+- entrada ou saída de `SATURATED`;
+- nova evidência de jogador ou regressão relevante;
+- mudança de decisão/restrição vigente;
+- experimento DESIGN iniciado, aprovado ou rejeitado;
+- alteração material do baseline ou da estratégia da próxima execução.
+
+Incrementar apenas o número de NO-OPs, repetir a mesma análise ou atualizar somente o SHA/CI de um baseline semanticamente idêntico **não é mudança material** e não justifica commit.
 
 ## Regra dos três no-ops
 
@@ -73,6 +84,8 @@ Após **3 no-ops consecutivos**:
 - considerar DESIGN quando a próxima melhoria valiosa for grande demais para um microincremento.
 
 O contador é zerado quando uma mudança aprovada é integrada à `main`.
+
+Depois que `SATURATED` é atingido, o contador pode continuar sendo informado nos comentários da issue #1, mas **não precisa ser persistido em `GAUNTLET_STATE.md` a cada execução**. O arquivo deve representar estado e decisões, não funcionar como log de execução; a issue #1 é o log histórico.
 
 ## Prioridades
 
@@ -123,10 +136,14 @@ Ao fim de cada execução, comentar na issue #1:
 - validações;
 - decisão do JUDGE;
 - contador de no-ops;
-- atualização necessária em `GAUNTLET_STATE.md`.
+- se houve ou não mudança material que justifique atualizar `GAUNTLET_STATE.md`.
+
+A issue #1 é o **log de execução**. `GAUNTLET_STATE.md` é **memória condensada**. Evitar duplicar o log da issue em commits documentais sucessivos.
 
 ## Frequência e agressividade
 
 O Meta-Critic roda **de hora em hora**. Essa frequência aumenta a quantidade de avaliações independentes, mas não autoriza mudanças mais agressivas. Em estado SATURATED, várias execuções consecutivas podem terminar legitimamente em NO-OP. Frequência alta e propensão a commit são controles separados.
+
+Em particular, **frequência de avaliação não implica frequência de commit**: uma sequência estável de NO-OPs em SATURATED deve produzir comentários na issue, não uma cadeia de commits documentais.
 
 A issue #1 deve permanecer aberta como memória histórica do experimento.
