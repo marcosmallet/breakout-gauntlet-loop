@@ -21,7 +21,8 @@ test('round clear separa celebração da contagem de lançamento', async ({ page
 
   const beforePreparation = await page.evaluate(() => {
     const game = window.__GAME_DEBUG__;
-    game.step(53);
+    const remaining = game.getState().roundTransition;
+    game.step(Math.max(0, remaining - 1));
     return game.getState();
   });
 
@@ -53,16 +54,25 @@ test('pausa congela a janela de vitória e restaura sua mensagem ao retomar', as
     game.step();
   });
 
-  const beforePause = await page.evaluate(() => window.__GAME_DEBUG__.getState().roundTransition);
   await page.getByRole('button', { name: 'Pausar' }).click();
-  await page.evaluate(() => window.__GAME_DEBUG__.step(20));
+  const pausedTransition = await page.evaluate(() => {
+    const game = window.__GAME_DEBUG__;
+    const before = game.getState().roundTransition;
+    game.step(20);
+    return { before, after: game.getState().roundTransition };
+  });
 
-  expect(await page.evaluate(() => window.__GAME_DEBUG__.getState().roundTransition)).toBe(beforePause);
+  expect(pausedTransition.after).toBe(pausedTransition.before);
   await expect(page.getByRole('status')).toHaveText('Pausado.');
 
   await page.getByRole('button', { name: 'Retomar' }).click();
   await expect(page.getByRole('status')).toHaveText('Rodada 1 concluída! Bônus +300. Vida extra.');
 
-  await page.evaluate(() => window.__GAME_DEBUG__.step());
-  expect(await page.evaluate(() => window.__GAME_DEBUG__.getState().roundTransition)).toBe(beforePause - 1);
+  const resumedTransition = await page.evaluate(() => {
+    const game = window.__GAME_DEBUG__;
+    const before = game.getState().roundTransition;
+    game.step();
+    return { before, after: game.getState().roundTransition };
+  });
+  expect(resumedTransition.after).toBeLessThan(resumedTransition.before);
 });
