@@ -5,6 +5,7 @@
   const eliteChoiceEl = document.getElementById('eliteChoice');
   const standardButton = document.getElementById('standardModeButton');
   const eliteButton = document.getElementById('eliteModeButton');
+  const pauseButton = document.getElementById('pauseButton');
   const canvas = document.getElementById('game');
   if (!roundEl || !livesEl || !roundModeEl || !window.GameDifficulty) return;
 
@@ -17,6 +18,7 @@
   let eliteRoundActive = false;
   let eliteEligible = false;
   let awaitingChoice = false;
+  let pausedForChoice = false;
 
   function renderMode() {
     roundModeEl.textContent = awaitingChoice ? 'Escolher' : (eliteRoundActive ? 'Elite' : 'Normal');
@@ -36,6 +38,20 @@
     renderMode();
   }
 
+  function pauseTransitionForChoice() {
+    if (!pauseButton || pauseButton.disabled || pauseButton.getAttribute('aria-pressed') === 'true') return;
+    pauseButton.click();
+    pausedForChoice = pauseButton.getAttribute('aria-pressed') === 'true';
+    if (pausedForChoice) pauseButton.disabled = true;
+  }
+
+  function resumeTransitionAfterChoice() {
+    if (!pauseButton || !pausedForChoice) return;
+    pauseButton.disabled = false;
+    pauseButton.click();
+    pausedForChoice = false;
+  }
+
   function closeChoice() {
     awaitingChoice = false;
     eliteEligible = false;
@@ -48,6 +64,7 @@
     const elite = mode === 'elite';
     closeChoice();
     setEliteRound(elite);
+    resumeTransitionAfterChoice();
     return true;
   }
 
@@ -57,6 +74,7 @@
     setEliteRound(false);
     renderChoice();
     renderMode();
+    pauseTransitionForChoice();
     standardButton?.focus();
   }
 
@@ -66,6 +84,7 @@
     minimumLivesThisRound = lives;
     eliteEligible = false;
     awaitingChoice = false;
+    pausedForChoice = false;
     setEliteRound(false);
     renderChoice();
   }
@@ -120,6 +139,7 @@
         active: eliteRoundActive,
         eligible: eliteEligible,
         awaitingChoice,
+        pausedForChoice,
         trackedRound,
         livesAtRoundStart,
         minimumLivesThisRound,
