@@ -14,6 +14,7 @@ test('rodadas posteriores começam com velocidade de bola progressivamente maior
     window.__GAME_DEBUG__.clearBricksExcept(0);
     window.__GAME_DEBUG__.setBall({ x: 21.6, y: 69, vx: 4, vy: 0 });
     window.__GAME_DEBUG__.step();
+    window.__GAME_DEBUG__.chooseRoundContract('standard');
 
     const secondRound = window.__GAME_DEBUG__.getState();
     return {
@@ -44,6 +45,7 @@ test('progressão tardia continua elevando o teto de velocidade após a rodada 5
       game.clearBricksExcept(0);
       game.setBall({ x: 21.6, y: 69, vx: 4, vy: 0 });
       game.step();
+      if (game.getState().awaitingRoundChoice) game.chooseRoundContract('standard');
     };
 
     while (game.getState().round < 5) clearCurrentRound();
