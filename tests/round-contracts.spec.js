@@ -64,7 +64,7 @@ test('contrato Risco troca controle por +50% de pontos por bloco e pode ser revi
   expect(riskStart.respawnGrace).toBe(45);
   await expect(page.locator('#roundContract')).toHaveText('Risco +50%');
 
-  const scoring = await page.evaluate(() => {
+  const scoring = await page.evaluate(async () => {
     const game = window.__GAME_DEBUG__;
 
     while (game.getState().respawnGrace > 0) game.step();
@@ -73,6 +73,7 @@ test('contrato Risco troca controle por +50% de pontos por bloco e pode ser revi
     // isolando o valor-base do contrato de risco.
     game.setBall({ x: 400, y: 540, vx: 0, vy: 5 });
     game.step();
+    await Promise.resolve();
     while (game.getState().respawnGrace > 0) game.step();
 
     const before = game.getState().score;
