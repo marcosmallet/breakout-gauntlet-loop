@@ -6,6 +6,10 @@
   const startButton = document.getElementById('startButton');
   const pauseButton = document.getElementById('pauseButton');
   const gameStatusEl = document.getElementById('gameStatus');
+  const roundContractEl = document.getElementById('roundContract');
+  const roundChoiceEl = document.getElementById('roundChoice');
+  const standardContractButton = document.getElementById('standardContractButton');
+  const riskContractButton = document.getElementById('riskContractButton');
 
   const W = canvas.width;
   const H = canvas.height;
@@ -25,6 +29,10 @@
   const BASE_PADDLE_WIDTH = 110;
   const ROUND_PADDLE_SHRINK = 8;
   const MIN_PADDLE_WIDTH = 78;
+  const RISK_PADDLE_PENALTY = 12;
+  const RISK_MIN_PADDLE_WIDTH = 66;
+  const STANDARD_BRICK_SCORE = 10;
+  const RISK_BRICK_SCORE = 15;
 
   const paddle = { x: W / 2 - BASE_PADDLE_WIDTH / 2, y: H - 38, w: BASE_PADDLE_WIDTH, h: 14, speed: 8 };
   const ball = { x: W / 2, y: H - 58, r: 8, vx: 4, vy: -4 };
@@ -43,6 +51,52 @@
   let pausedByPlayer = false;
   let impactFlash = null;
   let paddleFlash = 0;
+  let awaitingRoundChoice = false;
+  let roundContract = 'standard';
+
+  function basePaddleWidthForRound(targetRound = round) {
+    return Math.max(
+      MIN_PADDLE_WIDTH,
+      BASE_PADDLE_WIDTH - (targetRound - 1) * ROUND_PADDLE_SHRINK
+    );
+  }
+
+  function syncRoundContractHud() {
+    if (!roundContractEl) return;
+    roundContractEl.textContent = roundContract === 'risk' ? 'Risco +50%' : 'Padrão';
+  }
+
+  function hideRoundChoice() {
+    if (roundChoiceEl) roundChoiceEl.hidden = true;
+  }
+
+  function showRoundChoice(roundClearBonus, earnedExtraLife) {
+    awaitingRoundChoice = true;
+    clearActiveInput();
+    respawnGrace = 0;
+    hideRoundChoice();
+    if (roundChoiceEl) roundChoiceEl.hidden = false;
+    gameStatusEl.textContent = earnedExtraLife
+      ? `Rodada ${round}! Bônus +${roundClearBonus}. Vida extra. Escolha um contrato.`
+      : `Rodada ${round}! Bônus +${roundClearBonus}. Escolha um contrato.`;
+    syncPauseButton();
+    standardContractButton?.focus();
+  }
+
+  function chooseRoundContract(nextContract = 'standard') {
+    if (!awaitingRoundChoice) return false;
+    roundContract = nextContract === 'risk' ? 'risk' : 'standard';
+    const baseWidth = basePaddleWidthForRound(round);
+    paddle.w = roundContract === 'risk'
+      ? Math.max(RISK_MIN_PADDLE_WIDTH, baseWidth - RISK_PADDLE_PENALTY)
+      : baseWidth;
+    awaitingRoundChoice = false;
+    hideRoundChoice();
+    syncRoundContractHud();
+    resetBall(true);
+    syncPauseButton();
+    return true;
+  }
 
   function createBricks() {
     const rows = 5;
@@ -86,6 +140,10 @@
     lives = 3;
     round = 1;
     paddle.w = BASE_PADDLE_WIDTH;
+    awaitingRoundChoice = false;
+    roundContract = 'standard';
+    hideRoundChoice();
+    syncRoundContractHud();
     impactFlash = null;
     paddleFlash = 0;
     scoreEl.textContent = score;
@@ -196,7 +254,7 @@
   }
 
   function syncPauseButton() {
-    pauseButton.disabled = !running;
+    pauseButton.disabled = !running || awaitingRoundChoice;
     pauseButton.textContent = pausedByPlayer ? 'Retomar' : 'Pausar';
     pauseButton.setAttribute('aria-pressed', pausedByPlayer ? 'true' : 'false');
   }
@@ -218,7 +276,7 @@
   }
 
   function togglePlayerPause() {
-    if (!running) return;
+    if (!running || awaitingRoundChoice) return;
     pausedByPlayer = !pausedByPlayer;
     clearActiveInput();
     lastFrameTime = null;
@@ -229,7 +287,7 @@
   }
 
   function update(stepScale = 1) {
-    if (pausedByFocusLoss || pausedByPlayer) return;
+    if (pausedByFocusLoss || pausedByPlayer || awaitingRoundChoice) return;
 
     if (impactFlash) {
       impactFlash.life = Math.max(0, impactFlash.life - stepScale);
@@ -285,7 +343,8 @@
         accelerateBallAfterBrick();
         const activeCombo = window.__COMBO_DEBUG__?.getCombo?.() || 0;
         const comboMultiplier = Math.min(MAX_COMBO_MULTIPLIER, activeCombo + 1);
-        score += 10 * comboMultiplier;
+        const brickScore = roundContract === 'risk' ? RISK_BRICK_SCORE : STANDARD_BRICK_SCORE;
+        score += brickScore * comboMultiplier;
         scoreEl.textContent = score;
         break;
       }
@@ -315,15 +374,10 @@
         livesEl.textContent = lives;
       }
       round += 1;
-      paddle.w = Math.max(
-        MIN_PADDLE_WIDTH,
-        BASE_PADDLE_WIDTH - (round - 1) * ROUND_PADDLE_SHRINK
-      );
+      paddle.w = basePaddleWidthForRound(round);
       createBricks();
-      resetBall(true);
-      gameStatusEl.textContent = earnedExtraLife
-        ? `Rodada ${round}! Bônus +${roundClearBonus}. Vida extra.`
-        : `Rodada ${round}! Bônus +${roundClearBonus}.`;
+      resetBall(false);
+      showRoundChoice(roundClearBonus, earnedExtraLife);
     }
   }
 
@@ -424,9 +478,11 @@
   });
   startButton.addEventListener('click', start);
   pauseButton.addEventListener('click', togglePlayerPause);
+  standardContractButton?.addEventListener('click', () => chooseRoundContract('standard'));
+  riskContractButton?.addEventListener('click', () => chooseRoundContract('risk'));
 
   canvas.addEventListener('pointerdown', (event) => {
-    if (!running || pausedByPlayer) return;
+    if (!running || pausedByPlayer || awaitingRoundChoice) return;
     if (pausedByFocusLoss) resumeAfterFocusLoss();
     pointerActive = true;
     canvas.setPointerCapture?.(event.pointerId);
@@ -434,7 +490,7 @@
   });
   canvas.addEventListener('pointermove', (event) => {
     const dragging = pointerActive || event.buttons === 1;
-    if (!dragging || !running || pausedByPlayer) return;
+    if (!dragging || !running || pausedByPlayer || awaitingRoundChoice) return;
     if (pausedByFocusLoss) resumeAfterFocusLoss();
     pointerActive = true;
     movePaddleFromPointer(event);
@@ -460,7 +516,9 @@
         pausedByFocusLoss,
         pausedByPlayer,
         impactFlash: impactFlash ? { ...impactFlash } : null,
-        paddleFlash
+        paddleFlash,
+        awaitingRoundChoice,
+        roundContract
       };
     },
     start,
@@ -485,6 +543,7 @@
         brick.alive = index === indexToKeep;
       });
       draw();
-    }
+    },
+    chooseRoundContract
   };
 })();
