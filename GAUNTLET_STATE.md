@@ -11,9 +11,11 @@ Este arquivo é a memória operacional condensada do experimento. Ele não é um
 - Histórico de saturação: Cycles 105–114 tiveram **10 NO-OPs deliberados consecutivos**
 - Histórico recente: **13 NO-OPs consecutivos** após a mira proporcional, encerrados por Evidence Discovery que identificou plateau mensurável de progressão após a rodada 5
 - Escopo preservado: HTML, CSS, JavaScript e Canvas 2D, sem game framework
-- Regra operacional vigente: **Baseline Gate + Evidence Discovery + Evidence Gate + Value Case + Correctness Gate + Value Judge**
+- Regra operacional vigente: **Baseline Gate + Evidence Discovery + Strategic Synthesis + Evidence Gate + Value Case + Correctness Gate + Value Judge**
+- Modos permitidos: **MICRO / DESIGN / MACRO / NO-OP**
+- Atomicidade vigente: **um problema / uma hipótese / um resultado de produto**; a escala da solução acompanha a escala da evidência
 
-O projeto sai de SATURATED porque um DESIGN orientado por evidência foi aprovado. O contador operacional de NO-OPs volta a **0**. A frequência horária continua servindo para investigar ativamente uma área do produto por execução, sem criar obrigação de mudança.
+O projeto saiu de SATURATED quando um DESIGN orientado por evidência foi aprovado. A frequência horária serve para começar por uma área focal do produto, podendo expandir causalmente quando necessário, sem criar obrigação de mudança nem preferência artificial por escopo pequeno.
 
 ## Evidências abertas
 
@@ -21,8 +23,8 @@ O projeto sai de SATURATED porque um DESIGN orientado por evidência foi aprovad
 
 #### Falta de evidência externa limita a próxima decisão de produto
 - A sequência prolongada de NO-OPs após a mira proporcional indica diminishing returns da análise baseada apenas em código, testes e histórico.
-- Problema validado: o próximo ganho relevante tende a depender de evidência nova de jogador, métrica, bug/regressão ou hipótese DESIGN diferenciada.
-- Isso **não autoriza telemetria automaticamente**. Instrumentação só deve ocorrer como DESIGN com caso de valor, privacidade e complexidade proporcionais.
+- Problema validado: o próximo ganho relevante tende a depender de evidência nova de jogador, métrica, bug/regressão, hipótese DESIGN diferenciada ou síntese estratégica de evidências que revele problema sistêmico.
+- Isso **não autoriza telemetria automaticamente**. Instrumentação deve ocorrer como DESIGN ou MACRO somente quando a escala do problema justificar, sempre com caso de valor, privacidade e complexidade proporcionais.
 
 ### Hipóteses ainda sem evidência suficiente
 
@@ -93,7 +95,7 @@ Mesmo com CI verde, a mudança só deve permanecer se:
 - produzir ganho perceptível;
 - justificar complexidade e dívida;
 - não possuir alternativa claramente mais simples;
-- merecer existir mesmo sob um limite hipotético de **um commit por semana**.
+- merecer receber a **principal janela de desenvolvimento da semana**, independentemente de exigir um ou vários commits internos em branch.
 
 ## Dívida arquitetural observada
 
@@ -101,7 +103,7 @@ O crescimento incremental criou módulos satélites que consultam o estado por `
 
 `window.__GAME_DEBUG__` deve permanecer principalmente interface de testes. Não expandi-lo como event bus/API de produção por conveniência.
 
-Não refatorar por estética. Se a dívida bloquear uma melhoria de produto relevante, tratá-la como DESIGN com objetivo e critérios de aceite explícitos.
+Não refatorar por estética. Se a dívida bloquear uma melhoria de produto relevante, tratá-la como DESIGN ou MACRO conforme a escala causal do problema, sempre com objetivo e critérios de aceite explícitos.
 
 ## Experimentos DESIGN aceitos
 
@@ -139,7 +141,7 @@ Resultado:
 - regra atravessou combo, high score, feedback e contratos de score;
 - revertida integralmente no Cycle 91.
 
-Conclusão: não reintroduzir como MICRO. Só reconsiderar como DESIGN com evidência nova, hipótese explícita, atualização completa dos contratos e validação da economia de score.
+Conclusão: não reintroduzir como MICRO. Só reconsiderar como DESIGN ou como parte causalmente necessária de MACRO com evidência nova, hipótese explícita, atualização completa dos contratos e validação da economia de score.
 
 ### Mira proporcional/contínua
 Já foi tratada corretamente como DESIGN e aceita. Não continuar refinando como MICRO sem nova evidência forte de jogador ou regressão concreta.
@@ -155,16 +157,17 @@ O jogo já possui feedback abundante. Exigir deficiência concreta antes de adic
 Toda execução deve seguir:
 
 1. **Baseline Gate** — CI/Playwright e regressões.
-2. **Evidence Discovery** — investigar ativamente uma única área relevante, preferindo a menos examinada recentemente.
+2. **Evidence Discovery** — começar por uma área focal relevante, preferindo a menos examinada recentemente, e expandir somente por caminho causal demonstrável.
 3. **Evidence Gate** — a investigação encontrou problema real reproduzível/mensurável?
+3.5. **Strategic Synthesis** — verificar se evidências acumuladas apontam para problema sistêmico que não deve ser fragmentado.
 4. **Value Case** — benefício, comportamento esperado, alternativa simples, risco e complexidade.
-5. **MICRO / DESIGN / NO-OP**.
+5. **MICRO / DESIGN / MACRO / NO-OP**.
 6. **Correctness Gate**.
 7. **Value Judge**.
 8. Commit somente se a mudança material merece existir.
 
 ### Política de descoberta
-- A rotação detalhada de áreas fica em `GAUNTLET.md`.
+- A rotação detalhada de áreas e as regras de expansão causal/MACRO ficam em `GAUNTLET.md`.
 - Issue #1 registra qual área foi investigada e como.
 - Ausência de descoberta não altera memória condensada.
 - Não adicionar telemetria apenas para alimentar o loop; primeiro explorar testes, simulações e inspeção local já disponíveis.

@@ -15,7 +15,7 @@ Consulte também:
 
 A finalidade de uma execução não é produzir commit. A pergunta principal é:
 
-> Existe evidência suficiente para justificar um commit que eu manteria se o projeto pudesse receber apenas um commit de valor por semana?
+> Existe evidência suficiente para justificar um resultado de produto no qual eu investiria a principal janela de desenvolvimento da semana?
 
 Não criar commits para:
 - registrar execução;
@@ -45,13 +45,19 @@ Somente prosseguir à Evidence Discovery com baseline saudável.
 
 ## ETAPA 2 — Evidence Discovery autônoma
 
-Com baseline saudável, **não espere passivamente por evidência externa**. Antes do Evidence Gate, investigue ativamente uma única área do produto por execução.
+Com baseline saudável, **não espere passivamente por evidência externa**. Antes do Evidence Gate, comece por uma área focal do produto por execução.
 
 O objetivo desta etapa é **descobrir evidência**, não inventar uma melhoria.
 
+A área focal é o ponto de partida, não uma barreira artificial. Se a investigação encontrar evidência de que o mesmo problema possui causas ou consequências em outros subsistemas, a análise pode se expandir para essas áreas relacionadas. A expansão precisa seguir um **caminho causal demonstrável** e continuar servindo a um único problema/hipótese.
+
+Exemplo permitido: `progressão → velocidade → paddle → duração das rodadas → dificuldade percebida`.
+
+Exemplo proibido: `progressão → acessibilidade → áudio → mobile` apenas porque todas as áreas poderiam ser melhoradas.
+
 ### Rotação de investigação
 
-Escolha preferencialmente a área relevante menos investigada nos comentários recentes da issue #1. Evite repetir a mesma área nas 3 execuções anteriores, salvo se uma descoberta exigir confirmação.
+Escolha preferencialmente a área focal relevante menos investigada nos comentários recentes da issue #1. Evite repetir a mesma área focal nas 3 execuções anteriores, salvo se uma descoberta exigir confirmação. Se houver expansão causal, registre quais subsistemas adicionais foram examinados e por quê.
 
 Áreas de investigação:
 
@@ -131,9 +137,23 @@ Não são evidência suficiente por si só:
 
 Se nenhuma evidência suficiente existir, o modo obrigatório é **NO-OP**.
 
+## ETAPA 2.5 — Strategic Synthesis
+
+Antes de escolher o modo, verifique se as evidências desta execução e das execuções recentes apontam para um problema maior que não pode ser resolvido adequadamente por uma alteração isolada.
+
+Considere:
+- padrões recorrentes encontrados em execuções anteriores;
+- múltiplos sintomas com a mesma causa;
+- itens do `VALUE_BACKLOG.md` que passaram a ter evidência conjunta;
+- limitações arquiteturais que estejam bloqueando evolução concreta;
+- progressão, ritmo ou replayability que exijam alterações coordenadas;
+- discrepâncias entre mecânicas que isoladamente parecem corretas, mas juntas produzem experiência ruim.
+
+Strategic Synthesis **não autoriza MACRO por ambição**. Ela serve para impedir que um problema sistêmico seja artificialmente reduzido até caber em um MICRO.
+
 ## GATE 3 — Value Case
 
-Antes de codificar qualquer MICRO ou DESIGN, responder:
+Antes de codificar qualquer MICRO, DESIGN ou MACRO, responder:
 
 - Qual é o problema real?
 - Qual é a evidência?
@@ -143,17 +163,17 @@ Antes de codificar qualquer MICRO ou DESIGN, responder:
 - Como o benefício será observado ou testado?
 - Existe solução mais simples?
 - Qual complexidade e risco serão adicionados?
-- Por que este commit merece existir agora?
+- Por que este resultado merece consumir investimento de desenvolvimento agora?
 
 Se as respostas não formarem um caso convincente, escolher **NO-OP**.
 
 ## Meta-Critic
 
-Com baseline saudável e evidência suficiente, avaliar como jogador, game designer e engenheiro e escolher exatamente um modo:
+Com baseline saudável e evidência suficiente, avaliar como jogador, game designer e engenheiro e escolher exatamente um modo: **MICRO, DESIGN, MACRO ou NO-OP**.
 
 ### MICRO
 
-Use apenas quando houver **uma única mudança** que seja:
+Use quando houver um problema pequeno e isolado cuja solução mínima seja:
 - pequena;
 - independente;
 - segura;
@@ -168,7 +188,7 @@ Fluxo:
 
 `EVIDÊNCIA → CRITIC → IMPLEMENTER → Correctness Gate → Value Judge → main`
 
-Implementar exatamente uma melhoria, sem refatorações não relacionadas ou dependências novas salvo necessidade excepcional. Atualizar/adicionar Playwright quando aplicável.
+Implementar exatamente um comportamento de produto coerente, sem refatorações não relacionadas ou dependências novas salvo necessidade excepcional. Atualizar/adicionar Playwright quando aplicável.
 
 ### DESIGN
 
@@ -193,6 +213,71 @@ Criar uma branch `design/<YYYYMMDD>-<slug>` a partir da `main` verde.
 Implementar um único experimento coeso. Não fragmentar DESIGN em microciclos artificiais. Atualizar Playwright e validar toda a superfície relevante.
 
 Somente integrar na `main` se o Value Judge aprovar e a validação for suficiente.
+
+### MACRO
+
+Use quando a evidência apontar para um **problema ou oportunidade sistêmica** cujo valor não possa ser obtido honestamente por MICRO ou DESIGN isolado.
+
+MACRO exige pelo menos uma destas condições:
+1. problema comprovado atravessando múltiplos subsistemas;
+2. conjunto de evidências acumuladas em várias execuções apontando para a mesma causa;
+3. limitação estrutural bloqueando melhorias concretas;
+4. oportunidade de produto de alto impacto envolvendo progressão, ritmo, replayability ou arquitetura de gameplay;
+5. necessidade de várias mudanças coordenadas para produzir o benefício perceptível completo.
+
+Não use MACRO para agrupar melhorias independentes.
+
+Antes de implementar, produzir um **Macro Value Case** contendo:
+- problema estratégico;
+- evidências acumuladas;
+- jogadores afetados;
+- estado atual mensurado;
+- estado desejado;
+- hipótese central;
+- subsistemas envolvidos;
+- mudanças necessárias;
+- mudanças explicitamente fora do escopo;
+- critérios comportamentais/métricas de aceite;
+- critérios de rejeição;
+- riscos de regressão;
+- estratégia de rollback;
+- complexidade estimada;
+- razão pela qual fragmentar a solução reduziria o valor.
+
+Criar branch `macro/<YYYYMMDD>-<slug>` a partir da `main` verde.
+
+Um MACRO pode conter múltiplos commits coesos na branch. Cada commit deve representar uma etapa material da mesma solução; commits administrativos continuam proibidos.
+
+A atomicidade do MACRO é:
+
+> **um problema / uma hipótese / um resultado de produto**
+
+e não:
+
+> um arquivo / uma feature pequena / um commit.
+
+#### Macro Correctness Gate
+Antes da integração:
+- CI completo verde;
+- Playwright completo verde;
+- testes novos para contratos modificados;
+- cenários de regressão relevantes;
+- comparação explícita baseline vs experimento;
+- validação dos subsistemas afetados;
+- ausência de regressões relevantes fora do objetivo.
+
+#### Macro Value Judge
+Além do Value Judge geral, responder:
+1. O problema sistêmico foi demonstrado?
+2. Todas as mudanças contribuem para a mesma hipótese?
+3. O conjunto produz mais valor que alterações isoladas?
+4. Existe versão significativamente menor que entrega quase o mesmo benefício?
+5. A complexidade é proporcional ao ganho?
+6. O resultado melhora ou piora a capacidade de evolução futura?
+7. Eu investiria a principal janela de desenvolvimento da semana neste resultado?
+8. Eu preferiria manter o conjunto completo ou voltar ao baseline?
+
+Se a resposta global não for claramente positiva, não integrar.
 
 ### NO-OP
 
@@ -221,6 +306,7 @@ Em SATURATED:
 - elevar o limiar de evidência;
 - MICRO só diante de bug/regressão real, evidência nova de jogador ou ganho independente claramente alto;
 - DESIGN só com hipótese claramente diferenciada e critérios defensáveis;
+- MACRO só com evidência sistêmica, hipótese única, ganho elevado e escopo causalmente coeso;
 - novos NO-OPs não atualizam `GAUNTLET_STATE.md` apenas para incrementar contador ou SHA.
 
 O contador é zerado quando uma mudança aprovada de produto é integrada.
@@ -238,7 +324,9 @@ Cada item deve conter, quando aplicável:
 - métrica/comportamento esperado;
 - risco;
 - tamanho;
-- status: `candidate`, `validated`, `experiment`, `rejected`, `resolved`.
+- status: `candidate`, `validated`, `strategic`, `experiment`, `rejected`, `resolved`.
+
+`strategic` significa que múltiplas evidências independentes apontam para o mesmo problema sistêmico. Um item `strategic` pode originar investigação MACRO, mas **não autoriza implementação automaticamente**.
 
 Um item `candidate` sem evidência suficiente **não autoriza implementação**.
 
@@ -268,7 +356,7 @@ Prova que a mudança vale a complexidade adicionada:
 5. A implementação evita dívida desnecessária?
 6. Os testes validam comportamento relevante, não apenas implementação?
 7. Uma solução menor produziria resultado equivalente?
-8. Eu manteria esta mudança se commits fossem limitados a **um por semana**?
+8. Eu investiria a principal janela de desenvolvimento da semana neste resultado?
 
 Se a resposta global não for claramente positiva, reverter/rejeitar e não integrar na `main`.
 
@@ -289,7 +377,7 @@ Métricas candidatas, quando houver mecanismo apropriado de coleta:
 - mortes logo após lançamento;
 - sessões que chegam às rodadas 3, 5 e 10.
 
-**Não adicionar telemetria invasiva ou infraestrutura de analytics apenas para gerar dados.** Instrumentação deve ser tratada como DESIGN quando houver forma proporcional, privacidade adequada e utilidade clara.
+**Não adicionar telemetria invasiva ou infraestrutura de analytics apenas para gerar dados.** Instrumentação deve ser tratada como DESIGN ou MACRO conforme a escala causal do problema, sempre com forma proporcional, privacidade adequada e utilidade clara.
 
 ## Prioridades
 
@@ -310,7 +398,7 @@ O histórico já contém muito feedback audiovisual e muitos edge cases de lifec
 - Não deixar `main` deliberadamente quebrada.
 - Não fazer refatorações não relacionadas ou puramente estéticas.
 - `window.__GAME_DEBUG__` é principalmente interface de testes; não expandi-la como event bus/API de produção por conveniência.
-- Pontuação diferenciada por fileira não volta como MICRO; só pode ser reconsiderada como DESIGN com evidência, hipótese e contratos completos.
+- Pontuação diferenciada por fileira não volta como MICRO; só pode ser reconsiderada como DESIGN ou como parte causalmente necessária de MACRO com evidência, hipótese e contratos completos.
 - Mira proporcional/contínua não recebe refinamentos adicionais sem nova evidência forte.
 - Novas camadas audiovisuais e novos edge cases de lifecycle exigem deficiência concreta.
 
@@ -318,7 +406,7 @@ O histórico já contém muito feedback audiovisual e muitos edge cases de lifec
 
 Ao fim de cada execução, comentar:
 - execução Meta-Critic;
-- modo: MICRO, DESIGN ou NO-OP;
+- modo: MICRO, DESIGN, MACRO ou NO-OP;
 - HEAD;
 - estado do CI/Playwright;
 - evidência encontrada;
@@ -339,11 +427,25 @@ Ao fim de cada execução, comentar:
 
 A issue #1 permanece aberta permanentemente.
 
+## Regra de não fragmentação
+
+Não divida artificialmente uma solução coerente apenas para obedecer à ideia de “uma melhoria pequena por execução”.
+
+Se A só produz valor junto com B, B exige atualização de C e C precisa de testes D, então A+B+C+D podem constituir uma única intervenção DESIGN ou MACRO quando servem à mesma hipótese.
+
+Também não faça o inverso: não agrupe problemas independentes para tornar a execução artificialmente maior.
+
+A regra de atomicidade é:
+
+> **um problema / uma hipótese / um resultado de produto**
+
+A escala da solução deve ser consequência da escala do problema encontrado.
+
 ## Frequência
 
 O Meta-Critic roda **de hora em hora**.
 
 Frequência mede quantas vezes o projeto é avaliado e investigado.  
-Ela **não determina quantas vezes o projeto deve mudar**. Cada execução saudável deve produzir ao menos uma investigação focal, mas pode legitimamente terminar em NO-OP.
+Ela **não determina quantas vezes o projeto deve mudar**. Cada execução saudável deve começar por uma investigação focal, podendo expandir causalmente quando necessário, e pode legitimamente terminar em NO-OP.
 
 Se não houver evidência suficiente para justificar valor real, **não fazer commit**.
