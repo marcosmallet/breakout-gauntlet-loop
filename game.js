@@ -12,7 +12,6 @@
   const MIN_HORIZONTAL_SPEED = 1.5;
   const MIN_VERTICAL_SPEED = 1.5;
   const BRICK_SPEED_MULTIPLIER = 1.012;
-  const MAX_BALL_SPEED = 8;
   const ROUND_SPEED_STEP = 0.25;
   const MAX_ROUND_START_COMPONENT = 5;
   const MAX_LIVES = 5;
@@ -116,9 +115,10 @@
 
   function accelerateBallAfterBrick() {
     const speed = Math.hypot(ball.vx, ball.vy);
-    if (speed === 0 || speed >= MAX_BALL_SPEED) return;
+    const maxBallSpeed = window.GameDifficulty.maxBallSpeedForRound(round);
+    if (speed === 0 || speed >= maxBallSpeed) return;
 
-    const nextSpeed = Math.min(MAX_BALL_SPEED, speed * BRICK_SPEED_MULTIPLIER);
+    const nextSpeed = Math.min(maxBallSpeed, speed * BRICK_SPEED_MULTIPLIER);
     const scale = nextSpeed / speed;
     ball.vx *= scale;
     ball.vy *= scale;

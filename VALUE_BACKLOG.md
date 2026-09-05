@@ -46,6 +46,19 @@ Perguntas iniciais úteis:
 
 ## Oportunidades atuais
 
+### Plateau de progressão após a rodada 5
+
+- **Problema:** a progressão mecânica de dificuldade estabilizava cedo demais em um jogo de rodadas contínuas.
+- **Evidência:** paddle atingia 78px na rodada 5; velocidade inicial estabilizava em componentes 5/5; cap global 8.0 era alcançado após ~11 impactos, deixando ~39/50 blocos no teto e repetindo o mesmo padrão nas rodadas seguintes.
+- **Impacto esperado:** maior sensação de progressão e desafio nas rodadas 6–10.
+- **Jogadores afetados:** jogadores que ultrapassam as primeiras quatro rodadas.
+- **Hipótese testada:** elevar o cap em +0,2/rodada da 6 à 10, com hard cap 9.0, mantendo rodadas 1–5 idênticas.
+- **Validação:** PR #3; CI/Playwright `33959492400` **success**; testes cobrem cap da rodada 5, expansão na rodada 6, hard cap na 10 e edge-shot no cap tardio.
+- **Risco controlado:** aumento máximo de 12,5% sobre o cap anterior, sem nova mecânica.
+- **Tamanho:** DESIGN.
+- **Status:** `resolved`.
+
+
 ### Profundidade e progressão após as primeiras rodadas
 
 - **Problema:** pode existir diminishing novelty após o jogador dominar o loop básico.
