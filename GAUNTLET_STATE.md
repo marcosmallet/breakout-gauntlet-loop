@@ -109,6 +109,19 @@ Não refatorar por estética. Se a dívida bloquear uma melhoria de produto rele
 
 ## Experimentos DESIGN aceitos
 
+### Beat de vitória entre rodadas
+- **Evidence Discovery:** SYSTEMIC — lifecycle/flow + feedback + progressão.
+- **Problema:** o último bloco, a recompensa, a reconstrução dos 50 blocos e o countdown da próxima rodada aconteciam no mesmo update, comprimindo vitória e nova tensão no mesmo intervalo.
+- **Evidências independentes:** `game.js` reconstruía a rodada imediatamente; o pulso de round clear dura 520 ms; o countdown já começava nos mesmos 45 steps (~750 ms); o contrato Playwright anterior confirmava `bricksRemaining=50` e `respawnGrace=45` imediatamente após o clear.
+- **Hipótese:** um estado curto e explícito de vitória antes da preparação cria payoff perceptível sem alterar economia, física ou dificuldade.
+- **Branch:** `design/20260905-round-clear-victory-beat`.
+- **PR:** #12.
+- **Contrato:** 54 steps (~0,9 s) de `roundTransition`, tabuleiro limpo, recompensa/rodada concluída visíveis e countdown iniciado somente depois.
+- **Correctness Gate:** primeira execução encontrou 3 falhas de contrato/teste; após correção dos testes afetados, CI/Playwright passou com **84/84**.
+- **Value Judge:** aprovado — mudança perceptível, escopo coeso e versão menor (somente texto/pulso) não separaria os estados de produto.
+- **Efeito estratégico:** round clear passa a ser um estado de lifecycle próprio; futuras melhorias de ritmo devem preservar a separação vitória → preparação.
+
+
 ### Progressão tardia de velocidade
 - **Evidence Discovery:** progressão/dificuldade/ritmo.
 - **Evidência:** a partir da rodada 5, paddle e velocidade inicial deixavam de evoluir; a bola chegava ao teto após ~11 dos 50 blocos, deixando cerca de 39 blocos por rodada no mesmo cap.

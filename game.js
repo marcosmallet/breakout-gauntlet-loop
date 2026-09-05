@@ -20,6 +20,7 @@
   const TARGET_FRAME_MS = 1000 / 60;
   const MAX_FRAME_STEP = 2;
   const RESPAWN_GRACE_STEPS = 45;
+  const ROUND_TRANSITION_STEPS = 54;
   const IMPACT_FLASH_STEPS = 8;
   const PADDLE_FLASH_STEPS = 6;
   const BASE_PADDLE_WIDTH = 110;
@@ -39,6 +40,8 @@
   let pointerActive = false;
   let lastFrameTime = null;
   let respawnGrace = 0;
+  let roundTransition = 0;
+  let roundTransitionStatus = '';
   let pausedByFocusLoss = false;
   let pausedByPlayer = false;
   let impactFlash = null;
@@ -88,6 +91,8 @@
     paddle.w = BASE_PADDLE_WIDTH;
     impactFlash = null;
     paddleFlash = 0;
+    roundTransition = 0;
+    roundTransitionStatus = '';
     scoreEl.textContent = score;
     livesEl.textContent = lives;
     createBricks();
@@ -214,7 +219,7 @@
     lastFrameTime = null;
     gameStatusEl.textContent = pausedByPlayer
       ? 'Pausado.'
-      : (respawnGrace > 0 ? 'Prepare-se...' : '');
+      : (roundTransition > 0 ? roundTransitionStatus : (respawnGrace > 0 ? 'Prepare-se...' : ''));
   }
 
   function togglePlayerPause() {
@@ -224,7 +229,7 @@
     lastFrameTime = null;
     gameStatusEl.textContent = pausedByPlayer
       ? 'Pausado.'
-      : (respawnGrace > 0 ? 'Prepare-se...' : '');
+      : (roundTransition > 0 ? roundTransitionStatus : (respawnGrace > 0 ? 'Prepare-se...' : ''));
     syncPauseButton();
   }
 
@@ -236,6 +241,16 @@
       if (impactFlash.life === 0) impactFlash = null;
     }
     paddleFlash = Math.max(0, paddleFlash - stepScale);
+
+    if (roundTransition > 0) {
+      roundTransition = Math.max(0, roundTransition - stepScale);
+      if (roundTransition === 0) {
+        roundTransitionStatus = '';
+        createBricks();
+        resetBall(true);
+      }
+      return;
+    }
 
     if (keys.has('ArrowLeft') || keys.has('a') || keys.has('A')) paddle.x -= paddle.speed * stepScale;
     if (keys.has('ArrowRight') || keys.has('d') || keys.has('D')) paddle.x += paddle.speed * stepScale;
@@ -314,17 +329,41 @@
         lives += 1;
         livesEl.textContent = lives;
       }
+      const completedRound = round;
       round += 1;
       paddle.w = Math.max(
         MIN_PADDLE_WIDTH,
         BASE_PADDLE_WIDTH - (round - 1) * ROUND_PADDLE_SHRINK
       );
-      createBricks();
-      resetBall(true);
-      gameStatusEl.textContent = earnedExtraLife
-        ? `Rodada ${round}! Bônus +${roundClearBonus}. Vida extra.`
-        : `Rodada ${round}! Bônus +${roundClearBonus}.`;
+      roundTransition = ROUND_TRANSITION_STEPS;
+      roundTransitionStatus = earnedExtraLife
+        ? `Rodada ${completedRound} concluída! Bônus +${roundClearBonus}. Vida extra.`
+        : `Rodada ${completedRound} concluída! Bônus +${roundClearBonus}.`;
+      gameStatusEl.textContent = roundTransitionStatus;
     }
+  }
+
+  function drawRoundTransition() {
+    if (roundTransition <= 0) return;
+
+    const completedRound = Math.max(1, round - 1);
+    const rewardText = roundTransitionStatus.replace(/^Rodada \d+ concluída!\s*/, '');
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(5, 8, 22, 0.72)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = '700 34px system-ui, sans-serif';
+    ctx.fillText(`RODADA ${completedRound} CONCLUÍDA`, W / 2, H * 0.44);
+    ctx.fillStyle = '#facc15';
+    ctx.font = '650 19px system-ui, sans-serif';
+    ctx.fillText(rewardText, W / 2, H * 0.52);
+    ctx.fillStyle = 'rgba(248, 250, 252, 0.78)';
+    ctx.font = '500 15px system-ui, sans-serif';
+    ctx.fillText(`Próxima: rodada ${round}`, W / 2, H * 0.59);
+    ctx.restore();
   }
 
   function draw() {
@@ -365,6 +404,8 @@
     ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
     ctx.fillStyle = '#facc15';
     ctx.fill();
+
+    drawRoundTransition();
   }
 
   function frame(timestamp) {
@@ -457,6 +498,8 @@
         ball: { ...ball },
         bricksRemaining: bricks.filter((brick) => brick.alive).length,
         respawnGrace,
+        roundTransition,
+        roundTransitionStatus,
         pausedByFocusLoss,
         pausedByPlayer,
         impactFlash: impactFlash ? { ...impactFlash } : null,

@@ -54,6 +54,18 @@ Perguntas iniciais úteis:
 
 ## Oportunidades atuais
 
+### Compressão do payoff de fim de rodada
+- **Problema:** vitória, recompensa e preparação da rodada seguinte eram simultâneas, reduzindo a legibilidade do payoff.
+- **Evidência:** no mesmo update do último bloco, o baseline concedia bônus/vida, incrementava rodada, recriava 50 blocos e ativava 45 steps de preparação; o pulso de vitória de 520 ms ocorria sobreposto ao countdown.
+- **Impacto:** toda conclusão de rodada, especialmente para jogadores que alcançam várias rodadas consecutivas.
+- **Hipótese testada:** separar um beat de vitória de 54 steps antes de reconstruir o tabuleiro torna o ciclo clear → reward → prepare mais legível sem mexer em score, vidas, velocidade ou física.
+- **Baseline vs experimento:** baseline = `50 blocos + respawnGrace 45` imediatamente após clear; experimento = `0 blocos + roundTransition 54 + countdown 0`, seguido de `50 blocos + respawnGrace 45`.
+- **Validação:** PR #12; após correção de contratos afetados, **84/84 Playwright**.
+- **Risco:** pequena extensão do tempo entre rodadas; mitigada por duração curta (~0,9 s), pausa/lifecycle preservados e rollback simples.
+- **Tamanho:** DESIGN.
+- **Status:** `resolved`.
+
+
 ### Plateau de progressão após a rodada 5
 
 - **Problema:** a progressão mecânica de dificuldade estabilizava cedo demais em um jogo de rodadas contínuas.
