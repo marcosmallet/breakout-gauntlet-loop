@@ -8,11 +8,11 @@ Este arquivo resume o estado operacional e de produto do experimento para que ca
 - HEAD de gameplay atual: `9ed5465d60889c971a0327d3fb9cc120eb2a428b` — mira proporcional no lançamento
 - Último ciclo do protocolo anterior: **Cycle 114**
 - Histórico de saturação: Cycles 105–114 tiveram **10 no-ops deliberados consecutivos**
-- Contador atual de no-ops: **5**
-- Validação do baseline atual: GitHub Actions run `33933567672` do HEAD `f87de33039189b69ad8c5c3652452609bccb9a73` concluído em **success**; job Playwright `101216980017` e etapa `npm run test:e2e` também em **success**
+- Contador atual de no-ops: **6**
+- Validação do baseline atual: GitHub Actions run `33936656380` do HEAD `7f1a8771e89b030fdc685af62b98b3c4b1a1506f` concluído em **success**; job Playwright `101225793958` e etapa `npm run test:e2e` também em **success**
 - Escopo preservado: HTML, CSS, JavaScript e Canvas 2D, sem game framework
 
-O projeto atingiu SATURATED após a sequência de no-ops dos Cycles 105–114, saiu desse estado ao aprovar o DESIGN de mira proporcional e agora permanece **SATURATED** após **5 NO-OPs consecutivos** desde essa integração. A partir daqui, MICRO exige bug/regressão real, nova evidência de jogador ou oportunidade independente de ganho perceptível claramente alto; mudanças de maior impacto devem ser consideradas como DESIGN com hipótese explícita.
+O projeto atingiu SATURATED após a sequência de no-ops dos Cycles 105–114, saiu desse estado ao aprovar o DESIGN de mira proporcional e agora permanece **SATURATED** após **6 NO-OPs consecutivos** desde essa integração. A partir daqui, MICRO exige bug/regressão real, nova evidência de jogador ou oportunidade independente de ganho perceptível claramente alto; mudanças de maior impacto devem ser consideradas como DESIGN com hipótese explícita.
 
 ## Mecânicas e qualidade já existentes
 
@@ -156,6 +156,16 @@ A área já tem cobertura extensa. Só priorizar diante de regressão observáve
 - JUDGE: **PASS para NO-OP**. Nenhuma alternativa supera claramente custo, risco e complexidade nesta execução.
 - Efeito: contador de no-ops passa para **5**; o projeto permanece **SATURATED**.
 - Próxima execução: manter o limiar alto e procurar primeiro nova evidência externa/jogador ou regressão real; considerar DESIGN apenas quando houver hipótese claramente diferenciada, benefício observável e critérios de aceite defensáveis.
+
+### NO-OP #6 em SATURATED
+- Gate: `main` em `7f1a8771e89b030fdc685af62b98b3c4b1a1506f`; GitHub Actions run `33936656380` concluído em **success**, job `playwright` `101225793958` concluído em **success** e etapa `npm run test:e2e` em **success**.
+- Decisão: **NO-OP**.
+- Análise ampla: como jogador, o loop atual permanece legível, responsivo e com agência suficiente sem nova deficiência observável; como game designer, profundidade/progressão/replayability seguem sendo a área potencialmente mais valiosa, mas nenhuma hipótese concreta desta execução supera claramente o custo de balanceamento e contratos de um DESIGN; como engenheiro, não há regressão e a dívida de `window.__GAME_DEBUG__`/polling continua sem bloquear uma melhoria de produto.
+- Alternativas consideradas: progressão/recompensas em DESIGN, pontuação por fileira somente como DESIGN, refinamento da mira proporcional, audiovisual/lifecycle e refatoração do debug/polling. Todas carecem de evidência nova ou benefício esperado suficientemente alto para romper SATURATED.
+- Motivo de maior ganho marginal: preservar o baseline verde e evitar atividade artificial continua sendo a decisão de maior retorno marginal.
+- JUDGE: **PASS para NO-OP**. Nenhuma alternativa supera claramente custo, risco, complexidade e dívida potencial.
+- Efeito: contador de no-ops passa para **6**; o projeto permanece **SATURATED**.
+- Próxima execução: manter o limiar alto; só considerar MICRO com bug/regressão real, nova evidência de jogador ou ganho independente claramente alto, e DESIGN apenas com hipótese diferenciada e critérios de aceite defensáveis.
 
 ## Protocolo de decisão
 
