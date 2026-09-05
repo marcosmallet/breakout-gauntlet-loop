@@ -192,3 +192,12 @@ button:focus-visible {
     width: min(94vw, calc(62vh * 800 / 520));
   }
 }
+
+
+@media (max-width: 380px) {
+  .hud {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px 14px;
+  }
+}
