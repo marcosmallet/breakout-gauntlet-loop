@@ -52,7 +52,6 @@ test('combo deixa claro o teto x5 mesmo quando a sequência continua', async ({ 
   await expect.poll(() => page.evaluate(() => window.__COMBO_DEBUG__?.getCombo())).toBe(6);
 });
 
-
 test('pausa congela a janela do combo e preserva o multiplicador ao retomar', async ({ page }) => {
   await page.goto('/');
 
@@ -105,4 +104,28 @@ test('pausa congela a janela do combo e preserva o multiplicador ao retomar', as
 
   await expect(page.locator('#score')).toHaveText('30');
   await expect(page.locator('#combo')).toHaveText('x2');
+});
+
+test('último acerto preserva feedback antes de bônus grande no mesmo turno', async ({ page }) => {
+  await page.goto('/');
+
+  const feedback = await page.evaluate(async () => {
+    const score = document.getElementById('score');
+    const beforeScoreFeedback = window.__COMBO_DEBUG__.getScoreFeedbackCount();
+    const beforeSoundFeedback = window.__COMBO_DEBUG__.getSoundFeedbackCount();
+
+    score.textContent = '10';
+    score.textContent = '310';
+    await Promise.resolve();
+
+    return {
+      combo: window.__COMBO_DEBUG__.getCombo(),
+      scoreFeedbackDelta: window.__COMBO_DEBUG__.getScoreFeedbackCount() - beforeScoreFeedback,
+      soundFeedbackDelta: window.__COMBO_DEBUG__.getSoundFeedbackCount() - beforeSoundFeedback
+    };
+  });
+
+  expect(feedback.combo).toBe(0);
+  expect(feedback.scoreFeedbackDelta).toBe(1);
+  expect(feedback.soundFeedbackDelta).toBe(1);
 });
