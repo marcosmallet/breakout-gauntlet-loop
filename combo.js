@@ -86,7 +86,7 @@
     comboWindowExpiresAt = 0;
     comboWindowRemainingMs = 0;
     pauseStartedAt = null;
-    comboEl.classList.remove('combo-pop', 'combo-window');
+    comboEl.classList.remove('combo-pop', 'combo-window', 'combo-window-paused');
     render();
   }
 
@@ -103,6 +103,7 @@
     if (!resetTimer || combo <= 0) return;
 
     comboWindowRemainingMs = Math.max(0, comboWindowExpiresAt - pauseStartedAt);
+    comboEl.classList.add('combo-window-paused');
     clearTimeout(resetTimer);
     resetTimer = null;
   }
@@ -113,6 +114,7 @@
     const now = performance.now();
     const pausedDuration = now - pauseStartedAt;
     pauseStartedAt = null;
+    comboEl.classList.remove('combo-window-paused');
     if (lastHitAt) lastHitAt += pausedDuration;
 
     if (combo > 0 && comboWindowRemainingMs > 0) {
