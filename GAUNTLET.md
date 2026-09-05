@@ -377,7 +377,7 @@ Métricas candidatas, quando houver mecanismo apropriado de coleta:
 - mortes logo após lançamento;
 - sessões que chegam às rodadas 3, 5 e 10.
 
-**Não adicionar telemetria invasiva ou infraestrutura de analytics apenas para gerar dados.** Instrumentação deve ser tratada como DESIGN quando houver forma proporcional, privacidade adequada e utilidade clara.
+**Não adicionar telemetria invasiva ou infraestrutura de analytics apenas para gerar dados.** Instrumentação deve ser tratada como DESIGN ou MACRO conforme a escala causal do problema, sempre com forma proporcional, privacidade adequada e utilidade clara.
 
 ## Prioridades
 
