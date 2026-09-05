@@ -29,10 +29,10 @@ test('instruções acessíveis explicam a mira antes do lançamento', async ({ p
 
   const canvas = page.locator('#game');
   await expect(canvas).toHaveAttribute('aria-describedby', 'controlInstructions');
-
-  const instructions = page.locator('#controlInstructions');
-  await expect(instructions).toContainText('Durante a contagem antes do lançamento');
-  await expect(instructions).toContainText('mova a raquete para mirar a direção da bola');
+  await expect(canvas).toHaveAttribute(
+    'aria-description',
+    'Durante a contagem antes do lançamento, mova a raquete para mirar a direção da bola.'
+  );
 });
 
 test('controles exibem foco visível para navegação por teclado', async ({ page }) => {
