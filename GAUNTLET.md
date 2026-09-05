@@ -45,7 +45,22 @@ Somente prosseguir à Evidence Discovery com baseline saudável.
 
 ## ETAPA 2 — Evidence Discovery autônoma
 
-Com baseline saudável, **não espere passivamente por evidência externa**. Antes do Evidence Gate, comece por uma área focal do produto por execução.
+Com baseline saudável, **não espere passivamente por evidência externa**. A execução escolhe uma lente de descoberta: **FOCAL** ou **SYSTEMIC**.
+
+### Lente FOCAL
+É o padrão em estado ACTIVE. Comece por uma área focal do produto por execução.
+
+### Lente SYSTEMIC
+É usada quando o problema pode estar na interação entre sistemas ou quando o projeto entrou em SATURATED.
+
+Uma investigação SYSTEMIC começa por **uma pergunta estratégica única**, não por uma feature. Ela pode examinar de 2 a 4 subsistemas causalmente relacionados para responder essa pergunta.
+
+Exemplos de perguntas válidas:
+- “O loop das rodadas avançadas continua criando decisões novas ou apenas aumenta números?”
+- “A combinação de progressão, recompensa, vidas e score cria motivação crescente ou um plateau estrutural?”
+- “O primeiro minuto do jogo comunica, ensina e recompensa adequadamente todas as decisões centrais?”
+
+A investigação SYSTEMIC deve produzir uma comparação de baseline em múltiplos estados/cenários e procurar **um limite estrutural ou oportunidade sistêmica demonstrável**, não uma coleção de sugestões.
 
 O objetivo desta etapa é **descobrir evidência**, não inventar uma melhoria.
 
@@ -55,9 +70,14 @@ Exemplo permitido: `progressão → velocidade → paddle → duração das roda
 
 Exemplo proibido: `progressão → acessibilidade → áudio → mobile` apenas porque todas as áreas poderiam ser melhoradas.
 
-### Rotação de investigação
+### Escolha da lente e rotação
 
-Escolha preferencialmente a área focal relevante menos investigada nos comentários recentes da issue #1. Evite repetir a mesma área focal nas 3 execuções anteriores, salvo se uma descoberta exigir confirmação. Se houver expansão causal, registre quais subsistemas adicionais foram examinados e por quê.
+- Em **ACTIVE**, use FOCAL por padrão.
+- Ao atingir **3 NO-OPs consecutivos e entrar em SATURATED, a próxima execução saudável DEVE usar SYSTEMIC**.
+- Enquanto permanecer SATURATED, pelo menos **1 de cada 3 execuções saudáveis** deve usar SYSTEMIC.
+- Uma execução SYSTEMIC não conta como “repetição da mesma área” se a pergunta estratégica for diferente e os subsistemas forem examinados por outra relação causal.
+- Em FOCAL, escolha preferencialmente a área menos investigada nos comentários recentes e evite repetir a mesma área focal nas 3 execuções anteriores.
+- Se houver expansão causal, registre quais subsistemas adicionais foram examinados e por quê.
 
 Áreas de investigação:
 
@@ -114,7 +134,7 @@ A issue registra a rotação. Não atualizar `GAUNTLET_STATE.md` ou `VALUE_BACKL
 
 ## GATE 2 — Evidência de valor
 
-Antes de propor qualquer mudança, identificar **qual problema real** justificaria o commit.
+Antes de propor qualquer mudança, identificar **qual problema real ou limite estrutural** justificaria investimento de desenvolvimento.
 
 Uma mudança só pode prosseguir quando houver pelo menos uma fonte defensável de evidência:
 
@@ -124,7 +144,9 @@ Uma mudança só pode prosseguir quando houver pelo menos uma fonte defensável 
 4. feedback explícito de jogador;
 5. problema claro de acessibilidade/mobile;
 6. oportunidade independente cujo ganho perceptível seja claramente alto e demonstrável;
-7. dívida técnica que esteja bloqueando uma melhoria concreta de produto.
+7. dívida técnica que esteja bloqueando uma melhoria concreta de produto;
+8. **limite estrutural mensurável do baseline** que restrinja progressão, decisões, replayability, onboarding ou outro resultado de produto relevante;
+9. **oportunidade sistêmica falsificável** sustentada por pelo menos duas fontes internas independentes de evidência.
 
 Não são evidência suficiente por si só:
 - preferência estética;
@@ -140,6 +162,17 @@ Se nenhuma evidência suficiente existir, o modo obrigatório é **NO-OP**.
 ## ETAPA 2.5 — Strategic Synthesis
 
 Antes de escolher o modo, verifique se as evidências desta execução e das execuções recentes apontam para um problema maior que não pode ser resolvido adequadamente por uma alteração isolada.
+
+Em uma execução SYSTEMIC, esta etapa é obrigatória e deve consolidar **evidência interna independente**, que pode incluir:
+- medições determinísticas de gameplay;
+- comparação entre rodadas/estados;
+- discrepâncias entre contratos de sistemas;
+- repetição de sintomas em módulos diferentes;
+- sequência de NO-OPs que falsificou alternativas locais e deixou um limite estrutural comum;
+- ausência mensurável de decisões/recompensas/progressão em um trecho do loop;
+- dívida arquitetural apenas quando ela bloqueia uma hipótese concreta de produto.
+
+**Evidência externa de jogador continua preferível, mas não é requisito absoluto para iniciar um experimento DESIGN/MACRO.** Um experimento pode ser justificado por evidência interna forte, mensurável e falsificável.
 
 Considere:
 - padrões recorrentes encontrados em execuções anteriores;
@@ -218,6 +251,23 @@ Somente integrar na `main` se o Value Judge aprovar e a validação for suficien
 
 Use quando a evidência apontar para um **problema ou oportunidade sistêmica** cujo valor não possa ser obtido honestamente por MICRO ou DESIGN isolado.
 
+MACRO possui dois gates separados:
+
+#### Macro Discovery Gate — autoriza experimentar
+Pode abrir branch MACRO quando houver:
+- pergunta estratégica única;
+- baseline mensurado;
+- pelo menos duas evidências internas independentes ou uma evidência externa forte;
+- hipótese falsificável;
+- múltiplos subsistemas causalmente envolvidos;
+- resultado perceptível esperado;
+- razão clara pela qual um MICRO/DESIGN menor não testa adequadamente a hipótese.
+
+**Não é necessário já provar que a solução final é melhor para iniciar o experimento.** A branch MACRO existe justamente para testar a hipótese.
+
+#### Macro Integration Gate — autoriza integrar
+A integração na `main` continua exigindo Macro Correctness Gate + Macro Value Judge claramente positivos.
+
 MACRO exige pelo menos uma destas condições:
 1. problema comprovado atravessando múltiplos subsistemas;
 2. conjunto de evidências acumuladas em várias execuções apontando para a mesma causa;
@@ -225,7 +275,7 @@ MACRO exige pelo menos uma destas condições:
 4. oportunidade de produto de alto impacto envolvendo progressão, ritmo, replayability ou arquitetura de gameplay;
 5. necessidade de várias mudanças coordenadas para produzir o benefício perceptível completo.
 
-Não use MACRO para agrupar melhorias independentes.
+Não use MACRO para agrupar melhorias independentes. Uma branch MACRO pode ser criada e posteriormente rejeitada sem merge; experimento rejeitado é resultado válido.
 
 Antes de implementar, produzir um **Macro Value Case** contendo:
 - problema estratégico;
@@ -302,11 +352,13 @@ Em NO-OP:
 Após **3 NO-OPs consecutivos**, entrar em **SATURATED**.
 
 Em SATURATED:
+- a próxima execução saudável após a entrada em SATURATED deve usar **SYSTEMIC Discovery**;
+- depois disso, no mínimo 1 em cada 3 execuções saudáveis deve ser SYSTEMIC;
 - parar de procurar micro-polimento apenas para gerar atividade;
 - elevar o limiar de evidência;
 - MICRO só diante de bug/regressão real, evidência nova de jogador ou ganho independente claramente alto;
 - DESIGN só com hipótese claramente diferenciada e critérios defensáveis;
-- MACRO só com evidência sistêmica, hipótese única, ganho elevado e escopo causalmente coeso;
+- MACRO Discovery Gate pode autorizar experimento com evidência interna forte e falsificável; merge continua exigindo ganho elevado comprovado e escopo causalmente coeso;
 - novos NO-OPs não atualizam `GAUNTLET_STATE.md` apenas para incrementar contador ou SHA.
 
 O contador é zerado quando uma mudança aprovada de produto é integrada.
@@ -426,6 +478,20 @@ Ao fim de cada execução, comentar:
 - se houve mudança material que justifique atualizar `GAUNTLET_STATE.md` ou `VALUE_BACKLOG.md`.
 
 A issue #1 permanece aberta permanentemente.
+
+## Regra de experimentação estratégica
+
+Em estado SATURATED, o protocolo não deve interpretar ausência de bugs locais como prova de ausência de oportunidades maiores.
+
+Quando uma sequência de investigações FOCAL falsifica problemas locais, a execução SYSTEMIC deve perguntar se essas falsificações convergem para um **limite do modelo atual de produto**.
+
+Um DESIGN/MACRO experimental pode existir para testar uma hipótese forte e mensurável mesmo que ainda não haja evidência de jogador, desde que:
+- a hipótese seja falsificável;
+- exista baseline comparável;
+- o experimento seja reversível;
+- o merge dependa de ganho demonstrado.
+
+Isso reduz o viés de “só corrigir o que já está quebrado” sem reduzir o rigor de integração.
 
 ## Regra de não fragmentação
 

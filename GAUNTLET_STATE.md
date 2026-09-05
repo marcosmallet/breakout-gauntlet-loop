@@ -11,9 +11,11 @@ Este arquivo é a memória operacional condensada do experimento. Ele não é um
 - Histórico de saturação: Cycles 105–114 tiveram **10 NO-OPs deliberados consecutivos**
 - Histórico recente: **13 NO-OPs consecutivos** após a mira proporcional, encerrados por Evidence Discovery que identificou plateau mensurável de progressão após a rodada 5
 - Escopo preservado: HTML, CSS, JavaScript e Canvas 2D, sem game framework
-- Regra operacional vigente: **Baseline Gate + Evidence Discovery + Strategic Synthesis + Evidence Gate + Value Case + Correctness Gate + Value Judge**
+- Regra operacional vigente: **Baseline Gate + FOCAL/SYSTEMIC Evidence Discovery + Strategic Synthesis + Evidence Gate + Value Case + Correctness Gate + Value Judge**
 - Modos permitidos: **MICRO / DESIGN / MACRO / NO-OP**
 - Atomicidade vigente: **um problema / uma hipótese / um resultado de produto**; a escala da solução acompanha a escala da evidência
+- Regra de saturação estratégica: ao entrar em SATURATED, a próxima execução saudável usa **SYSTEMIC Discovery**; enquanto saturado, ao menos 1 em cada 3 execuções saudáveis deve ser sistêmica
+- Regra de experimentação: DESIGN/MACRO podem iniciar com evidência interna forte e falsificável; integração continua exigindo ganho comprovado
 
 O projeto saiu de SATURATED quando um DESIGN orientado por evidência foi aprovado. A frequência horária serve para começar por uma área focal do produto, podendo expandir causalmente quando necessário, sem criar obrigação de mudança nem preferência artificial por escopo pequeno.
 

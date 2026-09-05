@@ -15,8 +15,8 @@ ChatGPT Scheduled Task — hourly
        CI / Playwright
              ↓
    EVIDENCE DISCOVERY
-   focal investigation
-   + causal expansion if needed
+   FOCAL or SYSTEMIC
+   + causal expansion
              ↓
        EVIDENCE GATE
              ↓
@@ -33,7 +33,7 @@ ChatGPT Scheduled Task — hourly
     commit only if valuable
 ```
 
-Após **3 NO-OPs consecutivos**, o projeto entra em **SATURATED**. Nesse estado, o agente deixa de procurar micro-polimento repetitivo e só sai de NO-OP diante de regressão/bug real, nova evidência de jogador, hipótese DESIGN claramente superior ou problema sistêmico que sustente um MACRO.
+Após **3 NO-OPs consecutivos**, o projeto entra em **SATURATED**. A próxima execução saudável passa obrigatoriamente para **SYSTEMIC Discovery**, procurando limites estruturais e hipóteses estratégicas em múltiplos subsistemas relacionados. DESIGN/MACRO podem iniciar como experimentos falsificáveis com evidência interna forte; só entram na main se o ganho for demonstrado.
 
 ## Estado, evidência e memória
 
