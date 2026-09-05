@@ -5,7 +5,7 @@ Este arquivo é a memória operacional condensada do experimento. Ele não é um
 ## Estado atual
 
 - Fase: **Value-Driven Meta-Critic / ACTIVE**
-- Baseline de gameplay atual: **mira proporcional + progressão tardia de velocidade** (PR #3; commit experimental `1fd3aef9e90bcb7db626e8602d4d39c8c8f225ce`)
+- Baseline de gameplay atual: **mira proporcional + progressão tardia de velocidade + beat de vitória + Elite opcional por domínio**
 - Baseline de protocolo anterior: `789385d6eb60bf77acb82620c6586c0617c0dc00`
 - Último ciclo do protocolo anterior: **Cycle 114**
 - Histórico de saturação: Cycles 105–114 tiveram **10 NO-OPs deliberados consecutivos**
@@ -32,7 +32,7 @@ O projeto saiu de SATURATED quando um DESIGN orientado por evidência foi aprova
 
 - Profundidade/progressão adicional após as primeiras rodadas.
 - Ajustes na curva de dificuldade/ritmo.
-- Mudanças adicionais de replayability.
+- Mudanças adicionais de replayability além da escolha Elite já integrada.
 - Novas camadas audiovisuais.
 - Novos edge cases de lifecycle.
 - Refatoração de `window.__GAME_DEBUG__`/polling sem bloqueio concreto de produto.
@@ -57,6 +57,8 @@ Essas hipóteses permanecem candidatas, não tarefas.
 - Vida extra ao concluir rodada, limitada a 5.
 - Indicador de blocos restantes.
 - Feedback especial nos últimos blocos da rodada.
+- A partir da rodada 6, domínio sustentado em 5 vidas pode desbloquear uma escolha explícita entre permanecer no modo Normal ou aceitar o risco/recompensa Elite.
+- Elite preserva o balanceamento já validado: +0,5 no teto de velocidade e janela de combo de 2,0 s para 2,5 s.
 
 ### Controles e UX
 - Teclado: setas e A/D.
@@ -66,6 +68,7 @@ Essas hipóteses permanecem candidatas, não tarefas.
 - Durante o countdown, o jogador controla proporcionalmente o ângulo de lançamento pela distância do paddle ao centro.
 - A mira preserva velocidade total, é simétrica e possui guia visual coerente com o vetor real.
 - Estado neutro restaura corretamente o vetor de lançamento original.
+- Quando Elite é desbloqueado, a transição de rodada fica suspensa até uma escolha explícita, evitando decisão sob gameplay concorrente.
 
 ### Game feel e audiovisual
 - Flash de impacto em blocos e paddle.
@@ -81,6 +84,7 @@ Essas hipóteses permanecem candidatas, não tarefas.
 - `aria-live`, atalhos e estados de pausa.
 - Cobertura de blur/focus, visibilitychange, pagehide/pageshow e restart input.
 - Layout adaptado para mobile/landscape.
+- Escolha Elite possui foco explícito, botões acionáveis por teclado/touch e layout responsivo.
 
 ## Validação
 
@@ -107,6 +111,20 @@ O crescimento incremental criou módulos satélites que consultam o estado por `
 
 Não refatorar por estética. Se a dívida bloquear uma melhoria de produto relevante, tratá-la como DESIGN ou MACRO conforme a escala causal do problema, sempre com objetivo e critérios de aceite explícitos.
 
+## Experimentos MACRO aceitos
+
+### Elite como escolha deliberada de domínio
+- **Evidence Discovery:** SYSTEMIC — mastery/lives + lifecycle + dificuldade + combo/recompensa + HUD/UX.
+- **Problema estratégico:** o contrato Elite anterior convertia domínio sustentado automaticamente em dificuldade maior; apesar da intenção histórica de risco/recompensa e decisão, o jogador tinha **zero escolhas** para aceitar ou rejeitar esse risco.
+- **Evidências independentes:** `elite-round.js` ativava Elite automaticamente após domínio; `difficulty.js` e `combo.js` mostravam que o estado alterava apenas parâmetros (+0,5 no cap e 2,0→2,5 s de combo); o registro histórico do Macro Elite descrevia decisão/pressão como objetivo, criando discrepância falsificável entre hipótese e produto.
+- **Hipótese:** domínio perfeito deve **desbloquear** Elite, não impô-lo; uma decisão explícita Normal vs Elite transforma mastery em agência sem inventar nova economia.
+- **Contrato integrado:** em R6+, domínio sustentado em 5 vidas abre escolha; antes da escolha o jogo permanece no baseline Normal; “Continuar Normal” preserva cap/janela baseline; “Aceitar Elite” aplica exatamente o risco/recompensa já existente; a transição fica pausada enquanto a escolha está aberta.
+- **Baseline vs experimento:** baseline qualificado = 0 decisões e Elite automático (R6 cap 8,7; combo 2,5 s); experimento = 1 decisão explícita, com Normal R6 8,2/2,0 s ou Elite 8,7/2,5 s.
+- **PR:** #13.
+- **Correctness Gate:** suíte ampliada de 84 para 86 testes; uma primeira tentativa apresentou diferença de um frame em teste preexistente de `respawnGrace` (44 vs 45), fora dos contratos alterados; rerun sem mudança de código passou, e a versão final da PR passou integralmente.
+- **Value Judge:** aprovado — a mudança é perceptível sem release notes, cria agência real usando os mesmos números já validados e o pacote menor (somente UI ou toggle) não entregaria uma escolha causalmente íntegra.
+- **Efeito estratégico:** Elite passa a ser contrato de **mastery → agência → risco/recompensa**, não promoção automática; futuras evoluções de late game devem preservar a opcionalidade e provar valor antes de adicionar novas camadas.
+
 ## Experimentos DESIGN aceitos
 
 ### Beat de vitória entre rodadas
@@ -121,7 +139,6 @@ Não refatorar por estética. Se a dívida bloquear uma melhoria de produto rele
 - **Value Judge:** aprovado — mudança perceptível, escopo coeso e versão menor (somente texto/pulso) não separaria os estados de produto.
 - **Efeito estratégico:** round clear passa a ser um estado de lifecycle próprio; futuras melhorias de ritmo devem preservar a separação vitória → preparação.
 
-
 ### Progressão tardia de velocidade
 - **Evidence Discovery:** progressão/dificuldade/ritmo.
 - **Evidência:** a partir da rodada 5, paddle e velocidade inicial deixavam de evoluir; a bola chegava ao teto após ~11 dos 50 blocos, deixando cerca de 39 blocos por rodada no mesmo cap.
@@ -134,7 +151,6 @@ Não refatorar por estética. Se a dívida bloquear uma melhoria de produto rele
 - **Validação na PR:** GitHub Actions/Playwright run `33959492400` em **success**, incluindo `npm run test:e2e`.
 - **JUDGE:** aprovado; ganho mensurável, aumento máximo limitado a 12,5%, sem nova mecânica/dependência e com rodadas 1–5 inalteradas.
 - **Efeito no estado:** contador de NO-OPs zerado; projeto volta a **ACTIVE**.
-
 
 ### Mira proporcional no lançamento
 - Hipótese: transformar escolha binária esquerda/direita em ângulo proporcional aumenta agência e replayability sem alterar a física durante a rodada.
