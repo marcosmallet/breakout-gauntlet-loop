@@ -54,6 +54,17 @@ Perguntas iniciais úteis:
 
 ## Oportunidades atuais
 
+### Elite automático sem decisão explícita
+- **Problema:** domínio sustentado em 5 vidas promovia automaticamente a rodada seguinte para Elite, convertendo mastery em dificuldade maior sem permitir ao jogador aceitar ou rejeitar o risco.
+- **Evidência:** `elite-round.js` ativava Elite automaticamente em R6+; `difficulty.js` e `combo.js` mostravam consequências puramente paramétricas (+0,5 no teto de velocidade e janela 2,0→2,5 s); o histórico do próprio Macro Elite descrevia decisão/pressão e risco/recompensa como objetivo.
+- **Impacto:** jogadores que chegam ao late game com domínio suficiente para manter 5 vidas.
+- **Hipótese testada:** transformar a promoção automática em desbloqueio com escolha explícita Normal vs Elite cria agência real sem adicionar nova economia ou alterar os números já validados.
+- **Baseline vs experimento:** baseline qualificado = 0 escolhas e Elite automático (R6 8,7 / 2,5 s); experimento = 1 decisão explícita, mantendo Normal em 8,2 / 2,0 s ou aceitando Elite em 8,7 / 2,5 s.
+- **Validação:** PR #13; suíte ampliada para 86 testes; primeira tentativa teve um miss de um frame em teste preexistente de lifecycle e o rerun sem alteração passou; versão final da PR ficou verde.
+- **Risco:** a decisão atravessa mastery, lifecycle, dificuldade, combo e HUD; mitigado por reutilizar o balanceamento Elite existente, pausar a transição durante a escolha e manter early game inalterado.
+- **Tamanho:** MACRO.
+- **Status:** `resolved`.
+
 ### Compressão do payoff de fim de rodada
 - **Problema:** vitória, recompensa e preparação da rodada seguinte eram simultâneas, reduzindo a legibilidade do payoff.
 - **Evidência:** no mesmo update do último bloco, o baseline concedia bônus/vida, incrementava rodada, recriava 50 blocos e ativava 45 steps de preparação; o pulso de vitória de 520 ms ocorria sobreposto ao countdown.
@@ -64,7 +75,6 @@ Perguntas iniciais úteis:
 - **Risco:** pequena extensão do tempo entre rodadas; mitigada por duração curta (~0,9 s), pausa/lifecycle preservados e rollback simples.
 - **Tamanho:** DESIGN.
 - **Status:** `resolved`.
-
 
 ### Plateau de progressão após a rodada 5
 
@@ -77,7 +87,6 @@ Perguntas iniciais úteis:
 - **Risco controlado:** aumento máximo de 12,5% sobre o cap anterior, sem nova mecânica.
 - **Tamanho:** DESIGN.
 - **Status:** `resolved`.
-
 
 ### Profundidade e progressão após as primeiras rodadas
 
