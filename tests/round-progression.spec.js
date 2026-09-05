@@ -17,17 +17,22 @@ test('limpar o tabuleiro inicia nova rodada, recompensa sobrevivência e concede
       vy: 0
     });
     window.__GAME_DEBUG__.step();
-    return window.__GAME_DEBUG__.getState();
+    const awaitingChoice = window.__GAME_DEBUG__.getState();
+    window.__GAME_DEBUG__.chooseRoundContract('standard');
+    return { awaitingChoice, selected: window.__GAME_DEBUG__.getState() };
   });
 
-  expect(state.running).toBe(true);
-  expect(state.round).toBe(2);
-  expect(state.score).toBe(310);
-  expect(state.lives).toBe(4);
-  expect(state.bricksRemaining).toBe(50);
-  expect(state.respawnGrace).toBe(45);
-  expect(state.paddle.w).toBe(102);
-  await expect(page.getByRole('status')).toHaveText('Rodada 2! Bônus +300. Vida extra.');
+  expect(state.awaitingChoice.running).toBe(true);
+  expect(state.awaitingChoice.round).toBe(2);
+  expect(state.awaitingChoice.score).toBe(310);
+  expect(state.awaitingChoice.lives).toBe(4);
+  expect(state.awaitingChoice.bricksRemaining).toBe(50);
+  expect(state.awaitingChoice.awaitingRoundChoice).toBe(true);
+  expect(state.awaitingChoice.respawnGrace).toBe(0);
+  expect(state.selected.awaitingRoundChoice).toBe(false);
+  expect(state.selected.respawnGrace).toBe(45);
+  expect(state.selected.paddle.w).toBe(102);
+  await expect(page.locator('#roundContract')).toHaveText('Padrão');
   await expect(page.locator('#game')).toHaveCSS('--round-accent-hue', '243');
   await expect(page.locator('html')).toHaveCSS('--round-accent-hue', '243');
   await expect.poll(() => page.evaluate(() => window.__ROUND_CLEAR_FEEDBACK_DEBUG__.getPulseCount())).toBe(1);
@@ -46,6 +51,7 @@ test('vidas extras de rodada respeitam o limite de cinco e o bônus usa as vidas
       window.__GAME_DEBUG__.clearBricksExcept(0);
       window.__GAME_DEBUG__.setBall({ x: 21.6, y: 69, vx: 4, vy: 0 });
       window.__GAME_DEBUG__.step();
+      window.__GAME_DEBUG__.chooseRoundContract('standard');
     }
     return window.__GAME_DEBUG__.getState();
   });
@@ -54,7 +60,7 @@ test('vidas extras de rodada respeitam o limite de cinco e o bônus usa as vidas
   expect(state.score).toBe(1230);
   expect(state.lives).toBe(5);
   expect(state.paddle.w).toBe(86);
-  await expect(page.getByRole('status')).toHaveText('Rodada 4! Bônus +500.');
+  await expect(page.locator('#roundContract')).toHaveText('Padrão');
   await expect(page.locator('#game')).toHaveCSS('--round-accent-hue', '319');
   await expect(page.locator('html')).toHaveCSS('--round-accent-hue', '319');
 });
