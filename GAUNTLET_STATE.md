@@ -4,16 +4,16 @@ Este arquivo é a memória operacional condensada do experimento. Ele não é um
 
 ## Estado atual
 
-- Fase: **Value-Driven Meta-Critic / SATURATED**
-- HEAD de gameplay atual: `9ed5465d60889c971a0327d3fb9cc120eb2a428b` — mira proporcional no lançamento
+- Fase: **Value-Driven Meta-Critic / ACTIVE**
+- Baseline de gameplay atual: **mira proporcional + progressão tardia de velocidade** (PR #3; commit experimental `1fd3aef9e90bcb7db626e8602d4d39c8c8f225ce`)
 - Baseline de protocolo anterior: `789385d6eb60bf77acb82620c6586c0617c0dc00`
 - Último ciclo do protocolo anterior: **Cycle 114**
 - Histórico de saturação: Cycles 105–114 tiveram **10 NO-OPs deliberados consecutivos**
-- Execuções após o DESIGN de mira proporcional: a issue #1 registra **11 NO-OPs consecutivos** antes da adoção formal do Value Gate
+- Histórico recente: **13 NO-OPs consecutivos** após a mira proporcional, encerrados por Evidence Discovery que identificou plateau mensurável de progressão após a rodada 5
 - Escopo preservado: HTML, CSS, JavaScript e Canvas 2D, sem game framework
 - Regra operacional vigente: **Baseline Gate + Evidence Discovery + Evidence Gate + Value Case + Correctness Gate + Value Judge**
 
-O projeto permanece SATURATED. A frequência horária agora serve para **investigar ativamente uma área do produto por execução** e reavaliar evidências, sem criar obrigação de mudança.
+O projeto sai de SATURATED porque um DESIGN orientado por evidência foi aprovado. O contador operacional de NO-OPs volta a **0**. A frequência horária continua servindo para investigar ativamente uma área do produto por execução, sem criar obrigação de mudança.
 
 ## Evidências abertas
 
@@ -104,6 +104,20 @@ O crescimento incremental criou módulos satélites que consultam o estado por `
 Não refatorar por estética. Se a dívida bloquear uma melhoria de produto relevante, tratá-la como DESIGN com objetivo e critérios de aceite explícitos.
 
 ## Experimentos DESIGN aceitos
+
+### Progressão tardia de velocidade
+- **Evidence Discovery:** progressão/dificuldade/ritmo.
+- **Evidência:** a partir da rodada 5, paddle e velocidade inicial deixavam de evoluir; a bola chegava ao teto após ~11 dos 50 blocos, deixando cerca de 39 blocos por rodada no mesmo cap.
+- **Hipótese:** ampliar suavemente o teto de velocidade da rodada 6 à 10 restaura progressão perceptível sem adicionar nova mecânica nem alterar o onboarding.
+- **Branch:** `design/20260905-late-round-speed-curve`.
+- **PR:** #3.
+- **Commit experimental:** `1fd3aef9e90bcb7db626e8602d4d39c8c8f225ce`.
+- **Curva:** rodadas 1–5 preservam cap 8.0; rodadas 6–10 aumentam +0,2/rodada até hard cap 9.0.
+- **Integração técnica:** `difficulty.js` centraliza o cap compartilhado por colisões com blocos e edge shots.
+- **Validação na PR:** GitHub Actions/Playwright run `33959492400` em **success**, incluindo `npm run test:e2e`.
+- **JUDGE:** aprovado; ganho mensurável, aumento máximo limitado a 12,5%, sem nova mecânica/dependência e com rodadas 1–5 inalteradas.
+- **Efeito no estado:** contador de NO-OPs zerado; projeto volta a **ACTIVE**.
+
 
 ### Mira proporcional no lançamento
 - Hipótese: transformar escolha binária esquerda/direita em ângulo proporcional aumenta agência e replayability sem alterar a física durante a rodada.
