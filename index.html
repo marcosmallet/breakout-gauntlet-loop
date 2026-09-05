@@ -19,10 +19,20 @@
       <span>Combo: <strong id="combo">x0</strong></span>
       <span>Vidas: <strong id="lives">3</strong></span>
       <span>Rodada: <strong id="round">1</strong></span>
+      <span>Contrato: <strong id="roundContract">Padrão</strong></span>
       <span>Blocos: <strong id="bricksRemaining" data-final-stretch="false">50</strong></span>
     </section>
 
     <canvas id="game" width="800" height="520" aria-label="Jogo Breakout" aria-description="Durante a contagem antes do lançamento, mova a raquete para mirar a direção da bola." aria-describedby="controlInstructions" aria-keyshortcuts="ArrowLeft ArrowRight A D Space"></canvas>
+
+    <section id="roundChoice" class="round-choice" aria-label="Escolha de contrato da rodada" hidden>
+      <strong>Escolha o contrato da próxima rodada</strong>
+      <p>Padrão mantém o jogo atual. Risco reduz a raquete em 12 px e aumenta em 50% os pontos por bloco nesta rodada.</p>
+      <div class="round-choice-actions">
+        <button id="standardContractButton" type="button">Padrão</button>
+        <button id="riskContractButton" type="button">Risco +50%</button>
+      </div>
+    </section>
 
     <div class="controls">
       <button id="startButton" type="button">Iniciar</button>
