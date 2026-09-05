@@ -51,3 +51,41 @@ test('combo deixa claro o teto x5 mesmo quando a sequência continua', async ({ 
   await expect(page.locator('#combo')).toHaveText('x5 MAX');
   await expect.poll(() => page.evaluate(() => window.__COMBO_DEBUG__?.getCombo())).toBe(6);
 });
+
+
+test('pausa congela a janela do combo e preserva o multiplicador ao retomar', async ({ page }) => {
+  await page.goto('/');
+
+  await page.evaluate(async () => {
+    const game = window.__GAME_DEBUG__;
+    game.start();
+    game.step(45);
+    game.setBall({ x: 50, y: 45, vx: 0, vy: 5 });
+    game.step();
+    await Promise.resolve();
+  });
+
+  await expect(page.locator('#score')).toHaveText('10');
+  await expect(page.locator('#combo')).toHaveText('x1');
+
+  await page.getByRole('button', { name: 'Pausar' }).click();
+  const pausedBall = await page.evaluate(() => window.__GAME_DEBUG__.getState().ball);
+
+  await page.waitForTimeout(2100);
+
+  await expect(page.locator('#combo')).toHaveText('x1');
+  const stillPausedBall = await page.evaluate(() => window.__GAME_DEBUG__.getState().ball);
+  expect(stillPausedBall.x).toBe(pausedBall.x);
+  expect(stillPausedBall.y).toBe(pausedBall.y);
+
+  await page.getByRole('button', { name: 'Retomar' }).click();
+  await page.evaluate(async () => {
+    const game = window.__GAME_DEBUG__;
+    game.setBall({ x: 120, y: 45, vx: 0, vy: 5 });
+    game.step();
+    await Promise.resolve();
+  });
+
+  await expect(page.locator('#score')).toHaveText('30');
+  await expect(page.locator('#combo')).toHaveText('x2');
+});
