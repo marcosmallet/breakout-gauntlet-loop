@@ -65,6 +65,17 @@ Perguntas iniciais úteis:
 - **Tamanho:** MACRO.
 - **Status:** `resolved`.
 
+### Escolha Elite repetida durante domínio contínuo
+- **Problema:** depois de transformar Elite em decisão explícita, o mesmo modal bloqueante era reaberto ao fim de toda rodada elegível perfeita, mesmo quando o jogador acabara de escolher sob os mesmos termos.
+- **Evidência:** `elite-round.js` recalculava elegibilidade e chamava `openChoice()` em cada avanço de rodada com 5 vidas; a escolha pausa a transição até input; após R10 os caps Normal/Elite já estão estabilizados, tornando a repetição da mesma decisão ainda menos informativa.
+- **Impacto:** jogadores de maior domínio, exatamente durante streaks longos em que o flow entre rodadas é mais valioso.
+- **Hipótese testada:** tratar Normal/Elite como compromisso do streak de domínio preserva agência com menos interrupção e dá consequência temporal à escolha; perder uma vida encerra o compromisso e voltar a demonstrar domínio reabre a decisão.
+- **Baseline vs experimento:** baseline = uma escolha bloqueante por rodada perfeita elegível; experimento = uma escolha bloqueante por streak perfeito, persistindo Normal ou Elite enquanto 5 vidas são mantidas e reabrindo somente após falha + novo domínio.
+- **Validação:** PR #14; suíte ampliada de 86 para 89 testes, cobrindo persistência Elite, persistência Normal, quebra de streak e requalificação; Playwright **89/89**.
+- **Risco:** o jogador pode esquecer a escolha em streaks longos; mitigado pelo HUD persistente `Modo: Normal/Elite` e por copy explícita no momento da decisão.
+- **Tamanho:** DESIGN com lente SYSTEMIC.
+- **Status:** `resolved`.
+
 ### Compressão do payoff de fim de rodada
 - **Problema:** vitória, recompensa e preparação da rodada seguinte eram simultâneas, reduzindo a legibilidade do payoff.
 - **Evidência:** no mesmo update do último bloco, o baseline concedia bônus/vida, incrementava rodada, recriava 50 blocos e ativava 45 steps de preparação; o pulso de vitória de 520 ms ocorria sobreposto ao countdown.
