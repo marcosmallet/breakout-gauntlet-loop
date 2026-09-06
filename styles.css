@@ -30,7 +30,9 @@ header p { margin-top: 4px; opacity: .7; }
 
 .hud {
   display: flex;
-  justify-content: space-between;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 18px;
   margin: 14px 2px 8px;
 }
 
@@ -134,6 +136,7 @@ button {
 button:disabled { opacity: .45; cursor: not-allowed; }
 button:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }
 .controls p { opacity: .7; font-size: .95rem; }
+#powerInstructions { margin-top: -4px; color: #cbd5e1; }
 
 @media (prefers-reduced-motion: reduce) {
   #combo.combo-pop,

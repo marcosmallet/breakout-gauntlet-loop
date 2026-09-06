@@ -20,10 +20,12 @@
       <span>Vidas: <strong id="lives">3</strong></span>
       <span>Rodada: <strong id="round">1</strong></span>
       <span>Modo: <strong id="roundMode" data-elite="false" data-choice="false">Normal</strong></span>
+      <span>Formação: <strong id="layoutName">Muralha</strong></span>
+      <span>Poder: <strong id="powerStatus">—</strong></span>
       <span>Blocos: <strong id="bricksRemaining" data-final-stretch="false">50</strong></span>
     </section>
 
-    <canvas id="game" width="800" height="520" aria-label="Jogo Breakout" aria-description="Durante a contagem antes do lançamento, mova a raquete para mirar a direção da bola." aria-describedby="controlInstructions" aria-keyshortcuts="ArrowLeft ArrowRight A D Space"></canvas>
+    <canvas id="game" width="800" height="520" aria-label="Jogo Breakout" aria-description="Durante a contagem antes do lançamento, mova a raquete para mirar a direção da bola." aria-describedby="controlInstructions powerInstructions" aria-keyshortcuts="ArrowLeft ArrowRight A D Space"></canvas>
 
     <section id="eliteChoice" class="elite-choice" aria-label="Escolha de desafio Elite" hidden>
       <div>
@@ -41,6 +43,7 @@
       <button id="pauseButton" type="button" aria-pressed="false" aria-keyshortcuts="Space" disabled>Pausar</button>
       <p id="gameStatus" role="status" aria-live="polite"></p>
       <p id="controlInstructions">Use ← →, A/D ou arraste sobre o jogo para mover a raquete. Pressione Espaço ou use o botão Pausar para pausar ou retomar.</p>
+      <p id="powerInstructions">Blocos W e S liberam poderes: W amplia a raquete temporariamente; S ativa um escudo que salva uma bola perdida.</p>
     </div>
   </main>
 
