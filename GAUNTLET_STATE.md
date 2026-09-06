@@ -5,7 +5,7 @@ Este arquivo é a memória operacional condensada do experimento. Ele não é um
 ## Estado atual
 
 - Fase: **Value-Driven Meta-Critic / ACTIVE**
-- Baseline de gameplay atual: **mira proporcional + progressão tardia de velocidade + topologia tardia alternada + beat de vitória + Elite opcional por domínio**
+- Baseline de gameplay atual: **mira proporcional + progressão tardia de velocidade + quatro formações rotativas por rodada + power-ups coletáveis W/S + beat de vitória + Elite opcional por domínio**
 - Baseline de protocolo anterior: `789385d6eb60bf77acb82620c6586c0617c0dc00`
 - Último ciclo do protocolo anterior: **Cycle 114**
 - Histórico de saturação: Cycles 105–114 tiveram **10 NO-OPs deliberados consecutivos**
@@ -30,7 +30,7 @@ O projeto saiu de SATURATED quando um DESIGN orientado por evidência foi aprova
 
 ### Hipóteses ainda sem evidência suficiente
 
-- Profundidade adicional além da alternância topológica já validada para R11+.
+- Expansão futura além dos quatro layouts e dos poderes W/S já validados, somente com nova evidência.
 - Ajustes na curva de dificuldade/ritmo.
 - Mudanças adicionais de replayability além da escolha Elite já integrada.
 - Novas camadas audiovisuais.
@@ -59,7 +59,9 @@ Essas hipóteses permanecem candidatas, não tarefas.
 - Feedback especial nos últimos blocos da rodada.
 - A partir da rodada 6, domínio sustentado em 5 vidas pode desbloquear uma escolha explícita entre permanecer no modo Normal ou aceitar o risco/recompensa Elite.
 - Elite preserva o balanceamento já validado: +0,5 no teto de velocidade e janela de combo de 2,0 s para 2,5 s.
-- Após R10, a progressão qualitativa alterna a parede cheia com um corredor central em R11/R13/...; R12/R14/... retornam à parede cheia. Ambas preservam 50 blocos e a mesma economia.
+- Toda rodada possui identidade espacial em ciclo de quatro formações: **Muralha → Escalonada → Canal → Funil**, sempre com 50 blocos e a mesma economia.
+- Cada rodada contém exatamente dois blocos especiais determinísticos: **W** libera Raquete larga (+34 px por até 600 steps ativos) e **S** libera um Escudo de uma carga que salva uma bola perdida.
+- Os poderes caem como cápsulas coletáveis; pausas, victory beat e respawn grace congelam seu tempo/movimento, e perder uma vida limpa poderes e drops pendentes.
 
 ### Controles e UX
 - Teclado: setas e A/D.
@@ -113,6 +115,19 @@ O crescimento incremental criou módulos satélites que consultam o estado por `
 Não refatorar por estética. Se a dívida bloquear uma melhoria de produto relevante, tratá-la como DESIGN ou MACRO conforme a escala causal do problema, sempre com objetivo e critérios de aceite explícitos.
 
 ## Experimentos MACRO aceitos
+
+### Identidade de fases + poderes coletáveis
+- **Evidência externa:** solicitação explícita do usuário para adicionar poderes especiais e nova distribuição de blocos em cada fase.
+- **Problema de produto:** a identidade de rodada ainda dependia majoritariamente de parâmetros e de apenas duas topologias tardias; faltava uma camada de surpresa/recovery que mudasse decisões durante a própria rodada.
+- **Hipótese:** quatro geometrias rotativas + dois power-ups coletáveis de função clara aumentam adaptação espacial, replayability e recovery sem alterar score, vidas, combo, caps Normal/Elite ou a física central.
+- **Contrato de formações:** ciclo **Muralha / Escalonada / Canal / Funil** desde R1; 50 blocos em todas as formações.
+- **Contrato de poderes:** exatamente um bloco **W** e um **S** por rodada; W amplia temporariamente o paddle; S cria escudo de uma defesa; ambos exigem coleta da cápsula.
+- **Lifecycle:** poderes congelam durante pausa, victory beat e preparação; morte remove poderes.
+- **UX/acessibilidade:** HUD mostra Formação e Poder; Canvas referencia instrução acessível que explica W/S; blocos e drops têm diferenciação visual e letras, não dependem apenas de cor.
+- **PR:** #16.
+- **Correctness Gate:** suíte ampliada para **97/97 Playwright** no experimento após atualização do contrato acessível afetado.
+- **Value Judge:** positivo — o jogador percebe a mudança sem release notes, as formações alteram rotas e os poderes introduzem escolhas momentâneas/recovery sem criar economia paralela ou RNG instável.
+- **Efeito estratégico:** futuras expansões de conteúdo devem preferir novos contratos que mudem decisão/rota/risco de forma testável; não adicionar poderes ou layouts apenas por quantidade.
 
 ### Elite como escolha deliberada de domínio
 - **Evidence Discovery:** SYSTEMIC — mastery/lives + lifecycle + dificuldade + combo/recompensa + HUD/UX.
