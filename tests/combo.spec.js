@@ -106,6 +106,23 @@ test('pausa congela a janela do combo e preserva o multiplicador ao retomar', as
   await expect(page.locator('#combo')).toHaveText('x2');
 });
 
+test('indicador visual acompanha a janela ampliada de combo no Elite', async ({ page }) => {
+  await page.goto('/');
+
+  await page.evaluate(async () => {
+    window.GameDifficulty.setEliteRoundActive(true);
+    document.getElementById('score').textContent = '10';
+    await Promise.resolve();
+  });
+
+  const combo = page.locator('#combo');
+  await expect(combo).toHaveText('x1');
+  await expect.poll(() => page.evaluate(() => window.__COMBO_DEBUG__?.getWindowMs())).toBe(2500);
+  await expect.poll(() => combo.evaluate((element) =>
+    getComputedStyle(element, '::after').animationDuration
+  )).toBe('2.5s');
+});
+
 test('último acerto preserva feedback antes de bônus grande no mesmo turno', async ({ page }) => {
   await page.goto('/');
 
