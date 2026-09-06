@@ -99,16 +99,28 @@ Perguntas iniciais úteis:
 - **Tamanho:** DESIGN.
 - **Status:** `resolved`.
 
-### Profundidade e progressão após as primeiras rodadas
+### Plateau de topologia após a rodada 10
 
-- **Problema:** pode existir diminishing novelty após o jogador dominar o loop básico.
-- **Evidência:** nenhuma evidência externa de jogador ou métrica disponível atualmente.
+- **Problema:** depois de R10, o espaço jogável entrava em estado estacionário: mesma parede 5×10/50 blocos enquanto paddle, velocidade inicial e caps Normal/Elite já estavam estabilizados.
+- **Evidências:** `createBricks()` reconstruía a mesma parede em todas as rodadas; paddle e velocidade inicial já saturavam em R5; cap Normal estabilizava em R10 e Elite apenas deslocava esse cap em +0,5. Uma trajetória vertical pelo centro atingia a parede do baseline antes de acessar fileiras profundas.
+- **Impacto esperado:** devolver novidade mecânica e uma decisão de rota legível ao late game sem criar nova economia, power-up ou escalada numérica.
+- **Jogadores afetados:** jogadores que chegam a R11+.
+- **Hipótese testada:** alternar a parede cheia com um corredor central em R11/R13/... muda a ordem de acesso aos blocos e torna a mira existente relevante para escolher uma rota, mantendo exatamente 50 blocos, score, vidas, combo e dificuldade.
+- **Baseline vs experimento:** baseline R10+ = uma única topologia estacionária; experimento = R11/R13/... com corredor central e R12/R14/... com parede cheia, sempre 50 blocos. Em probe determinístico pelo centro, R10/R12 removem bloco antes da passagem; R11 mantém 50 blocos enquanto a bola alcança `y < 100`, provando rota qualitativamente distinta.
+- **Risco:** duas topologias ainda são variedade limitada e o corredor pode alterar duração de rodada; mitigado por preservar quantidade/valor de blocos, alternar com a parede original e não tocar física/economia.
+- **Tamanho:** DESIGN com lente SYSTEMIC.
+- **Status:** `resolved` após Correctness Gate e Value Judge positivos.
+
+### Profundidade adicional além da alternância pós-R10
+
+- **Problema:** pode existir diminishing novelty mesmo após a primeira diferenciação topológica do late game.
+- **Evidência:** ainda não há evidência externa de jogador ou métrica que justifique outra camada além do contrato alternado validado.
 - **Impacto esperado:** potencial aumento de retenção/replayability.
-- **Jogadores afetados:** jogadores que alcançam rodadas intermediárias/avançadas.
-- **Hipótese:** uma progressão adicional bem balanceada poderia manter decisões interessantes por mais tempo.
-- **Métrica/comportamento esperado:** maior duração de sessão e maior proporção de sessões chegando a rodadas avançadas.
-- **Risco:** alto risco de rebalanceamento e complexidade transversal.
-- **Tamanho:** DESIGN ou MACRO se evidências futuras demonstrarem necessidade de mudanças coordenadas.
+- **Jogadores afetados:** jogadores que alcançam partidas muito longas.
+- **Hipótese:** somente nova evidência deve justificar formação adicional, objetivo novo ou outra camada sistêmica.
+- **Métrica/comportamento esperado:** maior duração de sessão e decisões adicionais demonstráveis, não apenas variedade visual.
+- **Risco:** alto risco de conteúdo arbitrário, rebalanceamento e complexidade transversal.
+- **Tamanho:** DESIGN ou MACRO conforme a evidência futura.
 - **Status:** `candidate`.
 
 ### Ritmo e dificuldade por rodada

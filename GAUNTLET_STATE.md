@@ -5,7 +5,7 @@ Este arquivo é a memória operacional condensada do experimento. Ele não é um
 ## Estado atual
 
 - Fase: **Value-Driven Meta-Critic / ACTIVE**
-- Baseline de gameplay atual: **mira proporcional + progressão tardia de velocidade + beat de vitória + Elite opcional por domínio**
+- Baseline de gameplay atual: **mira proporcional + progressão tardia de velocidade + topologia tardia alternada + beat de vitória + Elite opcional por domínio**
 - Baseline de protocolo anterior: `789385d6eb60bf77acb82620c6586c0617c0dc00`
 - Último ciclo do protocolo anterior: **Cycle 114**
 - Histórico de saturação: Cycles 105–114 tiveram **10 NO-OPs deliberados consecutivos**
@@ -30,7 +30,7 @@ O projeto saiu de SATURATED quando um DESIGN orientado por evidência foi aprova
 
 ### Hipóteses ainda sem evidência suficiente
 
-- Profundidade/progressão adicional após as primeiras rodadas.
+- Profundidade adicional além da alternância topológica já validada para R11+.
 - Ajustes na curva de dificuldade/ritmo.
 - Mudanças adicionais de replayability além da escolha Elite já integrada.
 - Novas camadas audiovisuais.
@@ -59,6 +59,7 @@ Essas hipóteses permanecem candidatas, não tarefas.
 - Feedback especial nos últimos blocos da rodada.
 - A partir da rodada 6, domínio sustentado em 5 vidas pode desbloquear uma escolha explícita entre permanecer no modo Normal ou aceitar o risco/recompensa Elite.
 - Elite preserva o balanceamento já validado: +0,5 no teto de velocidade e janela de combo de 2,0 s para 2,5 s.
+- Após R10, a progressão qualitativa alterna a parede cheia com um corredor central em R11/R13/...; R12/R14/... retornam à parede cheia. Ambas preservam 50 blocos e a mesma economia.
 
 ### Controles e UX
 - Teclado: setas e A/D.
@@ -126,6 +127,17 @@ Não refatorar por estética. Se a dívida bloquear uma melhoria de produto rele
 - **Efeito estratégico:** Elite passa a ser contrato de **mastery → agência → risco/recompensa**, não promoção automática; futuras evoluções de late game devem preservar a opcionalidade e provar valor antes de adicionar novas camadas.
 
 ## Experimentos DESIGN aceitos
+
+### Topologia alternada no late game
+- **Evidence Discovery:** SYSTEMIC — progressão/ritmo + espaço jogável + mira/replayability + lifecycle de rodada.
+- **Problema:** após R10, o baseline mantinha a mesma parede 5×10 enquanto paddle, velocidade inicial e caps Normal/Elite já estavam estabilizados, formando um estado mecanicamente estacionário.
+- **Evidências independentes:** `createBricks()` recriava a mesma parede de 50 blocos em toda rodada; progressão de paddle/start speed já saturava em R5 e o cap Normal em R10; um probe vertical determinístico pelo centro colidia com a parede antes de alcançar fileiras profundas.
+- **Hipótese:** alternar parede e corredor central em R11+ cria mudança qualitativa de rota que reutiliza a mira proporcional existente, sem inventar nova economia nem continuar inflando números.
+- **Contrato:** R1–R10 permanecem com parede cheia; R11/R13/... usam corredor central; R12/R14/... retornam à parede cheia; todas as rodadas preservam exatamente 50 blocos, score, vidas, combo e dificuldade.
+- **Baseline vs experimento:** no baseline, a mesma rota central encontra bloco em R10+; no experimento, o mesmo probe em R11 atravessa o corredor com 50 blocos ainda vivos e alcança `y < 100`, enquanto R10/R12 continuam forçando contato.
+- **Correctness Gate:** suíte ampliada com contratos de sequência topológica, rota acessível e transição real R10→R11, além da regressão completa.
+- **Value Judge:** aprovado — a mudança é visível e mecanicamente perceptível, altera o espaço de decisão em vez de apenas aparência/números e é substancialmente menor que adicionar power-ups, objetivo ou nova economia.
+- **Efeito estratégico:** após saturar pressão numérica, futuras evoluções tardias devem preferir diferenciação qualitativa do espaço/decisão somente quando houver evidência; não continuar escalando velocidade por padrão.
 
 ### Beat de vitória entre rodadas
 - **Evidence Discovery:** SYSTEMIC — lifecycle/flow + feedback + progressão.
