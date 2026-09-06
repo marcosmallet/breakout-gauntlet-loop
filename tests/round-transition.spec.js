@@ -19,25 +19,23 @@ test('round clear separa celebração da contagem de lançamento', async ({ page
   await expect(page.getByRole('status')).toHaveText('Rodada 1 concluída! Bônus +300. Vida extra.');
   await expect.poll(() => page.evaluate(() => window.__LAUNCH_COUNTDOWN_DEBUG__.getCountdown())).toBe(0);
 
-  const beforePreparation = await page.evaluate(() => {
+  const transitionBoundary = await page.evaluate(() => {
     const game = window.__GAME_DEBUG__;
     const remaining = game.getState().roundTransition;
     game.step(Math.max(0, remaining - 1));
-    return game.getState();
+    const beforePreparation = game.getState();
+    game.step();
+    const prepared = game.getState();
+    return { beforePreparation, prepared };
   });
 
-  expect(beforePreparation.roundTransition).toBe(1);
-  expect(beforePreparation.bricksRemaining).toBe(0);
-  expect(beforePreparation.respawnGrace).toBe(0);
+  expect(transitionBoundary.beforePreparation.roundTransition).toBe(1);
+  expect(transitionBoundary.beforePreparation.bricksRemaining).toBe(0);
+  expect(transitionBoundary.beforePreparation.respawnGrace).toBe(0);
 
-  const prepared = await page.evaluate(() => {
-    window.__GAME_DEBUG__.step();
-    return window.__GAME_DEBUG__.getState();
-  });
-
-  expect(prepared.roundTransition).toBe(0);
-  expect(prepared.bricksRemaining).toBe(50);
-  expect(prepared.respawnGrace).toBe(45);
+  expect(transitionBoundary.prepared.roundTransition).toBe(0);
+  expect(transitionBoundary.prepared.bricksRemaining).toBe(50);
+  expect(transitionBoundary.prepared.respawnGrace).toBe(45);
   await expect(page.getByRole('status')).toHaveText('Prepare-se...');
   await expect.poll(() => page.evaluate(() => window.__LAUNCH_COUNTDOWN_DEBUG__.getCountdown())).toBe(3);
 });
