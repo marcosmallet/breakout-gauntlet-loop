@@ -16,6 +16,7 @@
   let trackedRound = Number.parseInt(roundEl.textContent, 10) || 1;
   let livesAtRoundStart = Number.parseInt(livesEl.textContent, 10) || 3;
   let minimumLivesThisRound = livesAtRoundStart;
+  let masteryBrokenThisRound = false;
   let eliteRoundActive = false;
   let eliteEligible = false;
   let awaitingChoice = false;
@@ -83,7 +84,7 @@
   }
 
   function breakMastery() {
-    minimumLivesThisRound = Math.min(minimumLivesThisRound, MAX_LIVES - 1);
+    masteryBrokenThisRound = true;
     if (!masteryChoice) return;
     masteryChoice = null;
     eliteEligible = false;
@@ -96,6 +97,7 @@
     trackedRound = round;
     livesAtRoundStart = lives;
     minimumLivesThisRound = lives;
+    masteryBrokenThisRound = false;
     eliteEligible = false;
     awaitingChoice = false;
     pausedForChoice = false;
@@ -128,7 +130,9 @@
       return;
     }
 
-    const sustainedMastery = livesAtRoundStart >= MAX_LIVES && minimumLivesThisRound >= MAX_LIVES;
+    const sustainedMastery = livesAtRoundStart >= MAX_LIVES
+      && minimumLivesThisRound >= MAX_LIVES
+      && !masteryBrokenThisRound;
     const unlocked = nextRound >= ELITE_START_ROUND && sustainedMastery;
 
     if (!unlocked) {
@@ -149,6 +153,7 @@
     trackedRound = nextRound;
     livesAtRoundStart = currentLives;
     minimumLivesThisRound = currentLives;
+    masteryBrokenThisRound = false;
   }).observe(roundEl, { childList: true, characterData: true, subtree: true });
 
   standardButton?.addEventListener('click', () => chooseMode('standard'));
@@ -165,6 +170,7 @@
         awaitingChoice,
         pausedForChoice,
         masteryChoice,
+        masteryBrokenThisRound,
         trackedRound,
         livesAtRoundStart,
         minimumLivesThisRound,
