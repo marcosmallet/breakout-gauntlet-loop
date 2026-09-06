@@ -21,14 +21,18 @@ test('canvas associa instruções de controle para tecnologias assistivas', asyn
   await expect(page.locator('#powerInstructions')).toContainText('Blocos W e S liberam poderes');
 });
 
-test('hud anuncia mudanças de pontos e vidas para tecnologias assistivas', async ({ page }) => {
+test('hud evita anúncios repetitivos e mantém vidas como estado ao vivo', async ({ page }) => {
   await page.goto('/');
 
   const hud = page.locator('.hud');
-  await expect(hud).toHaveAttribute('aria-live', 'polite');
-  await expect(hud).toHaveAttribute('aria-atomic', 'true');
+  await expect(hud).not.toHaveAttribute('aria-live', 'polite');
+  await expect(hud).not.toHaveAttribute('aria-atomic', 'true');
   await expect(hud).toContainText('Pontos: 0');
   await expect(hud).toContainText('Vidas: 3');
+
+  const livesStatus = page.locator('#livesStatus');
+  await expect(livesStatus).toHaveAttribute('aria-live', 'polite');
+  await expect(livesStatus).toHaveAttribute('aria-atomic', 'true');
 });
 
 test('inicia uma partida', async ({ page }) => {
