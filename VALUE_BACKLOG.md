@@ -111,17 +111,18 @@ Perguntas iniciais úteis:
 - **Tamanho:** DESIGN com lente SYSTEMIC.
 - **Status:** `resolved` após Correctness Gate e Value Judge positivos.
 
-### Profundidade adicional além da alternância pós-R10
+### Identidade de fases e poderes especiais
 
-- **Problema:** pode existir diminishing novelty mesmo após a primeira diferenciação topológica do late game.
-- **Evidência:** ainda não há evidência externa de jogador ou métrica que justifique outra camada além do contrato alternado validado.
-- **Impacto esperado:** potencial aumento de retenção/replayability.
-- **Jogadores afetados:** jogadores que alcançam partidas muito longas.
-- **Hipótese:** somente nova evidência deve justificar formação adicional, objetivo novo ou outra camada sistêmica.
-- **Métrica/comportamento esperado:** maior duração de sessão e decisões adicionais demonstráveis, não apenas variedade visual.
-- **Risco:** alto risco de conteúdo arbitrário, rebalanceamento e complexidade transversal.
-- **Tamanho:** DESIGN ou MACRO conforme a evidência futura.
-- **Status:** `candidate`.
+- **Problema:** a variedade espacial ainda aparecia principalmente no late game e não existia uma camada de poderes coletáveis capaz de alterar recovery/decisão durante a rodada.
+- **Evidência:** solicitação explícita do usuário para poderes especiais e nova distribuição em cada fase, somada ao histórico já validado de diminishing novelty/topologia como fonte de progressão qualitativa.
+- **Impacto esperado:** maior identidade entre rodadas, adaptação espacial desde o início e momentos de risco/recompensa durante a limpeza dos blocos.
+- **Jogadores afetados:** todos os jogadores, não apenas quem alcança R11+.
+- **Hipótese testada:** alternar quatro formações com 50 blocos e adicionar W/S coletáveis cria variedade perceptível sem alterar economia, física, Elite ou combo.
+- **Baseline vs experimento:** baseline = parede até R10 e alternância parede/canal em R11+ sem poderes; experimento = Muralha/Escalonada/Canal/Funil em ciclo desde R1 + um W e um S por rodada.
+- **Validação:** PR #16; suíte ampliada para **97/97 Playwright**, cobrindo geometrias, lifecycle, blocos especiais, drop, coleta, expiração, escudo e reset por perda de vida.
+- **Risco:** complexidade transversal e possibilidade de poderes dominantes; mitigado por apenas dois efeitos simples, determinísticos, temporários e sem mudança de score.
+- **Tamanho:** MACRO.
+- **Status:** `resolved`.
 
 ### Ritmo e dificuldade por rodada
 
