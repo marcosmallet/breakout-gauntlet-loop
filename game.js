@@ -426,19 +426,30 @@
 
     resolveBoundaryCollisions();
 
-    if (
+    const crossedPaddleTop = (
       ball.vy > 0 &&
       previousBallY + ball.r <= paddle.y &&
-      ball.y + ball.r >= paddle.y &&
-      ball.y - ball.r <= paddle.y + paddle.h &&
-      ball.x + ball.r >= paddle.x &&
-      ball.x - ball.r <= paddle.x + paddle.w
-    ) {
-      ball.y = paddle.y - ball.r;
-      const rawHit = (ball.x - (paddle.x + paddle.w / 2)) / (paddle.w / 2);
-      const hit = Math.max(-1, Math.min(1, rawHit));
-      applyPaddleBounce(hit);
-      paddleFlash = PADDLE_FLASH_STEPS;
+      ball.y + ball.r >= paddle.y
+    );
+    if (crossedPaddleTop) {
+      const verticalTravel = ball.y - previousBallY;
+      const contactT = verticalTravel > 0
+        ? (paddle.y - ball.r - previousBallY) / verticalTravel
+        : 0;
+      const contactX = previousBallX + (ball.x - previousBallX) * Math.max(0, Math.min(1, contactT));
+      const overlapsPaddleAtContact = (
+        contactX + ball.r >= paddle.x &&
+        contactX - ball.r <= paddle.x + paddle.w
+      );
+
+      if (overlapsPaddleAtContact) {
+        ball.x = contactX;
+        ball.y = paddle.y - ball.r;
+        const rawHit = (ball.x - (paddle.x + paddle.w / 2)) / (paddle.w / 2);
+        const hit = Math.max(-1, Math.min(1, rawHit));
+        applyPaddleBounce(hit);
+        paddleFlash = PADDLE_FLASH_STEPS;
+      }
     }
 
     for (const brick of bricks) {
