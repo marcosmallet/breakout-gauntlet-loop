@@ -14,10 +14,11 @@ test('canvas associa instruções de controle para tecnologias assistivas', asyn
   await page.goto('/');
 
   const canvas = page.locator('#game');
-  await expect(canvas).toHaveAttribute('aria-describedby', 'controlInstructions');
+  await expect(canvas).toHaveAttribute('aria-describedby', 'controlInstructions powerInstructions');
   await expect(page.locator('#controlInstructions')).toHaveText(
     'Use ← →, A/D ou arraste sobre o jogo para mover a raquete. Pressione Espaço ou use o botão Pausar para pausar ou retomar.'
   );
+  await expect(page.locator('#powerInstructions')).toContainText('Blocos W e S liberam poderes');
 });
 
 test('hud anuncia mudanças de pontos e vidas para tecnologias assistivas', async ({ page }) => {

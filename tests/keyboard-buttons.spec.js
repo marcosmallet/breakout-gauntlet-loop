@@ -28,7 +28,7 @@ test('instruções acessíveis explicam a mira antes do lançamento', async ({ p
   await page.goto('/');
 
   const canvas = page.locator('#game');
-  await expect(canvas).toHaveAttribute('aria-describedby', 'controlInstructions');
+  await expect(canvas).toHaveAttribute('aria-describedby', 'controlInstructions powerInstructions');
   await expect(canvas).toHaveAttribute(
     'aria-description',
     'Durante a contagem antes do lançamento, mova a raquete para mirar a direção da bola.'
