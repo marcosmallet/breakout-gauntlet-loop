@@ -91,6 +91,26 @@ test('continuar normal preserva o baseline mesmo após desbloquear elite', async
   expect(await page.evaluate(() => window.__COMBO_DEBUG__.getWindowMs())).toBe(2000);
 });
 
+test('perder vida encerra elite imediatamente no mesmo round', async ({ page }) => {
+  await page.goto('/');
+  await unlockEliteChoice(page);
+  await page.locator('#eliteModeButton').click();
+  await expect(page.locator('#roundMode')).toHaveText('Elite');
+
+  await page.evaluate(() => {
+    document.getElementById('lives').textContent = '4';
+  });
+  await page.waitForTimeout(0);
+
+  await expect(page.locator('#roundMode')).toHaveText('Normal');
+  const state = await page.evaluate(() => window.__ELITE_ROUND_DEBUG__.getState());
+  expect(state.masteryChoice).toBe(null);
+  expect(state.active).toBe(false);
+  expect(state.awaitingChoice).toBe(false);
+  expect(await page.evaluate(() => window.GameDifficulty.maxBallSpeedForRound(6))).toBeCloseTo(8.2, 8);
+  expect(await page.evaluate(() => window.__COMBO_DEBUG__.getWindowMs())).toBe(2000);
+});
+
 test('perder vida encerra o streak elite e remove a elegibilidade na rodada seguinte mesmo recuperando a vida', async ({ page }) => {
   await page.goto('/');
   await unlockEliteChoice(page);

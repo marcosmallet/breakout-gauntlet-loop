@@ -97,6 +97,14 @@
     const lives = Number.parseInt(livesEl.textContent, 10);
     if (!Number.isInteger(lives)) return;
     minimumLivesThisRound = Math.min(minimumLivesThisRound, lives);
+
+    if (masteryChoice && lives < MAX_LIVES) {
+      masteryChoice = null;
+      eliteEligible = false;
+      awaitingChoice = false;
+      setEliteRound(false);
+      renderChoice();
+    }
   }).observe(livesEl, { childList: true, characterData: true, subtree: true });
 
   new MutationObserver(() => {
