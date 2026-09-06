@@ -6,8 +6,9 @@
   const standardButton = document.getElementById('standardModeButton');
   const eliteButton = document.getElementById('eliteModeButton');
   const pauseButton = document.getElementById('pauseButton');
+  const gameStatusEl = document.getElementById('gameStatus');
   const canvas = document.getElementById('game');
-  if (!roundEl || !livesEl || !roundModeEl || !window.GameDifficulty) return;
+  if (!roundEl || !livesEl || !roundModeEl || !gameStatusEl || !window.GameDifficulty) return;
 
   const ELITE_START_ROUND = 6;
   const MAX_LIVES = 5;
@@ -81,6 +82,16 @@
     standardButton?.focus();
   }
 
+  function breakMastery() {
+    minimumLivesThisRound = Math.min(minimumLivesThisRound, MAX_LIVES - 1);
+    if (!masteryChoice) return;
+    masteryChoice = null;
+    eliteEligible = false;
+    awaitingChoice = false;
+    setEliteRound(false);
+    renderChoice();
+  }
+
   function resetTracking(round, lives) {
     trackedRound = round;
     livesAtRoundStart = lives;
@@ -99,13 +110,13 @@
     minimumLivesThisRound = Math.min(minimumLivesThisRound, lives);
 
     if (masteryChoice && lives < MAX_LIVES) {
-      masteryChoice = null;
-      eliteEligible = false;
-      awaitingChoice = false;
-      setEliteRound(false);
-      renderChoice();
+      breakMastery();
     }
   }).observe(livesEl, { childList: true, characterData: true, subtree: true });
+
+  new MutationObserver(() => {
+    if (gameStatusEl.textContent.trim() === 'Escudo salvou a bola!') breakMastery();
+  }).observe(gameStatusEl, { childList: true, characterData: true, subtree: true });
 
   new MutationObserver(() => {
     const nextRound = Number.parseInt(roundEl.textContent, 10);
