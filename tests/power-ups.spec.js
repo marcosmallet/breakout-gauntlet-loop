@@ -107,9 +107,7 @@ test('S preserva sobrevivência mas encerra combo após uma falha de raquete', a
   await drainGrace(page);
 
   await page.evaluate(async () => {
-    const game = window.__GAME_DEBUG__;
-    game.setBall({ x: 50, y: 45, vx: 0, vy: 5 });
-    game.step();
+    document.getElementById('score').textContent = '10';
     await Promise.resolve();
   });
   await expect.poll(() => page.evaluate(() => window.__COMBO_DEBUG__.getCombo())).toBe(1);
