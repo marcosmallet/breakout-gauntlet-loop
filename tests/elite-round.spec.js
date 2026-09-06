@@ -143,7 +143,8 @@ test('escudo salva a vida mas encerra o domínio elite e bloqueia requalificaç�
   await expect(page.locator('#roundMode')).toHaveText('Normal');
   let state = await page.evaluate(() => window.__ELITE_ROUND_DEBUG__.getState());
   expect(state.masteryChoice).toBe(null);
-  expect(state.minimumLivesThisRound).toBe(4);
+  expect(state.minimumLivesThisRound).toBe(5);
+  expect(state.masteryBrokenThisRound).toBe(true);
   expect(state.active).toBe(false);
 
   await setHudState(page, 7, 5);
@@ -151,6 +152,7 @@ test('escudo salva a vida mas encerra o domínio elite e bloqueia requalificaç�
   await expect(page.locator('#roundMode')).toHaveText('Normal');
   state = await page.evaluate(() => window.__ELITE_ROUND_DEBUG__.getState());
   expect(state.awaitingChoice).toBe(false);
+  expect(state.masteryBrokenThisRound).toBe(false);
 });
 
 test('bônus grande de fim de rodada não é tratado como acerto de combo', async ({ page }) => {
