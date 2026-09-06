@@ -63,3 +63,30 @@ test('corredor de R11 muda a rota acessível em relação à parede de R10/R12',
   expect(probes[2].layout).toBe('wall');
   expect(probes[2].after).toBeLessThan(probes[2].before);
 });
+
+test('transição R10 para R11 materializa o corredor no lifecycle real', async ({ page }) => {
+  await page.goto('/');
+
+  const transition = await page.evaluate(() => {
+    const game = window.__GAME_DEBUG__;
+    game.start();
+    game.setRoundForTest(10);
+    game.clearBricksExcept(0);
+    game.setBall({ x: 21.6, y: 69, vx: 4, vy: 0 });
+    game.step();
+    const afterClear = game.getState();
+    game.step(afterClear.roundTransition);
+    const prepared = game.getState();
+    return { afterClear, prepared };
+  });
+
+  expect(transition.afterClear.round).toBe(11);
+  expect(transition.afterClear.roundTransition).toBe(54);
+  expect(transition.afterClear.bricksRemaining).toBe(0);
+
+  expect(transition.prepared.round).toBe(11);
+  expect(transition.prepared.roundTransition).toBe(0);
+  expect(transition.prepared.brickLayout).toBe('channel');
+  expect(transition.prepared.bricksRemaining).toBe(50);
+  expect(transition.prepared.respawnGrace).toBe(45);
+});
