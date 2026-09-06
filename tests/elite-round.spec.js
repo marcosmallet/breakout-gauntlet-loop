@@ -36,9 +36,7 @@ test('domínio tardio desbloqueia escolha explícita entre normal e elite', asyn
 test('aceitar elite aplica risco de velocidade e recompensa de combo', async ({ page }) => {
   await page.goto('/');
   await unlockEliteChoice(page);
-
   await page.locator('#eliteModeButton').click();
-
   await expect(page.locator('#eliteChoice')).toBeHidden();
   await expect(page.locator('#roundMode')).toHaveText('Elite');
   expect(await page.evaluate(() => window.GameDifficulty.maxBallSpeedForRound(6))).toBeCloseTo(8.7, 8);
@@ -49,9 +47,7 @@ test('aceitar elite mantém o modo durante um streak perfeito sem repetir a esco
   await page.goto('/');
   await unlockEliteChoice(page);
   await page.locator('#eliteModeButton').click();
-
   await setHudState(page, 7, 5);
-
   await expect(page.locator('#eliteChoice')).toBeHidden();
   await expect(page.locator('#roundMode')).toHaveText('Elite');
   const state = await page.evaluate(() => window.__ELITE_ROUND_DEBUG__.getState());
@@ -66,9 +62,7 @@ test('manter normal preserva o modo durante um streak perfeito sem repetir a esc
   await page.goto('/');
   await unlockEliteChoice(page);
   await page.locator('#standardModeButton').click();
-
   await setHudState(page, 7, 5);
-
   await expect(page.locator('#eliteChoice')).toBeHidden();
   await expect(page.locator('#roundMode')).toHaveText('Normal');
   const state = await page.evaluate(() => window.__ELITE_ROUND_DEBUG__.getState());
@@ -82,9 +76,7 @@ test('manter normal preserva o modo durante um streak perfeito sem repetir a esc
 test('continuar normal preserva o baseline mesmo após desbloquear elite', async ({ page }) => {
   await page.goto('/');
   await unlockEliteChoice(page);
-
   await page.locator('#standardModeButton').click();
-
   await expect(page.locator('#eliteChoice')).toBeHidden();
   await expect(page.locator('#roundMode')).toHaveText('Normal');
   expect(await page.evaluate(() => window.GameDifficulty.maxBallSpeedForRound(6))).toBeCloseTo(8.2, 8);
@@ -96,12 +88,8 @@ test('perder vida encerra elite imediatamente no mesmo round', async ({ page }) 
   await unlockEliteChoice(page);
   await page.locator('#eliteModeButton').click();
   await expect(page.locator('#roundMode')).toHaveText('Elite');
-
-  await page.evaluate(() => {
-    document.getElementById('lives').textContent = '4';
-  });
+  await page.evaluate(() => { document.getElementById('lives').textContent = '4'; });
   await page.waitForTimeout(0);
-
   await expect(page.locator('#roundMode')).toHaveText('Normal');
   const state = await page.evaluate(() => window.__ELITE_ROUND_DEBUG__.getState());
   expect(state.masteryChoice).toBe(null);
@@ -116,13 +104,9 @@ test('perder vida encerra o streak elite e remove a elegibilidade na rodada segu
   await unlockEliteChoice(page);
   await page.locator('#eliteModeButton').click();
   await expect(page.locator('#roundMode')).toHaveText('Elite');
-
-  await page.evaluate(() => {
-    document.getElementById('lives').textContent = '4';
-  });
+  await page.evaluate(() => { document.getElementById('lives').textContent = '4'; });
   await page.waitForTimeout(0);
   await setHudState(page, 7, 5);
-
   await expect(page.locator('#eliteChoice')).toBeHidden();
   await expect(page.locator('#roundMode')).toHaveText('Normal');
   const state = await page.evaluate(() => window.__ELITE_ROUND_DEBUG__.getState());
@@ -136,14 +120,10 @@ test('novo streak perfeito após uma falha volta a oferecer a escolha', async ({
   await page.goto('/');
   await unlockEliteChoice(page);
   await page.locator('#eliteModeButton').click();
-
-  await page.evaluate(() => {
-    document.getElementById('lives').textContent = '4';
-  });
+  await page.evaluate(() => { document.getElementById('lives').textContent = '4'; });
   await page.waitForTimeout(0);
   await setHudState(page, 7, 5);
   await setHudState(page, 8, 5);
-
   await expect(page.locator('#eliteChoice')).toBeVisible();
   await expect(page.locator('#roundMode')).toHaveText('Escolher');
   const state = await page.evaluate(() => window.__ELITE_ROUND_DEBUG__.getState());
@@ -151,18 +131,34 @@ test('novo streak perfeito após uma falha volta a oferecer a escolha', async ({
   expect(state.masteryChoice).toBe(null);
 });
 
+test('escudo salva a vida mas encerra o domínio elite e bloqueia requalificação imediata', async ({ page }) => {
+  await page.goto('/');
+  await unlockEliteChoice(page);
+  await page.locator('#eliteModeButton').click();
+  await expect(page.locator('#roundMode')).toHaveText('Elite');
+
+  await page.evaluate(() => { document.getElementById('gameStatus').textContent = 'Escudo salvou a bola!'; });
+  await page.waitForTimeout(0);
+
+  await expect(page.locator('#roundMode')).toHaveText('Normal');
+  let state = await page.evaluate(() => window.__ELITE_ROUND_DEBUG__.getState());
+  expect(state.masteryChoice).toBe(null);
+  expect(state.minimumLivesThisRound).toBe(4);
+  expect(state.active).toBe(false);
+
+  await setHudState(page, 7, 5);
+  await expect(page.locator('#eliteChoice')).toBeHidden();
+  await expect(page.locator('#roundMode')).toHaveText('Normal');
+  state = await page.evaluate(() => window.__ELITE_ROUND_DEBUG__.getState());
+  expect(state.awaitingChoice).toBe(false);
+});
+
 test('bônus grande de fim de rodada não é tratado como acerto de combo', async ({ page }) => {
   await page.goto('/');
-
-  await page.evaluate(() => {
-    document.getElementById('score').textContent = '10';
-  });
+  await page.evaluate(() => { document.getElementById('score').textContent = '10'; });
   await page.waitForTimeout(0);
   expect(await page.evaluate(() => window.__COMBO_DEBUG__.getCombo())).toBe(1);
-
-  await page.evaluate(() => {
-    document.getElementById('score').textContent = '510';
-  });
+  await page.evaluate(() => { document.getElementById('score').textContent = '510'; });
   await page.waitForTimeout(0);
   expect(await page.evaluate(() => window.__COMBO_DEBUG__.getCombo())).toBe(0);
 });
