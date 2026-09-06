@@ -54,7 +54,7 @@ header p { margin-top: 4px; opacity: .7; }
   border-radius: 999px;
   background: currentColor;
   transform-origin: left;
-  animation: combo-window 2s linear forwards;
+  animation: combo-window var(--combo-window-duration, 2s) linear forwards;
 }
 
 #combo.combo-window.combo-window-paused::after { animation-play-state: paused; }
