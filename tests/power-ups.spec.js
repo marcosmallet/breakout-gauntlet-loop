@@ -101,6 +101,34 @@ test('S salva uma bola perdida exatamente uma vez', async ({ page }) => {
   expect(result.status).toBe('Escudo salvou a bola!');
 });
 
+test('S preserva sobrevivência mas encerra combo após uma falha de raquete', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Iniciar' }).click();
+  await drainGrace(page);
+
+  await page.evaluate(async () => {
+    const game = window.__GAME_DEBUG__;
+    game.setBall({ x: 50, y: 45, vx: 0, vy: 5 });
+    game.step();
+    await Promise.resolve();
+  });
+  await expect.poll(() => page.evaluate(() => window.__COMBO_DEBUG__.getCombo())).toBe(1);
+
+  const beforeLives = await page.evaluate(() => window.__GAME_DEBUG__.getState().lives);
+  await page.evaluate(() => {
+    const game = window.__GAME_DEBUG__;
+    const state = game.getState();
+    game.spawnPowerDropForTest('shield', state.paddle.x + state.paddle.w / 2, state.paddle.y - 12);
+    game.setBall({ x: 400, y: 300, vx: 0, vy: 0 });
+    game.step();
+    game.setBall({ x: 40, y: 490, vx: 0, vy: 8 });
+    game.step(2);
+  });
+
+  await expect.poll(() => page.evaluate(() => window.__COMBO_DEBUG__.getCombo())).toBe(0);
+  expect(await page.evaluate(() => window.__GAME_DEBUG__.getState().lives)).toBe(beforeLives);
+});
+
 test('perder uma vida remove poderes ativos e drops pendentes', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Iniciar' }).click();
