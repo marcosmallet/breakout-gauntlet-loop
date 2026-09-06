@@ -19,11 +19,13 @@
   let eliteEligible = false;
   let awaitingChoice = false;
   let pausedForChoice = false;
+  let masteryChoice = null;
 
   function renderMode() {
     roundModeEl.textContent = awaitingChoice ? 'Escolher' : (eliteRoundActive ? 'Elite' : 'Normal');
     roundModeEl.dataset.elite = String(eliteRoundActive);
     roundModeEl.dataset.choice = String(awaitingChoice);
+    roundModeEl.dataset.masteryChoice = masteryChoice || '';
     if (canvas) canvas.dataset.eliteRound = String(eliteRoundActive);
   }
 
@@ -61,9 +63,9 @@
 
   function chooseMode(mode) {
     if (!awaitingChoice) return false;
-    const elite = mode === 'elite';
+    masteryChoice = mode === 'elite' ? 'elite' : 'standard';
     closeChoice();
-    setEliteRound(elite);
+    setEliteRound(masteryChoice === 'elite');
     resumeTransitionAfterChoice();
     return true;
   }
@@ -71,6 +73,7 @@
   function openChoice() {
     eliteEligible = true;
     awaitingChoice = true;
+    masteryChoice = null;
     setEliteRound(false);
     renderChoice();
     renderMode();
@@ -85,6 +88,7 @@
     eliteEligible = false;
     awaitingChoice = false;
     pausedForChoice = false;
+    masteryChoice = null;
     setEliteRound(false);
     renderChoice();
   }
@@ -108,12 +112,19 @@
     const sustainedMastery = livesAtRoundStart >= MAX_LIVES && minimumLivesThisRound >= MAX_LIVES;
     const unlocked = nextRound >= ELITE_START_ROUND && sustainedMastery;
 
-    if (unlocked) openChoice();
-    else {
+    if (!unlocked) {
       eliteEligible = false;
       awaitingChoice = false;
+      masteryChoice = null;
       setEliteRound(false);
       renderChoice();
+    } else if (masteryChoice) {
+      eliteEligible = true;
+      awaitingChoice = false;
+      setEliteRound(masteryChoice === 'elite');
+      renderChoice();
+    } else {
+      openChoice();
     }
 
     trackedRound = nextRound;
@@ -134,6 +145,7 @@
         eligible: eliteEligible,
         awaitingChoice,
         pausedForChoice,
+        masteryChoice,
         trackedRound,
         livesAtRoundStart,
         minimumLivesThisRound,
