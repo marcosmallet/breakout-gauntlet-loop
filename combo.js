@@ -81,6 +81,7 @@
   }
 
   function restartComboWindowFeedback() {
+    comboEl.style.setProperty('--combo-window-duration', `${comboWindowMs()}ms`);
     comboEl.classList.remove('combo-window');
     void comboEl.offsetWidth;
     comboEl.classList.add('combo-window');
