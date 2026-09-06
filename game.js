@@ -26,6 +26,8 @@
   const BASE_PADDLE_WIDTH = 110;
   const ROUND_PADDLE_SHRINK = 8;
   const MIN_PADDLE_WIDTH = 78;
+  const LATE_GAME_LAYOUT_START_ROUND = 11;
+  const LATE_GAME_CHANNEL_GAP = 56;
 
   const paddle = { x: W / 2 - BASE_PADDLE_WIDTH / 2, y: H - 38, w: BASE_PADDLE_WIDTH, h: 14, speed: 8 };
   const ball = { x: W / 2, y: H - 58, r: 8, vx: 4, vy: -4 };
@@ -47,19 +49,26 @@
   let impactFlash = null;
   let paddleFlash = 0;
 
+  function brickLayoutForRound(roundNumber = round) {
+    if (roundNumber >= LATE_GAME_LAYOUT_START_ROUND && roundNumber % 2 === 1) return 'channel';
+    return 'wall';
+  }
+
   function createBricks() {
     const rows = 5;
     const cols = 10;
     const gap = 8;
     const margin = 32;
-    const brickW = (W - margin * 2 - gap * (cols - 1)) / cols;
+    const layout = brickLayoutForRound();
+    const centerGap = layout === 'channel' ? LATE_GAME_CHANNEL_GAP : 0;
+    const brickW = (W - margin * 2 - gap * (cols - 1) - centerGap) / cols;
     const brickH = 22;
     bricks = [];
 
     for (let row = 0; row < rows; row += 1) {
       for (let col = 0; col < cols; col += 1) {
         bricks.push({
-          x: margin + col * (brickW + gap),
+          x: margin + col * (brickW + gap) + (col >= cols / 2 ? centerGap : 0),
           y: 58 + row * (brickH + gap),
           w: brickW,
           h: brickH,
@@ -497,6 +506,7 @@
         paddle: { ...paddle },
         ball: { ...ball },
         bricksRemaining: bricks.filter((brick) => brick.alive).length,
+        brickLayout: brickLayoutForRound(),
         respawnGrace,
         roundTransition,
         roundTransitionStatus,
@@ -518,6 +528,20 @@
     setBall(nextBall) {
       Object.assign(ball, nextBall);
       draw();
+    },
+    setRoundForTest(nextRound) {
+      if (!Number.isInteger(nextRound) || nextRound < 1) return false;
+      round = nextRound;
+      paddle.w = Math.max(
+        MIN_PADDLE_WIDTH,
+        BASE_PADDLE_WIDTH - (round - 1) * ROUND_PADDLE_SHRINK
+      );
+      roundTransition = 0;
+      roundTransitionStatus = '';
+      createBricks();
+      resetBall(false);
+      draw();
+      return true;
     },
     step(stepScale = 1) {
       update(stepScale);
