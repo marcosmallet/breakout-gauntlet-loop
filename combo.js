@@ -2,22 +2,25 @@
   const scoreEl = document.getElementById('score');
   const livesEl = document.getElementById('lives');
   const comboEl = document.getElementById('combo');
+  const powerStatusEl = document.getElementById('powerStatus');
   const startButton = document.getElementById('startButton');
   const gameStatusEl = document.getElementById('gameStatus');
   if (!scoreEl || !livesEl || !comboEl || !gameStatusEl) return;
 
   const BASE_COMBO_WINDOW_MS = 2000;
   const ELITE_COMBO_WINDOW_MS = 2500;
+  const SLOW_TIME_SCALE = 0.72;
   const MAX_COMBO_MULTIPLIER = 5;
   const MAX_BRICK_SCORE_DELTA = 50;
   const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
   let previousScore = Number(scoreEl.textContent) || 0;
   let previousLives = Number(livesEl.textContent) || 0;
   let combo = 0;
-  let lastHitAt = 0;
   let resetTimer = null;
   let comboWindowExpiresAt = 0;
   let comboWindowRemainingMs = 0;
+  let timerStartedAt = 0;
+  let timerTimeScale = 1;
   let pauseStartedAt = null;
   let feedbackCount = 0;
   let scoreFeedbackCount = 0;
@@ -28,6 +31,14 @@
     return window.GameDifficulty?.isEliteRoundActive?.()
       ? ELITE_COMBO_WINDOW_MS
       : BASE_COMBO_WINDOW_MS;
+  }
+
+  function gameplayTimeScale() {
+    return powerStatusEl?.textContent.includes('Tempo lento') ? SLOW_TIME_SCALE : 1;
+  }
+
+  function effectiveWindowMs() {
+    return comboWindowMs() / gameplayTimeScale();
   }
 
   function render() {
@@ -80,8 +91,8 @@
     comboEl.classList.add('combo-pop');
   }
 
-  function restartComboWindowFeedback() {
-    comboEl.style.setProperty('--combo-window-duration', `${comboWindowMs()}ms`);
+  function restartComboWindowFeedback(durationMs = effectiveWindowMs()) {
+    comboEl.style.setProperty('--combo-window-duration', `${durationMs}ms`);
     comboEl.classList.remove('combo-window');
     void comboEl.offsetWidth;
     comboEl.classList.add('combo-window');
@@ -89,21 +100,47 @@
 
   function resetCombo() {
     combo = 0;
-    lastHitAt = 0;
     if (resetTimer) clearTimeout(resetTimer);
     resetTimer = null;
     comboWindowExpiresAt = 0;
     comboWindowRemainingMs = 0;
+    timerStartedAt = 0;
+    timerTimeScale = 1;
     pauseStartedAt = null;
     comboEl.classList.remove('combo-pop', 'combo-window', 'combo-window-paused');
     render();
   }
 
+  function consumeElapsedGameplayTime() {
+    if (!resetTimer || timerStartedAt === 0 || combo <= 0) return;
+    const now = performance.now();
+    comboWindowRemainingMs = Math.max(
+      0,
+      comboWindowRemainingMs - (now - timerStartedAt) * timerTimeScale
+    );
+    timerStartedAt = now;
+  }
+
   function scheduleReset(delay = comboWindowMs()) {
     if (resetTimer) clearTimeout(resetTimer);
     comboWindowRemainingMs = Math.max(0, delay);
-    comboWindowExpiresAt = performance.now() + comboWindowRemainingMs;
-    resetTimer = setTimeout(resetCombo, comboWindowRemainingMs);
+    timerTimeScale = gameplayTimeScale();
+    timerStartedAt = performance.now();
+    const realDelay = comboWindowRemainingMs / timerTimeScale;
+    comboWindowExpiresAt = timerStartedAt + realDelay;
+    resetTimer = setTimeout(resetCombo, realDelay);
+    return realDelay;
+  }
+
+  function rescaleActiveWindow() {
+    if (!resetTimer || combo <= 0 || pauseStartedAt !== null) return;
+    consumeElapsedGameplayTime();
+    if (comboWindowRemainingMs <= 0) {
+      resetCombo();
+      return;
+    }
+    const remainingRealMs = scheduleReset(comboWindowRemainingMs);
+    restartComboWindowFeedback(remainingRealMs);
   }
 
   function suspendComboWindow() {
@@ -111,37 +148,35 @@
     pauseStartedAt = performance.now();
     if (!resetTimer || combo <= 0) return;
 
-    comboWindowRemainingMs = Math.max(0, comboWindowExpiresAt - pauseStartedAt);
+    consumeElapsedGameplayTime();
     comboEl.classList.add('combo-window-paused');
     clearTimeout(resetTimer);
     resetTimer = null;
+    timerStartedAt = 0;
   }
 
   function resumeComboWindow() {
     if (pauseStartedAt === null) return;
 
-    const now = performance.now();
-    const pausedDuration = now - pauseStartedAt;
     pauseStartedAt = null;
     comboEl.classList.remove('combo-window-paused');
-    if (lastHitAt) lastHitAt += pausedDuration;
 
     if (combo > 0 && comboWindowRemainingMs > 0) {
-      scheduleReset(comboWindowRemainingMs);
+      const remainingRealMs = scheduleReset(comboWindowRemainingMs);
+      restartComboWindowFeedback(remainingRealMs);
     }
   }
 
   function registerHit() {
-    const now = performance.now();
-    const windowMs = comboWindowMs();
-    combo = lastHitAt && now - lastHitAt <= windowMs ? combo + 1 : 1;
-    lastHitAt = now;
+    if (resetTimer && combo > 0) consumeElapsedGameplayTime();
+    const continuesCombo = combo > 0 && comboWindowRemainingMs > 0;
+    combo = continuesCombo ? combo + 1 : 1;
     playHitSound();
     pulseScore();
     render();
     pulseCombo();
-    restartComboWindowFeedback();
-    scheduleReset(windowMs);
+    const realWindowMs = scheduleReset(comboWindowMs());
+    restartComboWindowFeedback(realWindowMs);
   }
 
   function applyScoreDelta(nextScore) {
@@ -200,6 +235,17 @@
     wasPaused = isPaused;
   }).observe(gameStatusEl, { childList: true, characterData: true, subtree: true });
 
+  let wasSlowActive = gameplayTimeScale() < 1;
+  if (powerStatusEl) {
+    new MutationObserver(() => {
+      const isSlowActive = gameplayTimeScale() < 1;
+      if (isSlowActive !== wasSlowActive) {
+        wasSlowActive = isSlowActive;
+        rescaleActiveWindow();
+      }
+    }).observe(powerStatusEl, { childList: true, characterData: true, subtree: true });
+  }
+
   window.__COMBO_DEBUG__ = {
     getCombo() {
       return combo;
@@ -215,6 +261,13 @@
     },
     getWindowMs() {
       return comboWindowMs();
+    },
+    getEffectiveWindowMs() {
+      return effectiveWindowMs();
+    },
+    getRemainingGameplayMs() {
+      if (resetTimer && combo > 0) consumeElapsedGameplayTime();
+      return comboWindowRemainingMs;
     }
   };
 })();

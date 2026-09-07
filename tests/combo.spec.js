@@ -123,6 +123,35 @@ test('indicador visual acompanha a janela ampliada de combo no Elite', async ({ 
   )).toBe('2.5s');
 });
 
+test('tempo lento desacelera também o relógio do combo sem alterar sua janela de gameplay', async ({ page }) => {
+  await page.goto('/');
+
+  await page.evaluate(async () => {
+    const game = window.__GAME_DEBUG__;
+    game.start();
+    game.step(45);
+    document.getElementById('score').textContent = '10';
+    await Promise.resolve();
+
+    const { paddle } = game.getState();
+    game.spawnPowerDropForTest('slow', paddle.x + paddle.w / 2, paddle.y);
+    game.step();
+    game.setBall({ x: 400, y: 300, vx: 0, vy: 0 });
+    await Promise.resolve();
+  });
+
+  await expect(page.locator('#powerStatus')).toContainText('Tempo lento');
+  await expect(page.locator('#combo')).toHaveText('x1');
+  await expect.poll(() => page.evaluate(() => window.__COMBO_DEBUG__?.getWindowMs())).toBe(2000);
+  await expect.poll(() => page.evaluate(() => Math.round(window.__COMBO_DEBUG__?.getEffectiveWindowMs()))).toBe(2778);
+
+  await page.waitForTimeout(2100);
+  await expect(page.locator('#combo')).toHaveText('x1');
+
+  await page.waitForTimeout(800);
+  await expect(page.locator('#combo')).toHaveText('x0');
+});
+
 test('último acerto preserva feedback antes de bônus grande no mesmo turno', async ({ page }) => {
   await page.goto('/');
 
