@@ -20,6 +20,8 @@ test('canvas associa instruções de controle para tecnologias assistivas', asyn
   );
   await expect(page.locator('#powerInstructions')).toContainText('P concede 3 impactos perfurantes');
   await expect(page.locator('#powerInstructions')).toContainText('G transforma a bola em gigante');
+  await expect(page.locator('#powerInstructions')).toContainText('C fortalece a direção escolhida');
+  await expect(page.locator('#powerInstructions')).toContainText('T ativa tempo lento');
 });
 
 test('hud evita anúncios repetitivos e mantém vidas como estado ao vivo', async ({ page }) => {
