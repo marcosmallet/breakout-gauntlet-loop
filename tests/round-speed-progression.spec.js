@@ -43,27 +43,41 @@ test('progressão tardia continua elevando o teto de velocidade após a rodada 5
     const clearCurrentRound = () => {
       drainReadyState();
       game.clearBricksExcept(0);
-      game.setBall({ x: 21.6, y: 69, vx: 4, vy: 0 });
+      const brick = game.getBricks().find((candidate) => candidate.alive);
+      game.setBall({
+        x: brick.x - 9,
+        y: brick.y + brick.h / 2,
+        vx: 4,
+        vy: 0
+      });
+      game.step();
+    };
+
+    const hitFirstAlive = (vx) => {
+      const brick = game.getBricks().find((candidate) => candidate.alive);
+      game.setBall({
+        x: brick.x - 9,
+        y: brick.y + brick.h / 2,
+        vx,
+        vy: 0
+      });
       game.step();
     };
 
     while (game.getState().round < 5) clearCurrentRound();
 
     drainReadyState();
-    game.setBall({ x: 21.6, y: 69, vx: 8, vy: 0 });
-    game.step();
+    hitFirstAlive(8);
     const round5 = {
       round: game.getState().round,
       speed: Math.hypot(game.getState().ball.vx, game.getState().ball.vy)
     };
 
     game.clearBricksExcept(0);
-    game.setBall({ x: 21.6, y: 69, vx: 4, vy: 0 });
-    game.step();
+    hitFirstAlive(4);
 
     drainReadyState();
-    game.setBall({ x: 21.6, y: 69, vx: 8, vy: 0 });
-    game.step();
+    hitFirstAlive(8);
     const round6 = {
       round: game.getState().round,
       speed: Math.hypot(game.getState().ball.vx, game.getState().ball.vy)
@@ -72,8 +86,7 @@ test('progressão tardia continua elevando o teto de velocidade após a rodada 5
     while (game.getState().round < 10) clearCurrentRound();
 
     drainReadyState();
-    game.setBall({ x: 21.6, y: 69, vx: 8.95, vy: 0 });
-    game.step();
+    hitFirstAlive(8.95);
     const round10 = {
       round: game.getState().round,
       speed: Math.hypot(game.getState().ball.vx, game.getState().ball.vy)

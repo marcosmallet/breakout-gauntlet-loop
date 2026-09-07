@@ -18,7 +18,8 @@ test('canvas associa instruções de controle para tecnologias assistivas', asyn
   await expect(page.locator('#controlInstructions')).toHaveText(
     'Use ← →, A/D ou arraste sobre o jogo para mover a raquete. Pressione Espaço ou use o botão Pausar para pausar ou retomar.'
   );
-  await expect(page.locator('#powerInstructions')).toContainText('Blocos W e S liberam poderes');
+  await expect(page.locator('#powerInstructions')).toContainText('P concede 3 impactos perfurantes');
+  await expect(page.locator('#powerInstructions')).toContainText('G transforma a bola em gigante');
 });
 
 test('hud evita anúncios repetitivos e mantém vidas como estado ao vivo', async ({ page }) => {

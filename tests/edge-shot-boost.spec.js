@@ -97,7 +97,13 @@ test('edge shot respeita o teto expandido de velocidade na rodada 6', async ({ p
     const clearCurrentRound = () => {
       drainReadyState();
       game.clearBricksExcept(0);
-      game.setBall({ x: 21.6, y: 69, vx: 4, vy: 0 });
+      const brick = game.getBricks().find((candidate) => candidate.alive);
+      game.setBall({
+        x: brick.x - 9,
+        y: brick.y + brick.h / 2,
+        vx: 4,
+        vy: 0
+      });
       game.step();
     };
 
