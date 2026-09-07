@@ -7,13 +7,13 @@ async function drainGrace(page) {
   });
 }
 
-test('cada rodada preserva W/S e adiciona um bônus P/G determinístico', async ({ page }) => {
+test('cada rodada preserva W/S e alterna bônus P/G/C/T deterministicamente', async ({ page }) => {
   await page.goto('/');
 
   const result = await page.evaluate(() => {
     const game = window.__GAME_DEBUG__;
     game.start();
-    return [1, 2, 3, 4].map((round) => {
+    return [1, 2, 3, 4, 5, 6, 7, 8].map((round) => {
       game.setRoundForTest(round);
       const powers = game.getBricks()
         .map((brick, index) => ({ index, type: brick.powerType }))
@@ -22,18 +22,18 @@ test('cada rodada preserva W/S e adiciona um bônus P/G determinístico', async 
     });
   });
 
+  const bonusCycle = ['pierce', 'giant', 'control', 'slow'];
   for (const round of result) {
     const types = round.powers.map((power) => power.type);
     expect(round.powers).toHaveLength(3);
     expect(types).toContain('wide');
     expect(types).toContain('shield');
     expect(types.filter((type) => type !== 'wide' && type !== 'shield')).toEqual([
-      round.round % 2 === 1 ? 'pierce' : 'giant'
+      bonusCycle[(round.round - 1) % bonusCycle.length]
     ]);
     expect(new Set(round.powers.map((power) => power.index)).size).toBe(3);
   }
 });
-
 test('destruir bloco especial cria o drop correspondente', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Iniciar' }).click();
@@ -192,4 +192,91 @@ test('G amplia a bola temporariamente sem alterar sua velocidade', async ({ page
   expect(result.giantBallSteps).toBeGreaterThan(0);
   expect(result.expiredRadius).toBe(8);
   expect(result.expiredSteps).toBe(0);
+});
+
+
+test('C amplia o controle direcional nas próximas quatro rebatidas sem alterar velocidade', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Iniciar' }).click();
+  await drainGrace(page);
+
+  const result = await page.evaluate(() => {
+    const game = window.__GAME_DEBUG__;
+    const before = game.getState();
+    game.spawnPowerDropForTest('control', before.paddle.x + before.paddle.w / 2, before.paddle.y - 12);
+    game.setBall({ x: 400, y: 300, vx: 0, vy: 0 });
+    game.step();
+    const armed = game.getState();
+
+    game.setBall({ x: 400, y: 300, vx: 0, vy: -8 });
+    game.bounceBallOffPaddle(1);
+    const steered = game.getState();
+
+    return {
+      armed,
+      steered,
+      speed: Math.hypot(steered.ball.vx, steered.ball.vy),
+      hud: document.getElementById('powerStatus').textContent
+    };
+  });
+
+  expect(result.armed.controlHits).toBe(4);
+  expect(result.steered.controlHits).toBe(3);
+  expect(result.steered.ball.vx).toBeCloseTo(7, 5);
+  expect(result.speed).toBeCloseTo(8, 5);
+  expect(result.hud).toContain('Controle ×3');
+});
+
+test('T reduz temporariamente o deslocamento efetivo da bola sem alterar sua velocidade nominal', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Iniciar' }).click();
+  await drainGrace(page);
+
+  const result = await page.evaluate(() => {
+    const game = window.__GAME_DEBUG__;
+    const before = game.getState();
+    game.spawnPowerDropForTest('slow', before.paddle.x + before.paddle.w / 2, before.paddle.y - 12);
+    game.setBall({ x: 400, y: 300, vx: 0, vy: 0 });
+    game.step();
+    const armed = game.getState();
+
+    game.setBall({ x: 400, y: 300, vx: 4, vy: 0 });
+    game.step(10);
+    const slowed = game.getState();
+    const nominalSpeed = Math.hypot(slowed.ball.vx, slowed.ball.vy);
+
+    return { armed, slowed, nominalSpeed };
+  });
+
+  expect(result.armed.slowBallSteps).toBeGreaterThan(0);
+  expect(result.slowed.ball.x).toBeCloseTo(428.8, 4);
+  expect(result.nominalSpeed).toBeCloseTo(4, 5);
+  expect(result.slowed.slowBallSteps).toBeLessThan(result.armed.slowBallSteps);
+});
+
+test('perda de vida também remove C e T ativos', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Iniciar' }).click();
+  await drainGrace(page);
+
+  const result = await page.evaluate(() => {
+    const game = window.__GAME_DEBUG__;
+    const before = game.getState();
+    const catchX = before.paddle.x + before.paddle.w / 2;
+    game.spawnPowerDropForTest('control', catchX, before.paddle.y - 12);
+    game.spawnPowerDropForTest('slow', catchX, before.paddle.y - 12);
+    game.setBall({ x: 400, y: 300, vx: 0, vy: 0 });
+    game.step();
+    const powered = game.getState();
+
+    game.setBall({ x: 40, y: 540, vx: 0, vy: 4 });
+    game.step();
+    const afterLoss = game.getState();
+    return { powered, afterLoss };
+  });
+
+  expect(result.powered.controlHits).toBeGreaterThan(0);
+  expect(result.powered.slowBallSteps).toBeGreaterThan(0);
+  expect(result.afterLoss.controlHits).toBe(0);
+  expect(result.afterLoss.slowBallSteps).toBe(0);
 });

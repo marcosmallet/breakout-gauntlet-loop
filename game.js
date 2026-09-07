@@ -29,7 +29,7 @@
   const ROUND_PADDLE_SHRINK = 8;
   const MIN_PADDLE_WIDTH = 78;
   const LATE_GAME_CHANNEL_GAP = 56;
-  const PHASE_LAYOUTS = ['wall', 'stagger', 'channel', 'funnel', 'diamond', 'waves', 'fortress', 'crossfire'];
+  const PHASE_LAYOUTS = ['wall', 'stagger', 'channel', 'funnel', 'diamond', 'waves', 'fortress', 'crossfire', 'chevron', 'crown', 'steps', 'gates'];
   const POWER_DROP_SPEED = 3.2;
   const POWER_DROP_RADIUS = 10;
   const WIDE_PADDLE_BONUS = 34;
@@ -39,6 +39,10 @@
   const GIANT_BALL_RADIUS = 12;
   const GIANT_BALL_DURATION_STEPS = 480;
   const PIERCE_HIT_CHARGES = 3;
+  const CONTROL_PADDLE_HITS = 4;
+  const CONTROL_STEER_LIMIT = 7;
+  const SLOW_BALL_DURATION_STEPS = 360;
+  const SLOW_BALL_FACTOR = 0.72;
   const SHIELD_Y = H - 10;
 
   const paddle = { x: W / 2 - BASE_PADDLE_WIDTH / 2, y: H - 38, w: BASE_PADDLE_WIDTH, h: 14, speed: 8 };
@@ -65,6 +69,8 @@
   let shieldCharges = 0;
   let pierceHits = 0;
   let giantBallSteps = 0;
+  let controlHits = 0;
+  let slowBallSteps = 0;
 
   function brickLayoutForRound(roundNumber = round) {
     return PHASE_LAYOUTS[(roundNumber - 1) % PHASE_LAYOUTS.length];
@@ -79,7 +85,11 @@
       diamond: 'Diamante',
       waves: 'Ondas',
       fortress: 'Fortaleza',
-      crossfire: 'Fogo cruzado'
+      crossfire: 'Fogo cruzado',
+      chevron: 'Chevron',
+      crown: 'Coroa',
+      steps: 'Escadaria',
+      gates: 'Portais'
     }[layout] || 'Muralha';
   }
 
@@ -102,7 +112,8 @@
     let shieldIndex = (roundNumber * 11 + 17) % 50;
     if (shieldIndex === wideIndex) shieldIndex = (shieldIndex + 9) % 50;
 
-    const bonusType = roundNumber % 2 === 1 ? 'pierce' : 'giant';
+    const bonusTypes = ['pierce', 'giant', 'control', 'slow'];
+    const bonusType = bonusTypes[(roundNumber - 1) % bonusTypes.length];
     let bonusIndex = (roundNumber * 13 + 29) % 50;
     while (bonusIndex === wideIndex || bonusIndex === shieldIndex) {
       bonusIndex = (bonusIndex + 7) % 50;
@@ -116,7 +127,9 @@
       wide: '#22d3ee',
       shield: '#a78bfa',
       pierce: '#fb7185',
-      giant: '#4ade80'
+      giant: '#4ade80',
+      control: '#60a5fa',
+      slow: '#f59e0b'
     }[type] || '#f8fafc';
   }
 
@@ -125,7 +138,9 @@
       wide: 'W',
       shield: 'S',
       pierce: 'P',
-      giant: 'G'
+      giant: 'G',
+      control: 'C',
+      slow: 'T'
     }[type] || '?';
   }
 
@@ -137,6 +152,8 @@
       if (shieldCharges > 0) powers.push('Escudo');
       if (pierceHits > 0) powers.push(`Perfuração ×${pierceHits}`);
       if (giantBallSteps > 0) powers.push('Bola gigante');
+      if (controlHits > 0) powers.push(`Controle ×${controlHits}`);
+      if (slowBallSteps > 0) powers.push('Tempo lento');
       powerStatusEl.textContent = powers.length ? powers.join(' + ') : '—';
     }
   }
@@ -187,6 +204,30 @@
       const splitAfter = row % 2 === 0 ? 5 : 3;
       brickW = (W - margin * 2 - gap * (cols - 1) - splitGap) / cols;
       x = margin + col * (brickW + gap) + (col >= splitAfter ? splitGap : 0);
+    } else if (layout === 'chevron') {
+      const margin = 32;
+      const chevronOffsets = [0, 5, 10, 15, 20, 20, 15, 10, 5, 0];
+      brickW = (W - margin * 2 - gap * (cols - 1)) / cols;
+      x = margin + col * (brickW + gap);
+      y += chevronOffsets[col % chevronOffsets.length];
+    } else if (layout === 'crown') {
+      const margin = 32;
+      const crownOffsets = [18, 12, 6, 0, -6, -6, 0, 6, 12, 18];
+      brickW = (W - margin * 2 - gap * (cols - 1)) / cols;
+      x = margin + col * (brickW + gap);
+      y += crownOffsets[col % crownOffsets.length];
+    } else if (layout === 'steps') {
+      const margin = 32;
+      brickW = (W - margin * 2 - gap * (cols - 1)) / cols;
+      x = margin + col * (brickW + gap);
+      y += col * 3;
+    } else if (layout === 'gates') {
+      const margin = 28;
+      const gateGap = 32;
+      brickW = (W - margin * 2 - gap * (cols - 1) - gateGap * 2) / cols;
+      x = margin + col * (brickW + gap)
+        + (col >= 3 ? gateGap : 0)
+        + (col >= 7 ? gateGap : 0);
     } else {
       const margin = 32;
       brickW = (W - margin * 2 - gap * (cols - 1)) / cols;
@@ -229,6 +270,8 @@
     shieldCharges = 0;
     pierceHits = 0;
     giantBallSteps = 0;
+    controlHits = 0;
+    slowBallSteps = 0;
     ball.r = BASE_BALL_RADIUS;
     syncPaddleWidth();
     syncPhaseHud();
@@ -259,6 +302,12 @@
       giantBallSteps = GIANT_BALL_DURATION_STEPS;
       ball.r = GIANT_BALL_RADIUS;
       gameStatusEl.textContent = 'Poder coletado: Bola gigante!';
+    } else if (type === 'control') {
+      controlHits = CONTROL_PADDLE_HITS;
+      gameStatusEl.textContent = `Poder coletado: Controle ×${CONTROL_PADDLE_HITS}!`;
+    } else if (type === 'slow') {
+      slowBallSteps = SLOW_BALL_DURATION_STEPS;
+      gameStatusEl.textContent = 'Poder coletado: Tempo lento!';
     }
     syncPhaseHud();
   }
@@ -274,6 +323,10 @@
       const before = giantBallSteps;
       giantBallSteps = Math.max(0, giantBallSteps - stepScale);
       if (before > 0 && giantBallSteps === 0) ball.r = BASE_BALL_RADIUS;
+    }
+
+    if (slowBallSteps > 0) {
+      slowBallSteps = Math.max(0, slowBallSteps - stepScale);
     }
 
     const nextDrops = [];
@@ -317,6 +370,8 @@
     shieldCharges = 0;
     pierceHits = 0;
     giantBallSteps = 0;
+    controlHits = 0;
+    slowBallSteps = 0;
     powerDrops = [];
     paddle.w = BASE_PADDLE_WIDTH;
     ball.r = BASE_BALL_RADIUS;
@@ -333,7 +388,8 @@
   function applyPaddleBounce(hit) {
     const speed = Math.hypot(ball.vx, ball.vy);
     const previousDirection = ball.vx < 0 ? -1 : 1;
-    const desiredVx = hit * Math.min(5, speed);
+    const steerLimit = controlHits > 0 ? CONTROL_STEER_LIMIT : 5;
+    const desiredVx = hit * Math.min(steerLimit, speed);
     const effectiveMinVerticalSpeed = Math.min(MIN_VERTICAL_SPEED, speed / 2);
     const maxHorizontalSpeed = Math.sqrt(Math.max(
       0,
@@ -347,6 +403,11 @@
 
     ball.vx = Math.max(-maxHorizontalSpeed, Math.min(maxHorizontalSpeed, nextVx));
     ball.vy = -Math.sqrt(Math.max(0, speed * speed - ball.vx * ball.vx));
+    if (controlHits > 0 && speed > 0) {
+      controlHits -= 1;
+      if (controlHits === 0) gameStatusEl.textContent = 'Controle esgotado.';
+      syncPhaseHud();
+    }
   }
 
   function accelerateBallAfterBrick() {
@@ -499,8 +560,9 @@
 
     const previousBallX = ball.x;
     const previousBallY = ball.y;
-    ball.x += ball.vx * stepScale;
-    ball.y += ball.vy * stepScale;
+    const ballStepScale = stepScale * (slowBallSteps > 0 ? SLOW_BALL_FACTOR : 1);
+    ball.x += ball.vx * ballStepScale;
+    ball.y += ball.vy * ballStepScale;
 
     resolveBoundaryCollisions();
 
@@ -704,12 +766,22 @@
       ctx.fillStyle = '#f8fafc';
     }
     ctx.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
+    if (controlHits > 0) {
+      ctx.strokeStyle = '#60a5fa';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#60a5fa';
+      ctx.shadowBlur = 12;
+      ctx.strokeRect(paddle.x - 1, paddle.y - 1, paddle.w + 2, paddle.h + 2);
+    }
     ctx.restore();
 
     ctx.save();
     if (pierceHits > 0) {
       ctx.shadowColor = '#fb7185';
       ctx.shadowBlur = 18;
+    } else if (slowBallSteps > 0) {
+      ctx.shadowColor = '#f59e0b';
+      ctx.shadowBlur = 16;
     }
     ctx.beginPath();
     ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
@@ -821,6 +893,8 @@
         shieldCharges,
         pierceHits,
         giantBallSteps,
+        controlHits,
+        slowBallSteps,
         respawnGrace,
         roundTransition,
         roundTransitionStatus,
@@ -869,7 +943,7 @@
       return bricks.map((brick) => ({ ...brick }));
     },
     spawnPowerDropForTest(type, x = paddle.x + paddle.w / 2, y = paddle.y - 80) {
-      if (!['wide', 'shield', 'pierce', 'giant'].includes(type)) return false;
+      if (!['wide', 'shield', 'pierce', 'giant', 'control', 'slow'].includes(type)) return false;
       powerDrops.push({ type, x, y, vy: POWER_DROP_SPEED });
       draw();
       return true;

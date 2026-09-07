@@ -1,13 +1,13 @@
 const { test, expect } = require('@playwright/test');
 
-test('oito formações alternam identidade geométrica mantendo 50 blocos', async ({ page }) => {
+test('doze formações alternam identidade geométrica mantendo 50 blocos', async ({ page }) => {
   await page.goto('/');
 
   const rounds = await page.evaluate(() => {
     const game = window.__GAME_DEBUG__;
     game.start();
 
-    return [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12].map((round) => {
+    return Array.from({ length: 13 }, (_, index) => index + 1).map((round) => {
       game.setRoundForTest(round);
       const state = game.getState();
       const bricks = game.getBricks();
@@ -25,23 +25,27 @@ test('oito formações alternam identidade geométrica mantendo 50 blocos', asyn
     });
   });
 
-  expect(rounds.map(({ round, layout, label, bricksRemaining }) => ({ round, layout, label, bricksRemaining }))).toEqual([
-    { round: 1, layout: 'wall', label: 'Muralha', bricksRemaining: 50 },
-    { round: 2, layout: 'stagger', label: 'Escalonada', bricksRemaining: 50 },
-    { round: 3, layout: 'channel', label: 'Canal', bricksRemaining: 50 },
-    { round: 4, layout: 'funnel', label: 'Funil', bricksRemaining: 50 },
-    { round: 5, layout: 'diamond', label: 'Diamante', bricksRemaining: 50 },
-    { round: 6, layout: 'waves', label: 'Ondas', bricksRemaining: 50 },
-    { round: 7, layout: 'fortress', label: 'Fortaleza', bricksRemaining: 50 },
-    { round: 8, layout: 'crossfire', label: 'Fogo cruzado', bricksRemaining: 50 },
-    { round: 9, layout: 'wall', label: 'Muralha', bricksRemaining: 50 },
-    { round: 11, layout: 'channel', label: 'Canal', bricksRemaining: 50 },
-    { round: 12, layout: 'funnel', label: 'Funil', bricksRemaining: 50 }
-  ]);
+  const expected = [
+    ['wall', 'Muralha'],
+    ['stagger', 'Escalonada'],
+    ['channel', 'Canal'],
+    ['funnel', 'Funil'],
+    ['diamond', 'Diamante'],
+    ['waves', 'Ondas'],
+    ['fortress', 'Fortaleza'],
+    ['crossfire', 'Fogo cruzado'],
+    ['chevron', 'Chevron'],
+    ['crown', 'Coroa'],
+    ['steps', 'Escadaria'],
+    ['gates', 'Portais'],
+    ['wall', 'Muralha']
+  ];
 
-  expect(new Set(rounds.slice(0, 8).map((item) => item.signature)).size).toBe(8);
+  expect(rounds.map(({ layout, label, bricksRemaining }) => ({ layout, label, bricksRemaining }))).toEqual(
+    expected.map(([layout, label]) => ({ layout, label, bricksRemaining: 50 }))
+  );
+  expect(new Set(rounds.slice(0, 12).map((item) => item.signature)).size).toBe(12);
 });
-
 test('canal oferece uma rota central que muralha e funil não oferecem', async ({ page }) => {
   await page.goto('/');
 
