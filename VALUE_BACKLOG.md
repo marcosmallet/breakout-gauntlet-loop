@@ -139,6 +139,21 @@ Perguntas iniciais úteis:
 - **Tamanho:** MACRO.
 - **Status:** `resolved`.
 
+### Segunda expansão do vocabulário de fases e poderes
+
+- **Problema:** o baseline de 8 formações reiniciava em R9 e o bônus alternado P/G não cobria diretamente controle de trajetória nem desaceleração temporária.
+- **Evidência:** nova solicitação explícita do usuário para adicionar mais poderes e novas formações.
+- **Impacto esperado:** maior variedade espacial e mais opções de recuperação/controle sem escalar score, vidas ou dificuldade nominal.
+- **Jogadores afetados:** todos; C/T entram no mesmo slot de bônus e as novas formações aparecem em R9–R12.
+- **Hipótese testada:** 12 formações + rotação P/G/C/T com W/S fixos entrega variedade adicional mantendo apenas 3 especiais por rodada.
+- **Baseline vs experimento:** 8 → 12 formações; bônus P/G → P/G/C/T; 50 blocos e 3 especiais permanecem constantes.
+- **Contrato C:** 4 rebatidas com steering máximo 7 em vez de 5, sem mudar a magnitude da velocidade.
+- **Contrato T:** deslocamento da bola em fator 0,72 por 360 steps ativos, sem modificar vx/vy.
+- **Validação inicial:** PR #19, CI `34074158704`, **105/105 Playwright**.
+- **Risco:** C poderia trivializar mira e T reduzir pressão excessivamente; mitigado por duração limitada, rotação de um único bônus por rodada e preservação integral dos caps/score/combo.
+- **Tamanho:** MACRO.
+- **Status:** `resolved`.
+
 ### Ritmo e dificuldade por rodada
 
 - **Problema:** não há evidência objetiva de que a curva atual esteja ideal.

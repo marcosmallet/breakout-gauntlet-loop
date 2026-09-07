@@ -5,7 +5,7 @@ Este arquivo é a memória operacional condensada do experimento. Ele não é um
 ## Estado atual
 
 - Fase: **Value-Driven Meta-Critic / ACTIVE**
-- Baseline de gameplay atual: **mira proporcional + progressão tardia de velocidade + oito formações rotativas por rodada + power-ups coletáveis W/S com bônus alternado P/G + beat de vitória + Elite opcional por domínio**
+- Baseline de gameplay atual: **mira proporcional + progressão tardia de velocidade + doze formações rotativas por rodada + power-ups coletáveis W/S com bônus rotativo P/G/C/T + beat de vitória + Elite opcional por domínio**
 - Baseline de protocolo anterior: `789385d6eb60bf77acb82620c6586c0617c0dc00`
 - Último ciclo do protocolo anterior: **Cycle 114**
 - Histórico de saturação: Cycles 105–114 tiveram **10 NO-OPs deliberados consecutivos**
@@ -30,7 +30,7 @@ O projeto saiu de SATURATED quando um DESIGN orientado por evidência foi aprova
 
 ### Hipóteses ainda sem evidência suficiente
 
-- Expansão futura além das oito formações e dos quatro poderes W/S/P/G já validados, somente com nova evidência.
+- Expansão futura além das doze formações e dos seis poderes W/S/P/G/C/T já validados, somente com nova evidência.
 - Ajustes na curva de dificuldade/ritmo.
 - Mudanças adicionais de replayability além da escolha Elite já integrada.
 - Novas camadas audiovisuais.
@@ -59,8 +59,8 @@ Essas hipóteses permanecem candidatas, não tarefas.
 - Feedback especial nos últimos blocos da rodada.
 - A partir da rodada 6, domínio sustentado em 5 vidas pode desbloquear uma escolha explícita entre permanecer no modo Normal ou aceitar o risco/recompensa Elite.
 - Elite preserva o balanceamento já validado: +0,5 no teto de velocidade e janela de combo de 2,0 s para 2,5 s.
-- Toda rodada possui identidade espacial em ciclo de oito formações: **Muralha → Escalonada → Canal → Funil → Diamante → Ondas → Fortaleza → Fogo cruzado**, sempre com 50 blocos e a mesma economia.
-- Cada rodada contém exatamente três blocos especiais determinísticos: **W** libera Raquete larga (+34 px por até 600 steps ativos), **S** libera um Escudo de uma carga e o terceiro alterna entre **P** (Perfuração: 3 impactos atravessam blocos sem ricochetear) e **G** (Bola gigante: raio 8→12 por 480 steps ativos).
+- Toda rodada possui identidade espacial em ciclo de doze formações: **Muralha → Escalonada → Canal → Funil → Diamante → Ondas → Fortaleza → Fogo cruzado → Chevron → Coroa → Escadaria → Portais**, sempre com 50 blocos e a mesma economia.
+- Cada rodada contém exatamente três blocos especiais determinísticos: **W** libera Raquete larga (+34 px por até 600 steps ativos), **S** libera um Escudo de uma carga e o terceiro gira entre **P** (Perfuração: 3 impactos atravessam blocos sem ricochetear), **G** (Bola gigante: raio 8→12 por 480 steps ativos), **C** (Controle: 4 rebatidas com maior autoridade direcional, preservando a velocidade) e **T** (Tempo lento: deslocamento efetivo da bola em 72% por 360 steps ativos, sem alterar vx/vy).
 - Os poderes caem como cápsulas coletáveis; pausas, victory beat e respawn grace congelam seu tempo/movimento, e perder uma vida limpa poderes e drops pendentes.
 
 ### Controles e UX
@@ -115,6 +115,20 @@ O crescimento incremental criou módulos satélites que consultam o estado por `
 Não refatorar por estética. Se a dívida bloquear uma melhoria de produto relevante, tratá-la como DESIGN ou MACRO conforme a escala causal do problema, sempre com objetivo e critérios de aceite explícitos.
 
 ## Experimentos MACRO aceitos
+
+### Expansão C/T + ciclo de 12 formações
+- **Evidência externa:** nova solicitação explícita do usuário para adicionar mais poderes e novas formações após o baseline W/S/P/G + 8 layouts.
+- **Problema de produto:** a expansão anterior melhorou variedade, mas ainda repetia o ciclo espacial em R9 e o terceiro bônus cobria apenas penetração/área; faltavam poderes voltados a controle fino e ritmo.
+- **Hipótese:** adicionar quatro geometrias novas e dois poderes de função distinta, mantendo exatamente três blocos especiais por rodada, amplia replayability sem inflar a economia ou o volume de drops.
+- **Contrato de formações:** ciclo de 12 — **Muralha / Escalonada / Canal / Funil / Diamante / Ondas / Fortaleza / Fogo cruzado / Chevron / Coroa / Escadaria / Portais**; R13 reinicia em Muralha; todas preservam 50 blocos.
+- **Contrato de bônus:** W/S permanecem em toda rodada; o terceiro especial gira deterministicamente **P → G → C → T**.
+- **C — Controle:** 4 rebatidas usam limite de steering 7 em vez de 5, preservando a magnitude da velocidade.
+- **T — Tempo lento:** por 360 steps ativos, o deslocamento da bola usa fator 0,72, mantendo vx/vy e os caps de dificuldade intactos.
+- **UX/lifecycle:** C destaca a raquete, T destaca a bola; HUD e instrução acessível descrevem ambos; perder vida limpa C/T; pause/victory beat/respawn continuam congelando a duração dos poderes.
+- **Branch/PR:** `macro/20260906-control-tempo-formations`, PR #19.
+- **Correctness Gate inicial:** GitHub Actions `34074158704` passou com **105/105 Playwright**.
+- **Value Judge:** positivo — C cria agência angular e T cria recovery temporal, enquanto Chevron/Coroa/Escadaria/Portais estendem o ciclo espacial sem alterar score, vidas, combo, Elite ou 50 blocos.
+- **Efeito estratégico:** o baseline de variedade passa a ser 12 formações + W/S/P/G/C/T; futuras expansões exigem nova evidência e não devem aumentar densidade de power-ups por padrão.
 
 ### Expansão de formações + poderes P/G
 - **Evidência externa:** solicitação explícita do usuário em 2026-09-06 para adicionar novos poderes e novas formações, após o histórico recente também identificar periodicidade estrutural do ciclo de quatro layouts no late game.
