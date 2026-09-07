@@ -136,6 +136,7 @@ test('tempo lento desacelera também o relógio do combo sem alterar sua janela 
     const { paddle } = game.getState();
     game.spawnPowerDropForTest('slow', paddle.x + paddle.w / 2, paddle.y);
     game.step();
+    game.setBall({ x: 400, y: 300, vx: 0, vy: 0 });
     await Promise.resolve();
   });
 
