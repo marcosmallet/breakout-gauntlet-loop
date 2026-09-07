@@ -113,7 +113,8 @@
     if (shieldIndex === wideIndex) shieldIndex = (shieldIndex + 9) % 50;
 
     const bonusTypes = ['pierce', 'giant', 'control', 'slow'];
-    const bonusType = bonusTypes[(roundNumber - 1) % bonusTypes.length];
+    const layoutCycle = Math.floor((roundNumber - 1) / PHASE_LAYOUTS.length);
+    const bonusType = bonusTypes[((roundNumber - 1) + layoutCycle) % bonusTypes.length];
     let bonusIndex = (roundNumber * 13 + 29) % 50;
     while (bonusIndex === wideIndex || bonusIndex === shieldIndex) {
       bonusIndex = (bonusIndex + 7) % 50;
