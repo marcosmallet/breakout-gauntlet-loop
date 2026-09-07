@@ -29,16 +29,20 @@
   const ROUND_PADDLE_SHRINK = 8;
   const MIN_PADDLE_WIDTH = 78;
   const LATE_GAME_CHANNEL_GAP = 56;
-  const PHASE_LAYOUTS = ['wall', 'stagger', 'channel', 'funnel'];
+  const PHASE_LAYOUTS = ['wall', 'stagger', 'channel', 'funnel', 'diamond', 'waves', 'fortress', 'crossfire'];
   const POWER_DROP_SPEED = 3.2;
   const POWER_DROP_RADIUS = 10;
   const WIDE_PADDLE_BONUS = 34;
   const WIDE_PADDLE_DURATION_STEPS = 600;
   const MAX_POWER_PADDLE_WIDTH = 150;
+  const BASE_BALL_RADIUS = 8;
+  const GIANT_BALL_RADIUS = 12;
+  const GIANT_BALL_DURATION_STEPS = 480;
+  const PIERCE_HIT_CHARGES = 3;
   const SHIELD_Y = H - 10;
 
   const paddle = { x: W / 2 - BASE_PADDLE_WIDTH / 2, y: H - 38, w: BASE_PADDLE_WIDTH, h: 14, speed: 8 };
-  const ball = { x: W / 2, y: H - 58, r: 8, vx: 4, vy: -4 };
+  const ball = { x: W / 2, y: H - 58, r: BASE_BALL_RADIUS, vx: 4, vy: -4 };
   const keys = new Set();
 
   let score = 0;
@@ -59,6 +63,8 @@
   let powerDrops = [];
   let widePaddleSteps = 0;
   let shieldCharges = 0;
+  let pierceHits = 0;
+  let giantBallSteps = 0;
 
   function brickLayoutForRound(roundNumber = round) {
     return PHASE_LAYOUTS[(roundNumber - 1) % PHASE_LAYOUTS.length];
@@ -69,7 +75,11 @@
       wall: 'Muralha',
       stagger: 'Escalonada',
       channel: 'Canal',
-      funnel: 'Funil'
+      funnel: 'Funil',
+      diamond: 'Diamante',
+      waves: 'Ondas',
+      fortress: 'Fortaleza',
+      crossfire: 'Fogo cruzado'
     }[layout] || 'Muralha';
   }
 
@@ -91,7 +101,32 @@
     const wideIndex = (roundNumber * 7 + 3) % 50;
     let shieldIndex = (roundNumber * 11 + 17) % 50;
     if (shieldIndex === wideIndex) shieldIndex = (shieldIndex + 9) % 50;
-    return { wideIndex, shieldIndex };
+
+    const bonusType = roundNumber % 2 === 1 ? 'pierce' : 'giant';
+    let bonusIndex = (roundNumber * 13 + 29) % 50;
+    while (bonusIndex === wideIndex || bonusIndex === shieldIndex) {
+      bonusIndex = (bonusIndex + 7) % 50;
+    }
+
+    return { wideIndex, shieldIndex, bonusIndex, bonusType };
+  }
+
+  function powerColor(type) {
+    return {
+      wide: '#22d3ee',
+      shield: '#a78bfa',
+      pierce: '#fb7185',
+      giant: '#4ade80'
+    }[type] || '#f8fafc';
+  }
+
+  function powerLetter(type) {
+    return {
+      wide: 'W',
+      shield: 'S',
+      pierce: 'P',
+      giant: 'G'
+    }[type] || '?';
   }
 
   function syncPhaseHud() {
@@ -100,6 +135,8 @@
       const powers = [];
       if (widePaddleSteps > 0) powers.push('Raquete larga');
       if (shieldCharges > 0) powers.push('Escudo');
+      if (pierceHits > 0) powers.push(`Perfuração ×${pierceHits}`);
+      if (giantBallSteps > 0) powers.push('Bola gigante');
       powerStatusEl.textContent = powers.length ? powers.join(' + ') : '—';
     }
   }
@@ -109,6 +146,7 @@
     const brickH = 22;
     let x;
     let brickW;
+    let y = 58 + row * (brickH + gap);
 
     if (layout === 'channel') {
       const margin = 32;
@@ -125,18 +163,37 @@
       const rowInset = insets[row % insets.length];
       brickW = (W - (margin + rowInset) * 2 - gap * (cols - 1)) / cols;
       x = margin + rowInset + col * (brickW + gap);
+    } else if (layout === 'diamond') {
+      const margin = 30;
+      const insets = [54, 28, 0, 28, 54];
+      const rowInset = insets[row % insets.length];
+      brickW = (W - (margin + rowInset) * 2 - gap * (cols - 1)) / cols;
+      x = margin + rowInset + col * (brickW + gap);
+    } else if (layout === 'waves') {
+      const margin = 32;
+      const waveOffsets = [0, 7, 13, 7, 0, -7, -13, -7, 0, 7];
+      brickW = (W - margin * 2 - gap * (cols - 1)) / cols;
+      x = margin + col * (brickW + gap);
+      y += waveOffsets[col % waveOffsets.length];
+    } else if (layout === 'fortress') {
+      const margin = 30;
+      const insets = [0, 0, 44, 44, 18];
+      const rowInset = insets[row % insets.length];
+      brickW = (W - (margin + rowInset) * 2 - gap * (cols - 1)) / cols;
+      x = margin + rowInset + col * (brickW + gap);
+    } else if (layout === 'crossfire') {
+      const margin = 28;
+      const splitGap = 46;
+      const splitAfter = row % 2 === 0 ? 5 : 3;
+      brickW = (W - margin * 2 - gap * (cols - 1) - splitGap) / cols;
+      x = margin + col * (brickW + gap) + (col >= splitAfter ? splitGap : 0);
     } else {
       const margin = 32;
       brickW = (W - margin * 2 - gap * (cols - 1)) / cols;
       x = margin + col * (brickW + gap);
     }
 
-    return {
-      x,
-      y: 58 + row * (brickH + gap),
-      w: brickW,
-      h: brickH
-    };
+    return { x, y, w: brickW, h: brickH };
   }
 
   function createBricks() {
@@ -157,7 +214,9 @@
           col,
           powerType: index === powerPlan.wideIndex
             ? 'wide'
-            : (index === powerPlan.shieldIndex ? 'shield' : null)
+            : (index === powerPlan.shieldIndex
+              ? 'shield'
+              : (index === powerPlan.bonusIndex ? powerPlan.bonusType : null))
         });
       }
     }
@@ -168,6 +227,9 @@
     powerDrops = [];
     widePaddleSteps = 0;
     shieldCharges = 0;
+    pierceHits = 0;
+    giantBallSteps = 0;
+    ball.r = BASE_BALL_RADIUS;
     syncPaddleWidth();
     syncPhaseHud();
   }
@@ -190,6 +252,13 @@
     } else if (type === 'shield') {
       shieldCharges = 1;
       gameStatusEl.textContent = 'Poder coletado: Escudo!';
+    } else if (type === 'pierce') {
+      pierceHits = PIERCE_HIT_CHARGES;
+      gameStatusEl.textContent = `Poder coletado: Perfuração ×${PIERCE_HIT_CHARGES}!`;
+    } else if (type === 'giant') {
+      giantBallSteps = GIANT_BALL_DURATION_STEPS;
+      ball.r = GIANT_BALL_RADIUS;
+      gameStatusEl.textContent = 'Poder coletado: Bola gigante!';
     }
     syncPhaseHud();
   }
@@ -199,6 +268,12 @@
       const before = widePaddleSteps;
       widePaddleSteps = Math.max(0, widePaddleSteps - stepScale);
       if (before > 0 && widePaddleSteps === 0) syncPaddleWidth();
+    }
+
+    if (giantBallSteps > 0) {
+      const before = giantBallSteps;
+      giantBallSteps = Math.max(0, giantBallSteps - stepScale);
+      if (before > 0 && giantBallSteps === 0) ball.r = BASE_BALL_RADIUS;
     }
 
     const nextDrops = [];
@@ -240,8 +315,11 @@
     round = 1;
     widePaddleSteps = 0;
     shieldCharges = 0;
+    pierceHits = 0;
+    giantBallSteps = 0;
     powerDrops = [];
     paddle.w = BASE_PADDLE_WIDTH;
+    ball.r = BASE_BALL_RADIUS;
     impactFlash = null;
     paddleFlash = 0;
     roundTransition = 0;
@@ -463,7 +541,13 @@
         brick.alive = false;
         impactFlash = { x: ball.x, y: ball.y, life: IMPACT_FLASH_STEPS };
         spawnPowerDrop(brick);
-        bounceBallOffBrick(brick, previousBallX, previousBallY);
+        if (pierceHits > 0) {
+          pierceHits -= 1;
+          if (pierceHits === 0) gameStatusEl.textContent = 'Perfuração esgotada.';
+          syncPhaseHud();
+        } else {
+          bounceBallOffBrick(brick, previousBallX, previousBallY);
+        }
         accelerateBallAfterBrick();
         const activeCombo = window.__COMBO_DEBUG__?.getCombo?.() || 0;
         const comboMultiplier = Math.min(MAX_COMBO_MULTIPLIER, activeCombo + 1);
@@ -552,9 +636,7 @@
     for (const brick of bricks) {
       if (!brick.alive) continue;
       const hue = 205 + brick.row * 18;
-      ctx.fillStyle = brick.powerType === 'wide'
-        ? '#22d3ee'
-        : (brick.powerType === 'shield' ? '#a78bfa' : `hsl(${hue} 80% 58%)`);
+      ctx.fillStyle = brick.powerType ? powerColor(brick.powerType) : `hsl(${hue} 80% 58%)`;
       ctx.fillRect(brick.x, brick.y, brick.w, brick.h);
 
       if (brick.powerType) {
@@ -566,7 +648,7 @@
         ctx.font = '700 12px system-ui, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(brick.powerType === 'wide' ? 'W' : 'S', brick.x + brick.w / 2, brick.y + brick.h / 2 + 0.5);
+        ctx.fillText(powerLetter(brick.powerType), brick.x + brick.w / 2, brick.y + brick.h / 2 + 0.5);
         ctx.restore();
       }
     }
@@ -586,7 +668,7 @@
 
     for (const drop of powerDrops) {
       ctx.save();
-      ctx.fillStyle = drop.type === 'wide' ? '#22d3ee' : '#a78bfa';
+      ctx.fillStyle = powerColor(drop.type);
       ctx.shadowColor = ctx.fillStyle;
       ctx.shadowBlur = 14;
       ctx.beginPath();
@@ -596,7 +678,7 @@
       ctx.font = '800 11px system-ui, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(drop.type === 'wide' ? 'W' : 'S', drop.x, drop.y + 0.5);
+      ctx.fillText(powerLetter(drop.type), drop.x, drop.y + 0.5);
       ctx.restore();
     }
 
@@ -624,10 +706,21 @@
     ctx.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
     ctx.restore();
 
+    ctx.save();
+    if (pierceHits > 0) {
+      ctx.shadowColor = '#fb7185';
+      ctx.shadowBlur = 18;
+    }
     ctx.beginPath();
     ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
-    ctx.fillStyle = '#facc15';
+    ctx.fillStyle = giantBallSteps > 0 ? '#86efac' : '#facc15';
     ctx.fill();
+    if (giantBallSteps > 0) {
+      ctx.strokeStyle = 'rgba(255,255,255,.9)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+    ctx.restore();
 
     drawRoundTransition();
   }
@@ -726,6 +819,8 @@
         powerDrops: powerDrops.map((drop) => ({ ...drop })),
         widePaddleSteps,
         shieldCharges,
+        pierceHits,
+        giantBallSteps,
         respawnGrace,
         roundTransition,
         roundTransitionStatus,
@@ -774,7 +869,7 @@
       return bricks.map((brick) => ({ ...brick }));
     },
     spawnPowerDropForTest(type, x = paddle.x + paddle.w / 2, y = paddle.y - 80) {
-      if (type !== 'wide' && type !== 'shield') return false;
+      if (!['wide', 'shield', 'pierce', 'giant'].includes(type)) return false;
       powerDrops.push({ type, x, y, vy: POWER_DROP_SPEED });
       draw();
       return true;

@@ -124,6 +124,21 @@ Perguntas iniciais úteis:
 - **Tamanho:** MACRO.
 - **Status:** `resolved`.
 
+### Expansão do vocabulário de fases e poderes
+
+- **Problema:** após a primeira expansão, o ciclo espacial repetia a cada quatro rodadas e o conjunto de poderes permanecia limitado a W/S.
+- **Evidência:** solicitação explícita do usuário para adicionar novos poderes e novas formações; histórico interno recente também demonstrou periodicidade do late game após o ciclo de quatro layouts.
+- **Impacto esperado:** mais novidade espacial e mais decisões momentâneas sem escalar números centrais.
+- **Jogadores afetados:** todos; as novas formações entram em R5–R8 e P/G aparecem desde as primeiras rodadas alternadas.
+- **Hipótese testada:** oito formações + W/S fixos + um terceiro power-up alternando P/G entregam variedade perceptível com complexidade controlada.
+- **Baseline vs experimento:** baseline = 4 formações + 2 especiais por rodada (W/S); experimento = 8 formações + 3 especiais por rodada, preservando W/S e alternando P/G.
+- **Contrato P:** 3 impactos em blocos sem ricochetear, consumidos por hit.
+- **Contrato G:** raio da bola 8→12 por 480 steps ativos, sem alterar velocidade.
+- **Validação:** PR #18; após corrigir 3 testes antigos acoplados à geometria fixa, CI `34070932282` passou com **102/102 Playwright**.
+- **Risco:** maior densidade de conteúdo poderia dominar o loop; mitigado por adicionar somente um terceiro especial por rodada e alternar P/G, mantendo score, vidas, combo, Elite, caps e 50 blocos.
+- **Tamanho:** MACRO.
+- **Status:** `resolved`.
+
 ### Ritmo e dificuldade por rodada
 
 - **Problema:** não há evidência objetiva de que a curva atual esteja ideal.
