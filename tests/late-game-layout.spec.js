@@ -1,13 +1,13 @@
 const { test, expect } = require('@playwright/test');
 
-test('cada rodada alterna uma identidade geométrica mantendo 50 blocos', async ({ page }) => {
+test('oito formações alternam identidade geométrica mantendo 50 blocos', async ({ page }) => {
   await page.goto('/');
 
   const rounds = await page.evaluate(() => {
     const game = window.__GAME_DEBUG__;
     game.start();
 
-    return [1, 2, 3, 4, 5, 11, 12].map((round) => {
+    return [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12].map((round) => {
       game.setRoundForTest(round);
       const state = game.getState();
       const bricks = game.getBricks();
@@ -16,7 +16,11 @@ test('cada rodada alterna uma identidade geométrica mantendo 50 blocos', async 
         layout: state.brickLayout,
         label: state.brickLayoutLabel,
         bricksRemaining: state.bricksRemaining,
-        signature: bricks.map((brick) => [Math.round(brick.x), Math.round(brick.w)]).join('|')
+        signature: bricks.map((brick) => [
+          Math.round(brick.x),
+          Math.round(brick.y),
+          Math.round(brick.w)
+        ]).join('|')
       };
     });
   });
@@ -26,12 +30,16 @@ test('cada rodada alterna uma identidade geométrica mantendo 50 blocos', async 
     { round: 2, layout: 'stagger', label: 'Escalonada', bricksRemaining: 50 },
     { round: 3, layout: 'channel', label: 'Canal', bricksRemaining: 50 },
     { round: 4, layout: 'funnel', label: 'Funil', bricksRemaining: 50 },
-    { round: 5, layout: 'wall', label: 'Muralha', bricksRemaining: 50 },
+    { round: 5, layout: 'diamond', label: 'Diamante', bricksRemaining: 50 },
+    { round: 6, layout: 'waves', label: 'Ondas', bricksRemaining: 50 },
+    { round: 7, layout: 'fortress', label: 'Fortaleza', bricksRemaining: 50 },
+    { round: 8, layout: 'crossfire', label: 'Fogo cruzado', bricksRemaining: 50 },
+    { round: 9, layout: 'wall', label: 'Muralha', bricksRemaining: 50 },
     { round: 11, layout: 'channel', label: 'Canal', bricksRemaining: 50 },
     { round: 12, layout: 'funnel', label: 'Funil', bricksRemaining: 50 }
   ]);
 
-  expect(new Set(rounds.slice(0, 4).map((item) => item.signature)).size).toBe(4);
+  expect(new Set(rounds.slice(0, 8).map((item) => item.signature)).size).toBe(8);
 });
 
 test('canal oferece uma rota central que muralha e funil não oferecem', async ({ page }) => {
