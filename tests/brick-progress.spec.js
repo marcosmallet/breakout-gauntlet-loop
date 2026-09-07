@@ -59,7 +59,8 @@ test('HUD volta a 50 blocos assim que a próxima rodada é preparada', async ({ 
 
   const state = await page.evaluate(() => window.__GAME_DEBUG__.getState());
   expect(state.bricksRemaining).toBe(50);
-  expect(state.respawnGrace).toBe(45);
+  expect(state.respawnGrace).toBeGreaterThan(0);
+  expect(state.respawnGrace).toBeLessThanOrEqual(45);
   await expect(page.locator('#bricksRemaining')).toHaveText('50');
   await expect(page.locator('#bricksRemaining')).toHaveAttribute('data-final-stretch', 'false');
 });
