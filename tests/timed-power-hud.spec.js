@@ -54,6 +54,8 @@ test('contador temporizado congela em pausa e desaparece exatamente na expiraç�
   await expect(page.locator('#powerStatus')).toHaveText(beforePause);
 
   await page.getByRole('button', { name: 'Retomar' }).click();
+  await expect(page.locator('#gameStatus')).toHaveText('');
+
   await page.evaluate(() => {
     const game = window.__GAME_DEBUG__;
     game.setBall({ x: 400, y: 300, vx: 0, vy: 0 });
@@ -61,7 +63,10 @@ test('contador temporizado congela em pausa e desaparece exatamente na expiraç�
   });
 
   await expect(page.locator('#powerStatus')).toHaveText('—');
-  await expect(page.locator('#gameStatus')).toHaveText('Tempo lento terminou.');
+  // Pause/resume superseded the original collection message, so expiry must not
+  // resurrect stale status feedback. The dedicated expiry suite covers the case
+  // where the collection message is still current.
+  await expect(page.locator('#gameStatus')).toHaveText('');
 });
 
 test('múltiplos contadores temporizados continuam legíveis no HUD mobile', async ({ page }) => {
