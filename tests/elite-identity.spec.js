@@ -16,14 +16,18 @@ async function unlockEliteChoice(page) {
   await setHudState(page, 6, 5);
 }
 
-test('Elite mantém identidade visual persistente e volta ao baseline ao perder domínio', async ({ page }) => {
-  await page.goto('/');
-
-  const normal = await page.evaluate(() => ({
+async function readEliteIdentity(page) {
+  return page.evaluate(() => ({
     modeColor: getComputedStyle(document.getElementById('roundMode')).color,
     canvasBorder: getComputedStyle(document.getElementById('game')).borderColor,
     canvasShadow: getComputedStyle(document.getElementById('game')).boxShadow
   }));
+}
+
+test('Elite mantém identidade visual persistente e volta ao baseline ao perder domínio', async ({ page }) => {
+  await page.goto('/');
+
+  const normal = await readEliteIdentity(page);
 
   await unlockEliteChoice(page);
   await page.locator('#eliteModeButton').click();
@@ -32,11 +36,7 @@ test('Elite mantém identidade visual persistente e volta ao baseline ao perder 
   await expect(page.locator('#roundMode')).toHaveAttribute('data-elite', 'true');
   await expect(page.locator('#game')).toHaveAttribute('data-elite-round', 'true');
 
-  const elite = await page.evaluate(() => ({
-    modeColor: getComputedStyle(document.getElementById('roundMode')).color,
-    canvasBorder: getComputedStyle(document.getElementById('game')).borderColor,
-    canvasShadow: getComputedStyle(document.getElementById('game')).boxShadow
-  }));
+  const elite = await readEliteIdentity(page);
 
   expect(elite.modeColor).not.toBe(normal.modeColor);
   expect(elite.canvasBorder).not.toBe(normal.canvasBorder);
@@ -51,13 +51,9 @@ test('Elite mantém identidade visual persistente e volta ao baseline ao perder 
   await expect(page.locator('#roundMode')).toHaveAttribute('data-elite', 'false');
   await expect(page.locator('#game')).toHaveAttribute('data-elite-round', 'false');
 
-  const recovered = await page.evaluate(() => ({
-    modeColor: getComputedStyle(document.getElementById('roundMode')).color,
-    canvasBorder: getComputedStyle(document.getElementById('game')).borderColor,
-    canvasShadow: getComputedStyle(document.getElementById('game')).boxShadow
-  }));
-
-  expect(recovered).toEqual(normal);
+  // The canvas intentionally transitions its border/shadow for 240ms. Validate the
+  // settled state rather than sampling an intermediate animation frame.
+  await expect.poll(() => readEliteIdentity(page)).toEqual(normal);
 });
 
 test('identidade Elite não depende de animação sob reduced motion', async ({ page }) => {
