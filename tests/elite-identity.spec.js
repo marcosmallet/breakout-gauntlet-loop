@@ -36,11 +36,21 @@ test('Elite mantém identidade visual persistente e volta ao baseline ao perder 
   await expect(page.locator('#roundMode')).toHaveAttribute('data-elite', 'true');
   await expect(page.locator('#game')).toHaveAttribute('data-elite-round', 'true');
 
-  const elite = await readEliteIdentity(page);
-
-  expect(elite.modeColor).not.toBe(normal.modeColor);
-  expect(elite.canvasBorder).not.toBe(normal.canvasBorder);
-  expect(elite.canvasShadow).not.toBe(normal.canvasShadow);
+  // Entering Elite transitions the canvas border/shadow for 240ms. Wait until
+  // the visual identity has actually diverged from the Normal baseline instead
+  // of sampling the first animation frame.
+  await expect.poll(async () => {
+    const elite = await readEliteIdentity(page);
+    return {
+      modeColorChanged: elite.modeColor !== normal.modeColor,
+      canvasBorderChanged: elite.canvasBorder !== normal.canvasBorder,
+      canvasShadowChanged: elite.canvasShadow !== normal.canvasShadow
+    };
+  }).toEqual({
+    modeColorChanged: true,
+    canvasBorderChanged: true,
+    canvasShadowChanged: true
+  });
 
   await page.evaluate(() => {
     document.getElementById('lives').textContent = '4';
