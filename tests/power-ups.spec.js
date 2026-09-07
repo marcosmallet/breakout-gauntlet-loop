@@ -7,33 +7,43 @@ async function drainGrace(page) {
   });
 }
 
-test('cada rodada preserva W/S e alterna bônus P/G/C/T deterministicamente', async ({ page }) => {
+test('ciclo de bônus preserva R1-R12 e cria 48 combinações de formação antes de repetir', async ({ page }) => {
   await page.goto('/');
 
   const result = await page.evaluate(() => {
     const game = window.__GAME_DEBUG__;
     game.start();
-    return [1, 2, 3, 4, 5, 6, 7, 8].map((round) => {
+    return Array.from({ length: 49 }, (_, index) => index + 1).map((round) => {
       game.setRoundForTest(round);
+      const state = game.getState();
       const powers = game.getBricks()
-        .map((brick, index) => ({ index, type: brick.powerType }))
+        .map((brick, brickIndex) => ({ index: brickIndex, type: brick.powerType }))
         .filter((brick) => brick.type);
-      return { round, powers };
+      const bonus = powers.find((power) => power.type !== 'wide' && power.type !== 'shield')?.type;
+      return { round, layout: state.brickLayout, powers, bonus };
     });
   });
 
   const bonusCycle = ['pierce', 'giant', 'control', 'slow'];
-  for (const round of result) {
+
+  for (const round of result.slice(0, 12)) {
     const types = round.powers.map((power) => power.type);
     expect(round.powers).toHaveLength(3);
     expect(types).toContain('wide');
     expect(types).toContain('shield');
-    expect(types.filter((type) => type !== 'wide' && type !== 'shield')).toEqual([
-      bonusCycle[(round.round - 1) % bonusCycle.length]
-    ]);
+    expect(round.bonus).toBe(bonusCycle[(round.round - 1) % bonusCycle.length]);
     expect(new Set(round.powers.map((power) => power.index)).size).toBe(3);
   }
+
+  const wallCycles = [result[0], result[12], result[24], result[36]];
+  expect(wallCycles.map((entry) => entry.layout)).toEqual(['wall', 'wall', 'wall', 'wall']);
+  expect(wallCycles.map((entry) => entry.bonus)).toEqual(bonusCycle);
+
+  const combinations = result.slice(0, 48).map((entry) => `${entry.layout}:${entry.bonus}`);
+  expect(new Set(combinations).size).toBe(48);
+  expect(`${result[48].layout}:${result[48].bonus}`).toBe(combinations[0]);
 });
+
 test('destruir bloco especial cria o drop correspondente', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Iniciar' }).click();
