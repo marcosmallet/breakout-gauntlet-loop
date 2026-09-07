@@ -41,6 +41,10 @@
     return comboWindowMs() / gameplayTimeScale();
   }
 
+  function prefersReducedMotion() {
+    return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
+  }
+
   function render() {
     const multiplier = Math.min(combo, MAX_COMBO_MULTIPLIER);
     comboEl.textContent = combo >= MAX_COMBO_MULTIPLIER
@@ -72,6 +76,7 @@
   }
 
   function pulseScore() {
+    if (prefersReducedMotion()) return;
     scoreFeedbackCount += 1;
     scoreEl.animate(
       [
