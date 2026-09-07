@@ -36,3 +36,30 @@ test('HUD destaca a reta final quando restam até cinco blocos', async ({ page }
   await expect(remaining).toHaveText('50');
   await expect(remaining).toHaveAttribute('data-final-stretch', 'false');
 });
+
+test('HUD volta a 50 blocos assim que a próxima rodada é preparada', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Iniciar' }).click();
+
+  await page.evaluate(() => {
+    const game = window.__GAME_DEBUG__;
+    while (game.getState().respawnGrace > 0) game.step();
+
+    game.clearBricksExcept(0);
+    game.setBall({ x: 21.6, y: 69, vx: 4, vy: 0 });
+    game.step();
+  });
+
+  await expect(page.locator('#bricksRemaining')).toHaveText('0');
+
+  await page.evaluate(() => {
+    const game = window.__GAME_DEBUG__;
+    while (game.getState().roundTransition > 0) game.step();
+  });
+
+  const state = await page.evaluate(() => window.__GAME_DEBUG__.getState());
+  expect(state.bricksRemaining).toBe(50);
+  expect(state.respawnGrace).toBe(45);
+  await expect(page.locator('#bricksRemaining')).toHaveText('50');
+  await expect(page.locator('#bricksRemaining')).toHaveAttribute('data-final-stretch', 'false');
+});
