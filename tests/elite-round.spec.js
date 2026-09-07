@@ -46,6 +46,7 @@ test('aceitar elite aplica risco de velocidade e recompensa de combo', async ({ 
 });
 
 test('elite mantém identidade visual persistente e retorna ao baseline ao perder domínio', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
 
   const normalPresentation = await page.evaluate(() => {
