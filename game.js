@@ -43,6 +43,7 @@
   const CONTROL_STEER_LIMIT = 7;
   const SLOW_BALL_DURATION_STEPS = 360;
   const SLOW_BALL_FACTOR = 0.72;
+  const POWER_TIMER_STEPS_PER_SECOND = 60;
   const SHIELD_Y = H - 10;
 
   const paddle = { x: W / 2 - BASE_PADDLE_WIDTH / 2, y: H - 38, w: BASE_PADDLE_WIDTH, h: 14, speed: 8 };
@@ -145,16 +146,24 @@
     }[type] || '?';
   }
 
+  function timedPowerLabel(label, remainingSteps) {
+    const remainingSeconds = Math.max(
+      1,
+      Math.ceil(remainingSteps / POWER_TIMER_STEPS_PER_SECOND)
+    );
+    return `${label} ${remainingSeconds}s`;
+  }
+
   function syncPhaseHud() {
     if (layoutNameEl) layoutNameEl.textContent = layoutLabel();
     if (powerStatusEl) {
       const powers = [];
-      if (widePaddleSteps > 0) powers.push('Raquete larga');
+      if (widePaddleSteps > 0) powers.push(timedPowerLabel('Raquete larga', widePaddleSteps));
       if (shieldCharges > 0) powers.push('Escudo');
       if (pierceHits > 0) powers.push(`Perfuração ×${pierceHits}`);
-      if (giantBallSteps > 0) powers.push('Bola gigante');
+      if (giantBallSteps > 0) powers.push(timedPowerLabel('Bola gigante', giantBallSteps));
       if (controlHits > 0) powers.push(`Controle ×${controlHits}`);
-      if (slowBallSteps > 0) powers.push('Tempo lento');
+      if (slowBallSteps > 0) powers.push(timedPowerLabel('Tempo lento', slowBallSteps));
       powerStatusEl.textContent = powers.length ? powers.join(' + ') : '—';
     }
   }
