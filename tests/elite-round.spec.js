@@ -45,6 +45,66 @@ test('aceitar elite aplica risco de velocidade e recompensa de combo', async ({ 
   expect(await page.evaluate(() => window.__COMBO_DEBUG__.getWindowMs())).toBe(2500);
 });
 
+test('elite mantém identidade visual persistente e retorna ao baseline ao perder domínio', async ({ page }) => {
+  await page.goto('/');
+
+  const normalPresentation = await page.evaluate(() => {
+    const canvas = getComputedStyle(document.getElementById('game'));
+    const mode = getComputedStyle(document.getElementById('roundMode'));
+    return {
+      canvasBorder: canvas.borderTopColor,
+      canvasShadow: canvas.boxShadow,
+      canvasBackground: canvas.backgroundImage,
+      modeColor: mode.color,
+      modeBackground: mode.backgroundColor
+    };
+  });
+
+  await unlockEliteChoice(page);
+  await page.locator('#eliteModeButton').click();
+  await expect(page.locator('#roundMode')).toHaveAttribute('data-elite', 'true');
+  await expect(page.locator('#game')).toHaveAttribute('data-elite-round', 'true');
+
+  const elitePresentation = await page.evaluate(() => {
+    const canvas = getComputedStyle(document.getElementById('game'));
+    const mode = getComputedStyle(document.getElementById('roundMode'));
+    return {
+      canvasBorder: canvas.borderTopColor,
+      canvasShadow: canvas.boxShadow,
+      canvasBackground: canvas.backgroundImage,
+      modeColor: mode.color,
+      modeBackground: mode.backgroundColor
+    };
+  });
+
+  expect(elitePresentation).not.toEqual(normalPresentation);
+  expect(elitePresentation.canvasBackground).toContain('radial-gradient');
+  expect(elitePresentation.canvasShadow).not.toBe(normalPresentation.canvasShadow);
+  expect(elitePresentation.modeBackground).not.toBe(normalPresentation.modeBackground);
+
+  await page.evaluate(() => {
+    document.getElementById('lives').textContent = '4';
+  });
+  await page.waitForTimeout(0);
+
+  await expect(page.locator('#roundMode')).toHaveAttribute('data-elite', 'false');
+  await expect(page.locator('#game')).toHaveAttribute('data-elite-round', 'false');
+
+  const restoredPresentation = await page.evaluate(() => {
+    const canvas = getComputedStyle(document.getElementById('game'));
+    const mode = getComputedStyle(document.getElementById('roundMode'));
+    return {
+      canvasBorder: canvas.borderTopColor,
+      canvasShadow: canvas.boxShadow,
+      canvasBackground: canvas.backgroundImage,
+      modeColor: mode.color,
+      modeBackground: mode.backgroundColor
+    };
+  });
+
+  expect(restoredPresentation).toEqual(normalPresentation);
+});
+
 test('aceitar elite mantém o modo durante um streak perfeito sem repetir a escolha', async ({ page }) => {
   await page.goto('/');
   await unlockEliteChoice(page);
