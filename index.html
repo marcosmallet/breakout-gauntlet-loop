@@ -107,7 +107,11 @@
         previousBricksRemaining = remaining;
       }
     };
-    new MutationObserver(syncRoundHud).observe(gameStatusEl, {
+    const syncGameStatusHud = () => {
+      syncRoundHud();
+      syncBrickProgress();
+    };
+    new MutationObserver(syncGameStatusHud).observe(gameStatusEl, {
       childList: true,
       characterData: true,
       subtree: true
