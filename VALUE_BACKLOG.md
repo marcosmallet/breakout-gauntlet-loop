@@ -76,6 +76,17 @@ Perguntas iniciais úteis:
 - **Tamanho:** DESIGN com lente SYSTEMIC.
 - **Status:** `resolved`.
 
+### Elite sem upside econômico no teto de mastery
+- **Problema:** Elite aumentava o risco com +0,5 no teto de velocidade, mas mantinha o mesmo teto x5 do Normal; para jogadores que já sustentavam hits dentro de 2,0 s, a janela Elite de 2,5 s podia gerar zero upside de score.
+- **Evidência:** elegibilidade Elite exige domínio sustentado em 5 vidas; uma rodada perfeita de 50 blocos + 5 vidas valia 2.900 tanto em Normal quanto em Elite; `combo.js` também tratava qualquer delta >50 como evento não-bloco, impedindo um x6 correto sem mudança coordenada.
+- **Impacto:** jogadores de maior mastery em R6+, exatamente quando a decisão Elite deveria oferecer risco/recompensa coerente.
+- **Hipótese testada:** liberar **x6 somente no Elite**, sem bônus por entrada ou clear, faz o upside depender de construir/sustentar combo sob maior risco.
+- **Baseline vs experimento:** Normal permanece x5/2,0 s e 2.900 no cenário perfeito; Elite passa x5→x6 mantendo 2,5 s/+0,5 e chega a 3.350 (+15,5%) somente com combo sustentado.
+- **Validação:** PR #30; primeiro CI encontrou interferência do loop real nos novos testes e não foi aceito; após tornar os cenários determinísticos, CI `34215806345` passou com **118/118 Playwright**, cobrindo hit de 60 sem reset, HUD x6, retorno a x5 ao perder mastery e persistência de high score.
+- **Risco:** inflação do score avançado e acoplamento score/combo/high score; mitigado por manter Normal intacto, derivar o delta de hit do teto ativo e preservar bônus de rodada fora do combo.
+- **Tamanho:** DESIGN com lente SYSTEMIC.
+- **Status:** `resolved`.
+
 ### Compressão do payoff de fim de rodada
 - **Problema:** vitória, recompensa e preparação da rodada seguinte eram simultâneas, reduzindo a legibilidade do payoff.
 - **Evidência:** no mesmo update do último bloco, o baseline concedia bônus/vida, incrementava rodada, recriava 50 blocos e ativava 45 steps de preparação; o pulso de vitória de 520 ms ocorria sobreposto ao countdown.

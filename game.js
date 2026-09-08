@@ -17,7 +17,8 @@
   const ROUND_SPEED_STEP = 0.25;
   const MAX_ROUND_START_COMPONENT = 5;
   const MAX_LIVES = 5;
-  const MAX_COMBO_MULTIPLIER = 5;
+  const NORMAL_MAX_COMBO_MULTIPLIER = 5;
+  const ELITE_MAX_COMBO_MULTIPLIER = 6;
   const ROUND_CLEAR_LIFE_BONUS = 100;
   const TARGET_FRAME_MS = 1000 / 60;
   const MAX_FRAME_STEP = 2;
@@ -72,6 +73,12 @@
   let giantBallSteps = 0;
   let controlHits = 0;
   let slowBallSteps = 0;
+
+  function maxComboMultiplier() {
+    return window.GameDifficulty?.isEliteRoundActive?.()
+      ? ELITE_MAX_COMBO_MULTIPLIER
+      : NORMAL_MAX_COMBO_MULTIPLIER;
+  }
 
   function brickLayoutForRound(roundNumber = round) {
     return PHASE_LAYOUTS[(roundNumber - 1) % PHASE_LAYOUTS.length];
@@ -622,7 +629,7 @@
         }
         accelerateBallAfterBrick();
         const activeCombo = window.__COMBO_DEBUG__?.getCombo?.() || 0;
-        const comboMultiplier = Math.min(MAX_COMBO_MULTIPLIER, activeCombo + 1);
+        const comboMultiplier = Math.min(maxComboMultiplier(), activeCombo + 1);
         score += 10 * comboMultiplier;
         scoreEl.textContent = score;
         break;
