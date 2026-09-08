@@ -153,6 +153,30 @@
     }[type] || '?';
   }
 
+  function powerName(type) {
+    return {
+      wide: 'Raquete larga',
+      shield: 'Escudo',
+      pierce: 'Perfuração',
+      giant: 'Bola gigante',
+      control: 'Controle',
+      slow: 'Tempo lento'
+    }[type] || 'Poder';
+  }
+
+  function powerTypeForIndex(index, plan) {
+    if (index === plan.wideIndex) return 'wide';
+    if (index === plan.shieldIndex) return 'shield';
+    if (index === plan.bonusIndex) return plan.bonusType;
+    return null;
+  }
+
+  function roundBriefingText(roundNumber = round) {
+    const layout = brickLayoutForRound(roundNumber);
+    const plan = powerPlanForRound(roundNumber);
+    return `${layoutLabel(layout)} • ${powerName(plan.bonusType)} (${powerLetter(plan.bonusType)})`;
+  }
+
   function timedPowerLabel(label, remainingSteps) {
     const remainingSeconds = Math.max(
       1,
@@ -270,11 +294,7 @@
           alive: true,
           row,
           col,
-          powerType: index === powerPlan.wideIndex
-            ? 'wide'
-            : (index === powerPlan.shieldIndex
-              ? 'shield'
-              : (index === powerPlan.bonusIndex ? powerPlan.bonusType : null))
+          powerType: powerTypeForIndex(index, powerPlan)
         });
       }
     }
@@ -679,33 +699,70 @@
       syncPaddleWidth();
       syncPhaseHud();
       roundTransition = ROUND_TRANSITION_STEPS;
-      roundTransitionStatus = earnedExtraLife
+      const rewardText = earnedExtraLife
         ? `Rodada ${completedRound} concluída! Bônus +${roundClearBonus}. Vida extra.`
         : `Rodada ${completedRound} concluída! Bônus +${roundClearBonus}.`;
+      roundTransitionStatus = `${rewardText} Próxima: ${roundBriefingText(round)}.`;
       gameStatusEl.textContent = roundTransitionStatus;
     }
+  }
+
+  function drawRoundPreview(roundNumber = round) {
+    const rows = 5;
+    const cols = 10;
+    const layout = brickLayoutForRound(roundNumber);
+    const plan = powerPlanForRound(roundNumber);
+
+    ctx.save();
+    ctx.globalAlpha = 0.32;
+    for (let row = 0; row < rows; row += 1) {
+      for (let col = 0; col < cols; col += 1) {
+        const index = row * cols + col;
+        const geometry = brickGeometry(layout, row, col, cols);
+        const type = powerTypeForIndex(index, plan);
+        const hue = 205 + row * 18;
+        ctx.fillStyle = type ? powerColor(type) : `hsl(${hue} 80% 58%)`;
+        ctx.fillRect(geometry.x, geometry.y, geometry.w, geometry.h);
+
+        if (type) {
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '700 12px system-ui, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(powerLetter(type), geometry.x + geometry.w / 2, geometry.y + geometry.h / 2 + 0.5);
+        }
+      }
+    }
+    ctx.restore();
   }
 
   function drawRoundTransition() {
     if (roundTransition <= 0) return;
 
     const completedRound = Math.max(1, round - 1);
-    const rewardText = roundTransitionStatus.replace(/^Rodada \d+ concluída!\s*/, '');
+    const transitionText = roundTransitionStatus.replace(/^Rodada \d+ concluída!\s*/, '');
+    const [rewardText, briefingText = ''] = transitionText.split(' Próxima: ');
+    const briefing = briefingText.replace(/\.$/, '');
 
     ctx.save();
-    ctx.fillStyle = 'rgba(5, 8, 22, 0.72)';
+    ctx.fillStyle = 'rgba(5, 8, 22, 0.86)';
     ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+
+    drawRoundPreview(round);
+
+    ctx.save();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = '#f8fafc';
     ctx.font = '700 34px system-ui, sans-serif';
-    ctx.fillText(`RODADA ${completedRound} CONCLUÍDA`, W / 2, H * 0.44);
+    ctx.fillText(`RODADA ${completedRound} CONCLUÍDA`, W / 2, H * 0.46);
     ctx.fillStyle = '#facc15';
     ctx.font = '650 19px system-ui, sans-serif';
-    ctx.fillText(rewardText, W / 2, H * 0.52);
-    ctx.fillStyle = 'rgba(248, 250, 252, 0.78)';
-    ctx.font = '500 15px system-ui, sans-serif';
-    ctx.fillText(`Próxima: rodada ${round}`, W / 2, H * 0.59);
+    ctx.fillText(rewardText, W / 2, H * 0.54);
+    ctx.fillStyle = 'rgba(248, 250, 252, 0.88)';
+    ctx.font = '600 16px system-ui, sans-serif';
+    ctx.fillText(`PRÓXIMA ${round}: ${briefing}`, W / 2, H * 0.63);
     ctx.restore();
   }
 
