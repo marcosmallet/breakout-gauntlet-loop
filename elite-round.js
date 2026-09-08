@@ -3,6 +3,8 @@
   const livesEl = document.getElementById('lives');
   const roundModeEl = document.getElementById('roundMode');
   const eliteChoiceEl = document.getElementById('eliteChoice');
+  const eliteNextRoundContextEl = document.getElementById('eliteNextRoundContext');
+  const gameStatusEl = document.getElementById('gameStatus');
   const standardButton = document.getElementById('standardModeButton');
   const eliteButton = document.getElementById('eliteModeButton');
   const pauseButton = document.getElementById('pauseButton');
@@ -34,6 +36,23 @@
     eliteChoiceEl.hidden = !awaitingChoice;
   }
 
+  function clearChoiceContext() {
+    if (!eliteNextRoundContextEl) return;
+    eliteNextRoundContextEl.textContent = '';
+    eliteNextRoundContextEl.hidden = true;
+  }
+
+  function syncChoiceContext() {
+    if (!eliteNextRoundContextEl || !gameStatusEl) return;
+    const match = gameStatusEl.textContent.match(/Próxima:\s*(.+?)\.?$/);
+    if (!match) {
+      clearChoiceContext();
+      return;
+    }
+    eliteNextRoundContextEl.textContent = `Próxima rodada: ${match[1].replace(/\.$/, '')}.`;
+    eliteNextRoundContextEl.hidden = false;
+  }
+
   function setEliteRound(active) {
     eliteRoundActive = Boolean(active);
     window.GameDifficulty.setEliteRoundActive(eliteRoundActive);
@@ -59,6 +78,7 @@
     eliteEligible = false;
     renderChoice();
     renderMode();
+    clearChoiceContext();
   }
 
   function chooseMode(mode) {
@@ -75,6 +95,7 @@
     awaitingChoice = true;
     masteryChoice = null;
     setEliteRound(false);
+    syncChoiceContext();
     renderChoice();
     renderMode();
     pauseTransitionForChoice();
@@ -89,6 +110,7 @@
     awaitingChoice = false;
     pausedForChoice = false;
     masteryChoice = null;
+    clearChoiceContext();
     setEliteRound(false);
     renderChoice();
   }
@@ -102,6 +124,7 @@
       masteryChoice = null;
       eliteEligible = false;
       awaitingChoice = false;
+      clearChoiceContext();
       setEliteRound(false);
       renderChoice();
     }
@@ -124,11 +147,13 @@
       eliteEligible = false;
       awaitingChoice = false;
       masteryChoice = null;
+      clearChoiceContext();
       setEliteRound(false);
       renderChoice();
     } else if (masteryChoice) {
       eliteEligible = true;
       awaitingChoice = false;
+      clearChoiceContext();
       setEliteRound(masteryChoice === 'elite');
       renderChoice();
     } else {
@@ -144,6 +169,7 @@
   eliteButton?.addEventListener('click', () => chooseMode('elite'));
 
   setEliteRound(false);
+  clearChoiceContext();
   renderChoice();
 
   window.__ELITE_ROUND_DEBUG__ = {
