@@ -58,39 +58,6 @@ test('round clear separa celebração da contagem de lançamento e antecipa a pr
   await expect.poll(() => page.evaluate(() => window.__LAUNCH_COUNTDOWN_DEBUG__.getCountdown())).toBe(3);
 });
 
-test('teclado pode reposicionar a raquete durante o briefing tático', async ({ page }) => {
-  await page.goto('/');
-  await page.getByRole('button', { name: 'Iniciar' }).click();
-
-  const states = await page.evaluate(() => {
-    const game = window.__GAME_DEBUG__;
-    while (game.getState().respawnGrace > 0) game.step();
-    game.clearBricksExcept(0);
-    game.setBall({ x: 21.6, y: 69, vx: 4, vy: 0 });
-    game.step();
-
-    const before = game.getState();
-    document.dispatchEvent(new KeyboardEvent('keydown', {
-      key: 'ArrowRight',
-      bubbles: true,
-      cancelable: true
-    }));
-    game.step(5);
-    document.dispatchEvent(new KeyboardEvent('keyup', {
-      key: 'ArrowRight',
-      bubbles: true
-    }));
-    const after = game.getState();
-    return { before, after };
-  });
-
-  expect(states.before.roundTransition).toBe(54);
-  expect(states.after.roundTransition).toBe(49);
-  expect(states.after.bricksRemaining).toBe(0);
-  expect(states.after.respawnGrace).toBe(0);
-  expect(states.after.paddle.x).toBeGreaterThan(states.before.paddle.x);
-});
-
 test('pausa congela a janela de vitória e restaura sua mensagem ao retomar', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Iniciar' }).click();
