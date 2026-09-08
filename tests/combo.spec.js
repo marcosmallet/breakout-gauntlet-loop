@@ -57,8 +57,6 @@ test('elite libera teto x6 e hit de 60 pontos continua o combo', async ({ page }
 
   await page.evaluate(async () => {
     const game = window.__GAME_DEBUG__;
-    game.start();
-    game.step(45);
     window.GameDifficulty.setEliteRoundActive(true);
 
     for (const x of [50, 120, 190, 260, 330, 400]) {

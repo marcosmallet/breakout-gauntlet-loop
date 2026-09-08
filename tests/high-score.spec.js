@@ -44,8 +44,6 @@ test('recorde acompanha o teto x6 do Elite', async ({ page }) => {
 
   await page.evaluate(async () => {
     const game = window.__GAME_DEBUG__;
-    game.start();
-    game.step(45);
     window.GameDifficulty.setEliteRoundActive(true);
 
     for (const x of [50, 120, 190, 260, 330, 400]) {
