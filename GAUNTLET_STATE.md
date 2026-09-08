@@ -5,11 +5,11 @@ Este arquivo é a memória operacional condensada do experimento. Ele não é um
 ## Estado atual
 
 - Fase: **Value-Driven Meta-Critic / ACTIVE**
-- Baseline de gameplay atual: **mira proporcional + progressão tardia de velocidade + doze formações rotativas por rodada + power-ups coletáveis W/S com bônus rotativo P/G/C/T + beat de vitória + Elite opcional por domínio**
+- Baseline de gameplay atual: **mira proporcional + progressão tardia de velocidade + doze formações rotativas por rodada + power-ups coletáveis W/S com bônus rotativo P/G/C/T + beat de vitória + Elite opcional por domínio com teto de combo x6 conquistado por execução**
 - Baseline de protocolo anterior: `789385d6eb60bf77acb82620c6586c0617c0dc00`
 - Último ciclo do protocolo anterior: **Cycle 114**
 - Histórico de saturação: Cycles 105–114 tiveram **10 NO-OPs deliberados consecutivos**
-- Histórico recente: **13 NO-OPs consecutivos** após a mira proporcional, encerrados por Evidence Discovery que identificou plateau mensurável de progressão após a rodada 5
+- Histórico recente: **14 NO-OPs consecutivos em SATURATED** foram encerrados pelo DESIGN de economia Elite x6, após investigações sistêmicas falsificarem alternativas de menor valor e isolarem o problema de risco sem upside econômico no teto de mastery
 - Escopo preservado: HTML, CSS, JavaScript e Canvas 2D, sem game framework
 - Regra operacional vigente: **Baseline Gate + FOCAL/SYSTEMIC Evidence Discovery + Strategic Synthesis + Evidence Gate + Value Case + Correctness Gate + Value Judge**
 - Modos permitidos: **MICRO / DESIGN / MACRO / NO-OP**
@@ -58,7 +58,7 @@ Essas hipóteses permanecem candidatas, não tarefas.
 - Indicador de blocos restantes.
 - Feedback especial nos últimos blocos da rodada.
 - A partir da rodada 6, domínio sustentado em 5 vidas pode desbloquear uma escolha explícita entre permanecer no modo Normal ou aceitar o risco/recompensa Elite.
-- Elite preserva o balanceamento já validado: +0,5 no teto de velocidade e janela de combo de 2,0 s para 2,5 s.
+- Elite preserva o risco já validado (+0,5 no teto de velocidade e janela de combo de 2,0 s para 2,5 s) e amplia o teto de recompensa para **x6** enquanto ativo; Normal permanece em **x5**.
 - Toda rodada possui identidade espacial em ciclo de doze formações: **Muralha → Escalonada → Canal → Funil → Diamante → Ondas → Fortaleza → Fogo cruzado → Chevron → Coroa → Escadaria → Portais**, sempre com 50 blocos e a mesma economia.
 - Cada rodada contém exatamente três blocos especiais determinísticos: **W** libera Raquete larga (+34 px por até 600 steps ativos), **S** libera um Escudo de uma carga e o terceiro gira entre **P** (Perfuração: 3 impactos atravessam blocos sem ricochetear), **G** (Bola gigante: raio 8→12 por 480 steps ativos), **C** (Controle: 4 rebatidas com maior autoridade direcional, preservando a velocidade) e **T** (Tempo lento: deslocamento efetivo da bola em 72% por 360 steps ativos, sem alterar vx/vy).
 - Os poderes caem como cápsulas coletáveis; pausas, victory beat e respawn grace congelam seu tempo/movimento, e perder uma vida limpa poderes e drops pendentes.
@@ -168,6 +168,18 @@ Não refatorar por estética. Se a dívida bloquear uma melhoria de produto rele
 - **Efeito estratégico:** Elite passa a ser contrato de **mastery → agência → risco/recompensa**, não promoção automática; futuras evoluções de late game devem preservar a opcionalidade e provar valor antes de adicionar novas camadas.
 
 ## Experimentos DESIGN aceitos
+
+### Upside econômico de mastery no Elite
+- **Evidence Discovery:** SYSTEMIC — escolha Elite + dificuldade + combo + score/high score.
+- **Problema:** o jogador que já sustentava o combo dentro da janela Normal assumia +0,5 de risco no cap Elite, mas podia receber exatamente o mesmo teto econômico x5.
+- **Evidências independentes:** Elite aumenta dificuldade e elegibilidade exige mastery em 5 vidas; score/combo mantinham o mesmo teto x5 em Normal e Elite, tornando uma rodada perfeita de 50 blocos + 5 vidas igual a 2.900 pontos nos dois modos.
+- **Hipótese:** um degrau **x6 exclusivo do Elite**, ganho somente ao sustentar a sequência, conecta risco → mastery → combo → score/recorde sem bônus gratuito por seleção.
+- **Contrato:** Normal continua x5/2,0 s; Elite continua +0,5/2,5 s e passa a x6; hits x6 valem 60 e continuam classificados como hits; perder mastery restaura teto x5; bônus de clear/life continuam fora do combo.
+- **Baseline vs experimento:** rodada perfeita Normal = 2.900; Elite baseline = 2.900; Elite x6 = 3.350 (+450 / +15,5%), somente quando o jogador constrói e sustenta o combo.
+- **Branch/PR:** `design/20260908-elite-score-upside`, PR #30.
+- **Correctness Gate:** primeira execução revelou interferência de `requestAnimationFrame` nos dois novos testes de score; cenários foram tornados determinísticos. Segunda execução CI `34215806345` passou com **118/118 Playwright**.
+- **Value Judge:** positivo — payoff é imediatamente legível no HUD `x6 MAX`, preserva todo o Normal e usa a economia existente em vez de adicionar moeda/bônus paralelo.
+- **Efeito estratégico:** futuros ajustes de Elite devem preservar o princípio de recompensa conquistada por execução; não adicionar bônus fixo sem nova evidência.
 
 ### Topologia alternada no late game
 - **Evidence Discovery:** SYSTEMIC — progressão/ritmo + espaço jogável + mira/replayability + lifecycle de rodada.
