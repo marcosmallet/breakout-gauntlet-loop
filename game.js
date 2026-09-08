@@ -571,6 +571,10 @@
     }
     paddleFlash = Math.max(0, paddleFlash - stepScale);
 
+    if (keys.has('ArrowLeft') || keys.has('a') || keys.has('A')) paddle.x -= paddle.speed * stepScale;
+    if (keys.has('ArrowRight') || keys.has('d') || keys.has('D')) paddle.x += paddle.speed * stepScale;
+    paddle.x = Math.max(0, Math.min(W - paddle.w, paddle.x));
+
     if (roundTransition > 0) {
       roundTransition = Math.max(0, roundTransition - stepScale);
       if (roundTransition === 0) {
@@ -580,10 +584,6 @@
       }
       return;
     }
-
-    if (keys.has('ArrowLeft') || keys.has('a') || keys.has('A')) paddle.x -= paddle.speed * stepScale;
-    if (keys.has('ArrowRight') || keys.has('d') || keys.has('D')) paddle.x += paddle.speed * stepScale;
-    paddle.x = Math.max(0, Math.min(W - paddle.w, paddle.x));
 
     if (respawnGrace > 0) {
       ball.x = paddle.x + paddle.w / 2;
