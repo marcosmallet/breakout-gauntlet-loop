@@ -38,7 +38,9 @@ test('limpar o tabuleiro cria uma janela de vitória antes de preparar a nova ro
   expect(result.afterClear.respawnGrace).toBe(0);
   expect(result.afterClear.roundTransition).toBe(54);
   expect(result.afterClear.paddle.w).toBe(102);
-  expect(result.statusAfterClear).toBe('Rodada 1 concluída! Bônus +300. Vida extra.');
+  expect(result.statusAfterClear).toBe(
+    'Rodada 1 concluída! Bônus +300. Vida extra. Próxima: Escalonada • Bola gigante (G).'
+  );
 
   expect(result.prepared.roundTransition).toBe(0);
   expect(result.prepared.bricksRemaining).toBe(50);
@@ -80,7 +82,7 @@ test('vidas extras de rodada respeitam o limite de cinco e o bônus usa as vidas
   expect(result.state.paddle.w).toBe(86);
   expect(result.state.bricksRemaining).toBe(0);
   expect(result.state.roundTransition).toBe(54);
-  expect(result.lastStatus).toBe('Rodada 3 concluída! Bônus +500.');
+  expect(result.lastStatus).toBe('Rodada 3 concluída! Bônus +500. Próxima: Funil • Tempo lento (T).');
   await expect(page.locator('#game')).toHaveCSS('--round-accent-hue', '319');
   await expect(page.locator('html')).toHaveCSS('--round-accent-hue', '319');
 });
