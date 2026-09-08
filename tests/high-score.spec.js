@@ -38,3 +38,24 @@ test('bater um recorde existente dispara celebração uma vez', async ({ page })
   await expect(page.locator('#highScore')).toHaveText('310');
   await expect.poll(() => page.evaluate(() => window.__HIGH_SCORE_DEBUG__.getCelebrationCount())).toBe(1);
 });
+
+test('recorde acompanha o teto x6 do Elite', async ({ page }) => {
+  await page.goto('/');
+
+  await page.evaluate(async () => {
+    const game = window.__GAME_DEBUG__;
+    game.start();
+    game.step(45);
+    window.GameDifficulty.setEliteRoundActive(true);
+
+    for (const x of [50, 120, 190, 260, 330, 400]) {
+      game.setBall({ x, y: 45, vx: 0, vy: 5 });
+      game.step();
+      await Promise.resolve();
+    }
+  });
+
+  await expect(page.locator('#score')).toHaveText('210');
+  await expect(page.locator('#highScore')).toHaveText('210');
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('breakoutHighScore'))).toBe('210');
+});

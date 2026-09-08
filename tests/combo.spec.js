@@ -52,6 +52,29 @@ test('combo deixa claro o teto x5 mesmo quando a sequência continua', async ({ 
   await expect.poll(() => page.evaluate(() => window.__COMBO_DEBUG__?.getCombo())).toBe(6);
 });
 
+test('elite libera teto x6 e hit de 60 pontos continua o combo', async ({ page }) => {
+  await page.goto('/');
+
+  await page.evaluate(async () => {
+    const game = window.__GAME_DEBUG__;
+    game.start();
+    game.step(45);
+    window.GameDifficulty.setEliteRoundActive(true);
+
+    for (const x of [50, 120, 190, 260, 330, 400]) {
+      game.setBall({ x, y: 45, vx: 0, vy: 5 });
+      game.step();
+      await Promise.resolve();
+    }
+  });
+
+  await expect(page.locator('#score')).toHaveText('210');
+  await expect(page.locator('#combo')).toHaveText('x6 MAX');
+  await expect.poll(() => page.evaluate(() => window.__COMBO_DEBUG__?.getCombo())).toBe(6);
+  expect(await page.evaluate(() => window.__COMBO_DEBUG__.getMaxMultiplier())).toBe(6);
+  expect(await page.evaluate(() => window.__COMBO_DEBUG__.getMaxBrickScoreDelta())).toBe(60);
+});
+
 test('pausa congela a janela do combo e preserva o multiplicador ao retomar', async ({ page }) => {
   await page.goto('/');
 

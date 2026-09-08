@@ -28,6 +28,7 @@ test('domínio tardio desbloqueia escolha explícita entre normal e elite', asyn
 
   await expect(page.locator('#roundMode')).toHaveText('Escolher');
   await expect(page.locator('#eliteChoice')).toBeVisible();
+  await expect(page.locator('#eliteChoice')).toContainText('teto x6');
   expect(await page.evaluate(() => window.__ELITE_ROUND_DEBUG__.getState().awaitingChoice)).toBe(true);
   expect(await page.evaluate(() => window.GameDifficulty.maxBallSpeedForRound(6))).toBeCloseTo(8.2, 8);
   expect(await page.evaluate(() => window.__COMBO_DEBUG__.getWindowMs())).toBe(2000);
@@ -43,6 +44,7 @@ test('aceitar elite aplica risco de velocidade e recompensa de combo', async ({ 
   await expect(page.locator('#roundMode')).toHaveText('Elite');
   expect(await page.evaluate(() => window.GameDifficulty.maxBallSpeedForRound(6))).toBeCloseTo(8.7, 8);
   expect(await page.evaluate(() => window.__COMBO_DEBUG__.getWindowMs())).toBe(2500);
+  expect(await page.evaluate(() => window.__COMBO_DEBUG__.getMaxMultiplier())).toBe(6);
 });
 
 test('aceitar elite mantém o modo durante um streak perfeito sem repetir a escolha', async ({ page }) => {
@@ -109,6 +111,7 @@ test('perder vida encerra elite imediatamente no mesmo round', async ({ page }) 
   expect(state.awaitingChoice).toBe(false);
   expect(await page.evaluate(() => window.GameDifficulty.maxBallSpeedForRound(6))).toBeCloseTo(8.2, 8);
   expect(await page.evaluate(() => window.__COMBO_DEBUG__.getWindowMs())).toBe(2000);
+  expect(await page.evaluate(() => window.__COMBO_DEBUG__.getMaxMultiplier())).toBe(5);
 });
 
 test('perder vida encerra o streak elite e remove a elegibilidade na rodada seguinte mesmo recuperando a vida', async ({ page }) => {

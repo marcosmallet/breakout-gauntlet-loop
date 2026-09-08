@@ -10,8 +10,9 @@
   const BASE_COMBO_WINDOW_MS = 2000;
   const ELITE_COMBO_WINDOW_MS = 2500;
   const SLOW_TIME_SCALE = 0.72;
-  const MAX_COMBO_MULTIPLIER = 5;
-  const MAX_BRICK_SCORE_DELTA = 50;
+  const NORMAL_MAX_COMBO_MULTIPLIER = 5;
+  const ELITE_MAX_COMBO_MULTIPLIER = 6;
+  const BRICK_SCORE_UNIT = 10;
   const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
   let previousScore = Number(scoreEl.textContent) || 0;
   let previousLives = Number(livesEl.textContent) || 0;
@@ -26,6 +27,16 @@
   let scoreFeedbackCount = 0;
   let soundFeedbackCount = 0;
   let audioContext = null;
+
+  function maxComboMultiplier() {
+    return window.GameDifficulty?.isEliteRoundActive?.()
+      ? ELITE_MAX_COMBO_MULTIPLIER
+      : NORMAL_MAX_COMBO_MULTIPLIER;
+  }
+
+  function maxBrickScoreDelta() {
+    return maxComboMultiplier() * BRICK_SCORE_UNIT;
+  }
 
   function comboWindowMs() {
     return window.GameDifficulty?.isEliteRoundActive?.()
@@ -46,8 +57,9 @@
   }
 
   function render() {
-    const multiplier = Math.min(combo, MAX_COMBO_MULTIPLIER);
-    comboEl.textContent = combo >= MAX_COMBO_MULTIPLIER
+    const maxMultiplier = maxComboMultiplier();
+    const multiplier = Math.min(combo, maxMultiplier);
+    comboEl.textContent = combo >= maxMultiplier
       ? `x${multiplier} MAX`
       : `x${multiplier}`;
   }
@@ -66,7 +78,7 @@
     const oscillator = audioContext.createOscillator();
     const gain = audioContext.createGain();
     oscillator.type = 'triangle';
-    oscillator.frequency.setValueAtTime(220 + Math.min(combo, 5) * 45, now);
+    oscillator.frequency.setValueAtTime(220 + Math.min(combo, maxComboMultiplier()) * 45, now);
     gain.gain.setValueAtTime(0.055, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.065);
     oscillator.connect(gain);
@@ -186,8 +198,9 @@
 
   function applyScoreDelta(nextScore) {
     const delta = nextScore - previousScore;
-    if (delta > 0 && delta <= MAX_BRICK_SCORE_DELTA) registerHit();
-    if (delta < 0 || delta > MAX_BRICK_SCORE_DELTA) resetCombo();
+    const maxBrickDelta = maxBrickScoreDelta();
+    if (delta > 0 && delta <= maxBrickDelta) registerHit();
+    if (delta < 0 || delta > maxBrickDelta) resetCombo();
     previousScore = nextScore;
   }
 
@@ -266,6 +279,12 @@
     },
     getWindowMs() {
       return comboWindowMs();
+    },
+    getMaxMultiplier() {
+      return maxComboMultiplier();
+    },
+    getMaxBrickScoreDelta() {
+      return maxBrickScoreDelta();
     },
     getEffectiveWindowMs() {
       return effectiveWindowMs();
