@@ -27,7 +27,7 @@ test('round clear separa celebração da contagem de lançamento e antecipa a pr
   expect(afterClear.respawnGrace).toBe(0);
   expect(afterClear.bricksRemaining).toBe(0);
   await expect(page.getByRole('status')).toHaveText(
-    'Rodada 1 concluída! Bônus +300. Vida extra. Próxima: Escalonada • Bola gigante (G).'
+    'Rodada 1 concluída! Bônus +300. Vida extra. Próxima: Escalonada • Bola gigante (G). W e S também estão no tabuleiro.'
   );
   await expect.poll(() => page.evaluate(() => window.__LAUNCH_COUNTDOWN_DEBUG__.getCountdown())).toBe(0);
 
@@ -83,7 +83,7 @@ test('pausa congela a janela de vitória e restaura sua mensagem ao retomar', as
 
   await page.getByRole('button', { name: 'Retomar' }).click();
   await expect(page.getByRole('status')).toHaveText(
-    'Rodada 1 concluída! Bônus +300. Vida extra. Próxima: Escalonada • Bola gigante (G).'
+    'Rodada 1 concluída! Bônus +300. Vida extra. Próxima: Escalonada • Bola gigante (G). W e S também estão no tabuleiro.'
   );
 
   const resumedTransition = await page.evaluate(() => {
