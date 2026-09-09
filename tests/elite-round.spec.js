@@ -34,6 +34,37 @@ test('domínio tardio desbloqueia escolha explícita entre normal e elite', asyn
   expect(await page.evaluate(() => window.__COMBO_DEBUG__.getWindowMs())).toBe(2000);
 });
 
+test('escolha Elite preserva o briefing da próxima rodada no próprio contexto decisório', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => window.__GAME_DEBUG__.start());
+  await setHudState(page, 2, 4);
+  await setHudState(page, 3, 5);
+  await setHudState(page, 4, 5);
+  await setHudState(page, 5, 5);
+
+  await page.evaluate(() => {
+    window.__GAME_DEBUG__.setRoundForTest(6);
+    document.getElementById('gameStatus').textContent =
+      'Rodada 5 concluída! Bônus +500. Próxima: Ondas • Perfuração (P).';
+  });
+  await page.waitForTimeout(0);
+
+  const context = page.locator('#eliteNextRoundContext');
+  await expect(page.locator('#eliteChoice')).toBeVisible();
+  await expect(context).toBeVisible();
+  await expect(context).toHaveText('Próxima rodada: Ondas • Perfuração (P).');
+  await expect(page.locator('#standardModeButton')).toBeFocused();
+  await expect(page.locator('#standardModeButton')).toHaveAttribute(
+    'aria-describedby',
+    'eliteChoiceDescription eliteNextRoundContext'
+  );
+  await expect(page.getByRole('status')).toHaveText('Pausado.');
+  expect(await page.evaluate(() => window.__ELITE_ROUND_DEBUG__.getState().pausedForChoice)).toBe(true);
+
+  await page.locator('#eliteModeButton').click();
+  await expect(context).toBeHidden();
+});
+
 test('aceitar elite aplica risco de velocidade e recompensa de combo', async ({ page }) => {
   await page.goto('/');
   await unlockEliteChoice(page);
