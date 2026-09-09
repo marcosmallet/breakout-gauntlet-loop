@@ -113,7 +113,13 @@
         previousBricksRemaining = remaining;
       }
     };
+    const completeNextRoundContext = () => {
+      const status = gameStatusEl.textContent;
+      if (!status.includes('Próxima:') || status.includes('W e S também estão no tabuleiro')) return;
+      gameStatusEl.textContent = `${status.replace(/\.$/, '')}. W e S também estão no tabuleiro.`;
+    };
     const syncGameStatusHud = () => {
+      completeNextRoundContext();
       syncRoundHud();
       syncBrickProgress();
     };
