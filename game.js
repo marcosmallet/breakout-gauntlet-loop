@@ -174,7 +174,7 @@
   function roundBriefingText(roundNumber = round) {
     const layout = brickLayoutForRound(roundNumber);
     const plan = powerPlanForRound(roundNumber);
-    return `${layoutLabel(layout)} • ${powerName(plan.bonusType)} (${powerLetter(plan.bonusType)})`;
+    return `${layoutLabel(layout)} • Raquete larga (W) + Escudo (S) + ${powerName(plan.bonusType)} (${powerLetter(plan.bonusType)})`;
   }
 
   function timedPowerLabel(label, remainingSteps) {
@@ -437,7 +437,6 @@
     const nextVx = Math.abs(desiredVx) < MIN_HORIZONTAL_SPEED
       ? minimumHorizontalVx
       : desiredVx;
-
     ball.vx = Math.max(-maxHorizontalSpeed, Math.min(maxHorizontalSpeed, nextVx));
     ball.vy = -Math.sqrt(Math.max(0, speed * speed - ball.vx * ball.vx));
     if (controlHits > 0 && speed > 0) {
@@ -877,7 +876,6 @@
       draw();
       return;
     }
-
     if (pausedByFocusLoss || pausedByPlayer) {
       lastFrameTime = null;
       draw();
