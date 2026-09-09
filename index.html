@@ -25,6 +25,8 @@
       <span>Blocos: <strong id="bricksRemaining" data-final-stretch="false">50</strong></span>
     </section>
 
+    <p id="firstRoundBriefing"><strong>RODADA 1:</strong> Muralha • Perfuração (P). Use a contagem para mirar uma rota; W e S também estão no tabuleiro.</p>
+
     <canvas id="game" width="800" height="520" aria-label="Jogo Breakout" aria-description="Durante a contagem antes do lançamento, mova a raquete para mirar a direção da bola." aria-describedby="controlInstructions powerInstructions" aria-keyshortcuts="ArrowLeft ArrowRight A D Space"></canvas>
 
     <section id="eliteChoice" class="elite-choice" aria-label="Escolha de desafio Elite" hidden>
@@ -69,6 +71,8 @@
     const gameStatusEl = document.getElementById('gameStatus');
     const scoreEl = document.getElementById('score');
     const bricksRemainingEl = document.getElementById('bricksRemaining');
+    const firstRoundBriefingEl = document.getElementById('firstRoundBriefing');
+    const startButtonEl = document.getElementById('startButton');
     const FINAL_STRETCH_THRESHOLD = 5;
     let previousBricksRemaining = 50;
     const syncRoundHud = () => {
@@ -113,6 +117,9 @@
       syncRoundHud();
       syncBrickProgress();
     };
+    startButtonEl?.addEventListener('click', () => {
+      if (firstRoundBriefingEl) firstRoundBriefingEl.hidden = true;
+    });
     new MutationObserver(syncGameStatusHud).observe(gameStatusEl, {
       childList: true,
       characterData: true,
