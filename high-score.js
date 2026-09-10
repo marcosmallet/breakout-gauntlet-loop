@@ -14,6 +14,10 @@
     }
   }
 
+  function prefersReducedMotion() {
+    return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
+  }
+
   let highScore = readStoredHighScore();
   let previousScore = Number(scoreEl.textContent) || 0;
   let recordToBeat = highScore;
@@ -22,6 +26,8 @@
   highScoreEl.textContent = highScore;
 
   function celebrateNewRecord() {
+    if (prefersReducedMotion()) return;
+
     celebrationCount += 1;
     highScoreEl.animate(
       [
