@@ -31,6 +31,10 @@
   let previousLives = initialState.lives;
   let scorePopup = null;
 
+  function prefersReducedMotion() {
+    return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
+  }
+
   function trailLimitForSpeed(speed) {
     const progress = Math.max(0, Math.min(1,
       (speed - BASE_BALL_SPEED) / (MAX_BALL_SPEED - BASE_BALL_SPEED)
@@ -54,6 +58,7 @@
 
   function sampleState() {
     const state = gameDebug.getState();
+    const reducedMotion = prefersReducedMotion();
 
     if (state.score > previousScore) {
       const scoreDelta = state.score - previousScore;
@@ -61,13 +66,15 @@
         ? previousLives * ROUND_CLEAR_LIFE_BONUS
         : 0;
       const impactPoints = Math.max(0, scoreDelta - roundClearBonus);
-      if (impactPoints > 0) {
+      if (impactPoints > 0 && !reducedMotion) {
         scorePopup = {
           x: state.ball.x,
           y: state.ball.y,
           value: impactPoints,
           life: SCORE_POPUP_FRAMES
         };
+      } else if (reducedMotion) {
+        scorePopup = null;
       }
     } else if (state.score < previousScore) {
       scorePopup = null;
@@ -75,6 +82,12 @@
     previousScore = state.score;
     previousRound = state.round;
     previousLives = state.lives;
+
+    if (reducedMotion) {
+      clearTrail();
+      scorePopup = null;
+      return state;
+    }
 
     if (!state.running || state.respawnGrace > 0 || state.pausedByFocusLoss || state.pausedByPlayer) {
       clearTrail();
