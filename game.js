@@ -74,6 +74,10 @@
   let controlHits = 0;
   let slowBallSteps = 0;
 
+  function prefersReducedMotion() {
+    return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
+  }
+
   function maxComboMultiplier() {
     return window.GameDifficulty?.isEliteRoundActive?.()
       ? ELITE_MAX_COMBO_MULTIPLIER
@@ -637,7 +641,9 @@
         ball.y - ball.r <= brick.y + brick.h
       ) {
         brick.alive = false;
-        impactFlash = { x: ball.x, y: ball.y, life: IMPACT_FLASH_STEPS };
+        impactFlash = prefersReducedMotion()
+          ? null
+          : { x: ball.x, y: ball.y, life: IMPACT_FLASH_STEPS };
         spawnPowerDrop(brick);
         if (pierceHits > 0) {
           pierceHits -= 1;
