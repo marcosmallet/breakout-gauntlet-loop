@@ -72,3 +72,43 @@ test('prefers-reduced-motion remove movimento decorativo do overlay e preserva c
   expect(afterHit.trailLength).toBe(0);
   expect(afterHit.scorePopup).toBeNull();
 });
+
+test('prefers-reduced-motion suprime o anel expansivo de impacto sem alterar score', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Iniciar' }).click();
+
+  const afterHit = await page.evaluate(() => {
+    const game = window.__GAME_DEBUG__;
+    while (game.getState().respawnGrace > 0) game.step();
+    game.setBall({ x: 50, y: 45, vx: 0, vy: 5 });
+    game.step();
+    return {
+      score: game.getState().score,
+      impactFlash: game.getState().impactFlash
+    };
+  });
+
+  expect(afterHit.score).toBe(10);
+  expect(afterHit.impactFlash).toBeNull();
+});
+
+test('impacto mantém feedback expansivo quando reduced motion não está ativo', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Iniciar' }).click();
+
+  const afterHit = await page.evaluate(() => {
+    const game = window.__GAME_DEBUG__;
+    while (game.getState().respawnGrace > 0) game.step();
+    game.setBall({ x: 50, y: 45, vx: 0, vy: 5 });
+    game.step();
+    return {
+      score: game.getState().score,
+      impactFlash: game.getState().impactFlash
+    };
+  });
+
+  expect(afterHit.score).toBe(10);
+  expect(afterHit.impactFlash).not.toBeNull();
+  expect(afterHit.impactFlash.life).toBeGreaterThan(0);
+});
