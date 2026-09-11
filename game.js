@@ -938,7 +938,7 @@
   pauseButton.addEventListener('click', togglePlayerPause);
 
   canvas.addEventListener('pointerdown', (event) => {
-    if (!running || pausedByPlayer) return;
+    if (!running || pausedByPlayer || roundTransition > 0) return;
     if (pausedByFocusLoss) resumeAfterFocusLoss();
     pointerActive = true;
     canvas.setPointerCapture?.(event.pointerId);
@@ -946,7 +946,7 @@
   });
   canvas.addEventListener('pointermove', (event) => {
     const dragging = pointerActive || event.buttons === 1;
-    if (!dragging || !running || pausedByPlayer) return;
+    if (!dragging || !running || pausedByPlayer || roundTransition > 0) return;
     if (pausedByFocusLoss) resumeAfterFocusLoss();
     pointerActive = true;
     movePaddleFromPointer(event);
