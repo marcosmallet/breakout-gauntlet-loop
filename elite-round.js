@@ -9,7 +9,7 @@
   const eliteButton = document.getElementById('eliteModeButton');
   const pauseButton = document.getElementById('pauseButton');
   const canvas = document.getElementById('game');
-  if (!roundEl || !livesEl || !roundModeEl || !window.GameDifficulty) return;
+  if (!roundEl || !livesEl || !roundModeEl || !gameStatusEl || !window.GameDifficulty) return;
 
   const ELITE_START_ROUND = 6;
   const MAX_LIVES = 5;
@@ -17,6 +17,7 @@
   let trackedRound = Number.parseInt(roundEl.textContent, 10) || 1;
   let livesAtRoundStart = Number.parseInt(livesEl.textContent, 10) || 3;
   let minimumLivesThisRound = livesAtRoundStart;
+  let masteryBrokenThisRound = false;
   let eliteRoundActive = false;
   let eliteEligible = false;
   let awaitingChoice = false;
@@ -102,10 +103,31 @@
     standardButton?.focus();
   }
 
+  function breakMastery() {
+    masteryBrokenThisRound = true;
+    if (!masteryChoice) return;
+    masteryChoice = null;
+    eliteEligible = false;
+    awaitingChoice = false;
+    clearChoiceContext();
+    setEliteRound(false);
+    renderChoice();
+  }
+
+  function statusFromMutation(mutation) {
+    if (mutation.type === 'characterData') return mutation.target.textContent?.trim() || '';
+    if (mutation.type !== 'childList' || mutation.addedNodes.length === 0) return '';
+    return Array.from(mutation.addedNodes)
+      .map((node) => node.textContent || '')
+      .join('')
+      .trim();
+  }
+
   function resetTracking(round, lives) {
     trackedRound = round;
     livesAtRoundStart = lives;
     minimumLivesThisRound = lives;
+    masteryBrokenThisRound = false;
     eliteEligible = false;
     awaitingChoice = false;
     pausedForChoice = false;
@@ -120,15 +142,14 @@
     if (!Number.isInteger(lives)) return;
     minimumLivesThisRound = Math.min(minimumLivesThisRound, lives);
 
-    if (masteryChoice && lives < MAX_LIVES) {
-      masteryChoice = null;
-      eliteEligible = false;
-      awaitingChoice = false;
-      clearChoiceContext();
-      setEliteRound(false);
-      renderChoice();
-    }
+    if (masteryChoice && lives < MAX_LIVES) breakMastery();
   }).observe(livesEl, { childList: true, characterData: true, subtree: true });
+
+  new MutationObserver((mutations) => {
+    if (mutations.some((mutation) => statusFromMutation(mutation) === 'Escudo salvou a bola!')) {
+      breakMastery();
+    }
+  }).observe(gameStatusEl, { childList: true, characterData: true, subtree: true });
 
   new MutationObserver(() => {
     const nextRound = Number.parseInt(roundEl.textContent, 10);
@@ -140,7 +161,9 @@
       return;
     }
 
-    const sustainedMastery = livesAtRoundStart >= MAX_LIVES && minimumLivesThisRound >= MAX_LIVES;
+    const sustainedMastery = livesAtRoundStart >= MAX_LIVES
+      && minimumLivesThisRound >= MAX_LIVES
+      && !masteryBrokenThisRound;
     const unlocked = nextRound >= ELITE_START_ROUND && sustainedMastery;
 
     if (!unlocked) {
@@ -163,6 +186,7 @@
     trackedRound = nextRound;
     livesAtRoundStart = currentLives;
     minimumLivesThisRound = currentLives;
+    masteryBrokenThisRound = false;
   }).observe(roundEl, { childList: true, characterData: true, subtree: true });
 
   standardButton?.addEventListener('click', () => chooseMode('standard'));
@@ -180,6 +204,7 @@
         awaitingChoice,
         pausedForChoice,
         masteryChoice,
+        masteryBrokenThisRound,
         trackedRound,
         livesAtRoundStart,
         minimumLivesThisRound,
