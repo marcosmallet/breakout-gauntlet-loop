@@ -1,14 +1,18 @@
 (() => {
   const scoreEl = document.getElementById('score');
   const highScoreEl = document.getElementById('highScore');
-  if (!scoreEl || !highScoreEl) return;
+  const roundEl = document.getElementById('round');
+  const startButton = document.getElementById('startButton');
+  const hudEl = document.querySelector('.hud');
+  if (!scoreEl || !highScoreEl || !roundEl || !startButton || !hudEl) return;
 
-  const STORAGE_KEY = 'breakoutHighScore';
+  const SCORE_STORAGE_KEY = 'breakoutHighScore';
+  const ROUND_STORAGE_KEY = 'breakoutBestRound';
 
-  function readStoredHighScore() {
+  function readStoredPositiveInteger(key) {
     try {
-      const value = Number.parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
-      return Number.isFinite(value) && value > 0 ? value : 0;
+      const value = Number.parseInt(localStorage.getItem(key) || '0', 10);
+      return Number.isInteger(value) && value > 0 ? value : 0;
     } catch {
       return 0;
     }
@@ -18,12 +22,30 @@
     return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
   }
 
-  let highScore = readStoredHighScore();
+  const bestRoundWrapper = document.createElement('span');
+  bestRoundWrapper.append('Maior rodada: ');
+  const bestRoundEl = document.createElement('strong');
+  bestRoundEl.id = 'bestRound';
+  bestRoundWrapper.append(bestRoundEl);
+  highScoreEl.closest('span')?.after(bestRoundWrapper);
+
+  let highScore = readStoredPositiveInteger(SCORE_STORAGE_KEY);
+  let bestRound = readStoredPositiveInteger(ROUND_STORAGE_KEY);
   let previousScore = Number(scoreEl.textContent) || 0;
   let recordToBeat = highScore;
   let celebratedThisRun = false;
   let celebrationCount = 0;
+  let trackingRun = false;
   highScoreEl.textContent = highScore;
+  bestRoundEl.textContent = bestRound > 0 ? String(bestRound) : '—';
+
+  function persistPositiveInteger(key, value) {
+    try {
+      localStorage.setItem(key, String(value));
+    } catch {
+      // Keep the record visible for this page session when storage is unavailable.
+    }
+  }
 
   function celebrateNewRecord() {
     if (prefersReducedMotion()) return;
@@ -50,11 +72,7 @@
     if (score > highScore) {
       highScore = score;
       highScoreEl.textContent = highScore;
-      try {
-        localStorage.setItem(STORAGE_KEY, String(highScore));
-      } catch {
-        // The HUD still reflects the best score for this page session.
-      }
+      persistPositiveInteger(SCORE_STORAGE_KEY, highScore);
     }
 
     if (
@@ -69,7 +87,29 @@
     previousScore = score;
   }
 
+  function syncBestRound() {
+    if (!trackingRun) return;
+
+    const currentRound = Number.parseInt(roundEl.textContent || '0', 10);
+    if (!Number.isInteger(currentRound) || currentRound < 1 || currentRound <= bestRound) return;
+
+    bestRound = currentRound;
+    bestRoundEl.textContent = String(bestRound);
+    persistPositiveInteger(ROUND_STORAGE_KEY, bestRound);
+  }
+
+  startButton.addEventListener('click', () => {
+    trackingRun = true;
+    syncBestRound();
+  });
+
   new MutationObserver(syncHighScore).observe(scoreEl, {
+    childList: true,
+    characterData: true,
+    subtree: true
+  });
+
+  new MutationObserver(syncBestRound).observe(roundEl, {
     childList: true,
     characterData: true,
     subtree: true
@@ -78,6 +118,9 @@
   window.__HIGH_SCORE_DEBUG__ = {
     getHighScore() {
       return highScore;
+    },
+    getBestRound() {
+      return bestRound;
     },
     getCelebrationCount() {
       return celebrationCount;
