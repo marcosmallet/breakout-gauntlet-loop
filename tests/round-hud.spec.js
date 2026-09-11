@@ -2,7 +2,7 @@ const { test, expect } = require('@playwright/test');
 
 test('HUD mantém a rodada atual visível durante a celebração e preparação', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByText('Rodada:', { exact: false })).toContainText('1');
+  await expect(page.locator('#round')).toHaveText('1');
   await page.getByRole('button', { name: 'Iniciar' }).click();
 
   await page.evaluate(() => {

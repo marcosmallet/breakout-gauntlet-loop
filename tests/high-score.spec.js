@@ -21,6 +21,42 @@ test('recorde acompanha a pontuação e persiste entre partidas', async ({ page 
   await expect(page.locator('#highScore')).toHaveText('310');
 });
 
+test('maior rodada persiste progresso mesmo quando score é um eixo separado', async ({ page }) => {
+  await page.goto('/');
+
+  await expect(page.locator('#bestRound')).toHaveText('—');
+  await page.getByRole('button', { name: 'Iniciar' }).click();
+  await expect(page.locator('#bestRound')).toHaveText('1');
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('breakoutBestRound'))).toBe('1');
+
+  await page.evaluate(() => {
+    const game = window.__GAME_DEBUG__;
+    while (game.getState().respawnGrace > 0) game.step();
+    game.clearBricksExcept(0);
+    game.setBall({ x: 21.6, y: 69, vx: 4, vy: 0 });
+    game.step();
+    while (game.getState().roundTransition > 0) game.step();
+  });
+
+  await expect(page.locator('#round')).toHaveText('2');
+  await expect(page.locator('#bestRound')).toHaveText('2');
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('breakoutBestRound'))).toBe('2');
+
+  await page.reload();
+  await expect(page.locator('#score')).toHaveText('0');
+  await expect(page.locator('#bestRound')).toHaveText('2');
+});
+
+test('uma nova run abaixo da maior rodada não rebaixa o progresso persistente', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('breakoutBestRound', '7'));
+  await page.goto('/');
+
+  await expect(page.locator('#bestRound')).toHaveText('7');
+  await page.getByRole('button', { name: 'Iniciar' }).click();
+  await expect(page.locator('#bestRound')).toHaveText('7');
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('breakoutBestRound'))).toBe('7');
+});
+
 test('bater um recorde existente dispara celebração uma vez', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('breakoutHighScore', '300'));
   await page.goto('/');
