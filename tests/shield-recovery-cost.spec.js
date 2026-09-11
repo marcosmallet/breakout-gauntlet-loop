@@ -65,6 +65,7 @@ test('Escudo encerra o streak Elite e exige novo domínio antes de requalificar'
   await page.locator('#eliteModeButton').click();
   await expect(page.locator('#roundMode')).toHaveText('Elite');
 
+  await page.evaluate(() => window.__GAME_DEBUG__.setRoundForTest(6));
   const shield = await triggerShieldSave(page);
   expect(shield.armed.shieldCharges).toBe(1);
   expect(shield.saved.lives).toBe(shield.before.lives);
