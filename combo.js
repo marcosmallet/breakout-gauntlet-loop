@@ -247,7 +247,9 @@
 
   let wasPaused = gameStatusEl.textContent.trim() === 'Pausado.';
   new MutationObserver(() => {
-    const isPaused = gameStatusEl.textContent.trim() === 'Pausado.';
+    const status = gameStatusEl.textContent.trim();
+    const isPaused = status === 'Pausado.';
+    if (status === 'Escudo salvou a bola!') resetCombo();
     if (isPaused && !wasPaused) suspendComboWindow();
     if (!isPaused && wasPaused) resumeComboWindow();
     wasPaused = isPaused;
