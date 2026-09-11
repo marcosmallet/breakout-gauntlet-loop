@@ -60,9 +60,8 @@ test('Escudo preserva a vida, mas uma falha de raquete encerra o combo', async (
 
 test('Escudo encerra o streak Elite e exige novo domínio antes de requalificar', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Iniciar' }).click();
-  await drainGrace(page);
   await unlockEliteChoice(page);
+  await expect(page.locator('#eliteChoice')).toBeVisible();
   await page.locator('#eliteModeButton').click();
   await expect(page.locator('#roundMode')).toHaveText('Elite');
 
