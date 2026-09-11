@@ -15,11 +15,4 @@ jobs:
           node-version: 22
       - run: npm install
       - run: npx playwright install --with-deps chromium
-      - name: Run Playwright with diagnostic report
-        run: npx playwright test --reporter=json > playwright-results.json
-      - name: Upload Playwright diagnostic report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-diagnostic
-          path: playwright-results.json
+      - run: npm run test:e2e
