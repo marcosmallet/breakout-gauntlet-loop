@@ -91,7 +91,7 @@ test('perder vida dispara feedback sonoro próprio uma vez', async ({ page }) =>
 test('perder a última vida dispara som de game over em vez do som comum', async ({ page }) => {
   await page.goto('/');
 
-  await page.evaluate(async () => {
+  const finalState = await page.evaluate(async () => {
     const game = window.__GAME_DEBUG__;
     game.start();
     game.step(45);
@@ -102,10 +102,14 @@ test('perder a última vida dispara som de game over em vez do som comum', async
       await Promise.resolve();
       if (remainingLives > 0) game.step(45);
     }
+
+    return game.getState();
   });
 
   await expect(page.locator('#lives')).toHaveText('0');
-  await expect(page.locator('#gameStatus')).toHaveText('Fim de jogo.');
+  await expect(page.locator('#gameStatus')).toHaveText(
+    `Fim de jogo. ${finalState.score} pontos • Rodada ${finalState.round}.`
+  );
   await expect.poll(() => page.evaluate(() => window.__IMPACT_SOUND_DEBUG__.getLifeLossCount())).toBe(2);
   await expect.poll(() => page.evaluate(() => window.__IMPACT_SOUND_DEBUG__.getGameOverCount())).toBe(1);
 });
