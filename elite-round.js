@@ -114,6 +114,15 @@
     renderChoice();
   }
 
+  function statusFromMutation(mutation) {
+    if (mutation.type === 'characterData') return mutation.target.textContent?.trim() || '';
+    if (mutation.type !== 'childList' || mutation.addedNodes.length === 0) return '';
+    return Array.from(mutation.addedNodes)
+      .map((node) => node.textContent || '')
+      .join('')
+      .trim();
+  }
+
   function resetTracking(round, lives) {
     trackedRound = round;
     livesAtRoundStart = lives;
@@ -136,8 +145,10 @@
     if (masteryChoice && lives < MAX_LIVES) breakMastery();
   }).observe(livesEl, { childList: true, characterData: true, subtree: true });
 
-  new MutationObserver(() => {
-    if (gameStatusEl.textContent.trim() === 'Escudo salvou a bola!') breakMastery();
+  new MutationObserver((mutations) => {
+    if (mutations.some((mutation) => statusFromMutation(mutation) === 'Escudo salvou a bola!')) {
+      breakMastery();
+    }
   }).observe(gameStatusEl, { childList: true, characterData: true, subtree: true });
 
   new MutationObserver(() => {
