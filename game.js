@@ -625,7 +625,11 @@
       if (overlapsPaddleAtContact) {
         ball.x = contactX;
         ball.y = paddle.y - ball.r;
-        const rawHit = (ball.x - (paddle.x + paddle.w / 2)) / (paddle.w / 2);
+        const paddleCenter = paddle.x + paddle.w / 2;
+        const steeringHalfWidth = controlHits > 0
+          ? basePaddleWidthForRound() / 2
+          : paddle.w / 2;
+        const rawHit = (ball.x - paddleCenter) / steeringHalfWidth;
         const hit = Math.max(-1, Math.min(1, rawHit));
         applyPaddleBounce(hit);
         paddleFlash = PADDLE_FLASH_STEPS;
