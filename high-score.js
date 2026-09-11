@@ -1,10 +1,10 @@
 (() => {
   const scoreEl = document.getElementById('score');
   const highScoreEl = document.getElementById('highScore');
+  const bestRoundEl = document.getElementById('bestRound');
   const roundEl = document.getElementById('round');
   const startButton = document.getElementById('startButton');
-  const hudEl = document.querySelector('.hud');
-  if (!scoreEl || !highScoreEl || !roundEl || !startButton || !hudEl) return;
+  if (!scoreEl || !highScoreEl || !bestRoundEl || !roundEl || !startButton) return;
 
   const SCORE_STORAGE_KEY = 'breakoutHighScore';
   const ROUND_STORAGE_KEY = 'breakoutBestRound';
@@ -21,13 +21,6 @@
   function prefersReducedMotion() {
     return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
   }
-
-  const bestRoundWrapper = document.createElement('span');
-  bestRoundWrapper.append('Maior rodada: ');
-  const bestRoundEl = document.createElement('strong');
-  bestRoundEl.id = 'bestRound';
-  bestRoundWrapper.append(bestRoundEl);
-  highScoreEl.closest('span')?.after(bestRoundWrapper);
 
   let highScore = readStoredPositiveInteger(SCORE_STORAGE_KEY);
   let bestRound = readStoredPositiveInteger(ROUND_STORAGE_KEY);
