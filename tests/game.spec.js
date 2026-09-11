@@ -366,7 +366,7 @@ test('fim de jogo exibe resultado acessível ao jogador', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Iniciar' }).click();
 
-  await page.evaluate(() => {
+  const finalState = await page.evaluate(() => {
     while (window.__GAME_DEBUG__.getState().respawnGrace > 0) {
       window.__GAME_DEBUG__.step();
     }
@@ -380,9 +380,13 @@ test('fim de jogo exibe resultado acessível ao jogador', async ({ page }) => {
         }
       }
     }
+
+    return window.__GAME_DEBUG__.getState();
   });
 
-  await expect(page.getByRole('status')).toHaveText('Fim de jogo.');
+  await expect(page.getByRole('status')).toHaveText(
+    `Fim de jogo. ${finalState.score} pontos • Rodada ${finalState.round}.`
+  );
   await expect(page.getByRole('button', { name: 'Jogar novamente' })).toBeVisible();
 });
 
