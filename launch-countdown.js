@@ -1,6 +1,7 @@
 (() => {
   const canvas = document.getElementById('game');
   const ctx = canvas?.getContext('2d');
+  const startButton = document.getElementById('startButton');
   if (!canvas || !ctx) return;
 
   const GRACE_STEPS = 45;
@@ -113,6 +114,15 @@
     ctx.restore();
   }
 
+  function resetLaunchState() {
+    currentCountdown = 0;
+    currentAimDirection = 0;
+    currentAimStrength = 0;
+    aimHintVisible = false;
+    defaultLaunchVelocity = null;
+    previousGrace = 0;
+  }
+
   function frame() {
     const state = window.__GAME_DEBUG__?.getState?.();
     const grace = Math.max(0, Math.min(GRACE_STEPS, state?.respawnGrace || 0));
@@ -153,6 +163,7 @@
     rafId = requestAnimationFrame(frame);
   }
 
+  startButton?.addEventListener('click', resetLaunchState);
   rafId = requestAnimationFrame(frame);
 
   window.__LAUNCH_COUNTDOWN_DEBUG__ = {
