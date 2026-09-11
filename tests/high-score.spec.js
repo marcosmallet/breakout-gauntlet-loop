@@ -35,6 +35,7 @@ test('maior rodada persiste progresso mesmo quando score é um eixo separado', a
     game.clearBricksExcept(0);
     game.setBall({ x: 21.6, y: 69, vx: 4, vy: 0 });
     game.step();
+    while (game.getState().roundTransition > 0) game.step();
   });
 
   await expect(page.locator('#round')).toHaveText('2');
