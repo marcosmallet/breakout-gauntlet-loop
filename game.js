@@ -60,6 +60,7 @@
   let pointerActive = false;
   let lastFrameTime = null;
   let respawnGrace = 0;
+  let respawnStatus = '';
   let roundTransition = 0;
   let roundTransitionStatus = '';
   let pausedByFocusLoss = false;
@@ -389,7 +390,7 @@
     syncPhaseHud();
   }
 
-  function resetBall(withGrace = false) {
+  function resetBall(withGrace = false, status = 'Prepare-se...') {
     const roundStartComponent = Math.min(
       MAX_ROUND_START_COMPONENT,
       4 + (round - 1) * ROUND_SPEED_STEP
@@ -400,7 +401,8 @@
     ball.vy = -roundStartComponent;
     paddle.x = W / 2 - paddle.w / 2;
     respawnGrace = withGrace ? RESPAWN_GRACE_STEPS : 0;
-    if (withGrace) gameStatusEl.textContent = 'Prepare-se...';
+    respawnStatus = withGrace ? status : '';
+    if (withGrace) gameStatusEl.textContent = respawnStatus;
   }
 
   function resetGame() {
@@ -418,6 +420,7 @@
     ball.r = BASE_BALL_RADIUS;
     impactFlash = null;
     paddleFlash = 0;
+    respawnStatus = '';
     roundTransition = 0;
     roundTransitionStatus = '';
     scoreEl.textContent = score;
@@ -551,7 +554,7 @@
     lastFrameTime = null;
     gameStatusEl.textContent = pausedByPlayer
       ? 'Pausado.'
-      : (roundTransition > 0 ? roundTransitionStatus : (respawnGrace > 0 ? 'Prepare-se...' : ''));
+      : (roundTransition > 0 ? roundTransitionStatus : (respawnGrace > 0 ? respawnStatus : ''));
   }
 
   function togglePlayerPause() {
@@ -561,7 +564,7 @@
     lastFrameTime = null;
     gameStatusEl.textContent = pausedByPlayer
       ? 'Pausado.'
-      : (roundTransition > 0 ? roundTransitionStatus : (respawnGrace > 0 ? 'Prepare-se...' : ''));
+      : (roundTransition > 0 ? roundTransitionStatus : (respawnGrace > 0 ? respawnStatus : ''));
     syncPauseButton();
   }
 
@@ -577,9 +580,10 @@
     if (roundTransition > 0) {
       roundTransition = Math.max(0, roundTransition - stepScale);
       if (roundTransition === 0) {
+        const preparationStatus = `Próxima ${round}: ${roundBriefingText(round)}. Posicione a raquete para ajustar a mira.`;
         roundTransitionStatus = '';
         createBricks();
-        resetBall(true);
+        resetBall(true, preparationStatus);
       }
       return;
     }
@@ -592,7 +596,10 @@
       ball.x = paddle.x + paddle.w / 2;
       ball.y = H - 58;
       respawnGrace = Math.max(0, respawnGrace - stepScale);
-      if (respawnGrace === 0) gameStatusEl.textContent = '';
+      if (respawnGrace === 0) {
+        respawnStatus = '';
+        gameStatusEl.textContent = '';
+      }
       return;
     }
 
@@ -978,6 +985,7 @@
         controlHits,
         slowBallSteps,
         respawnGrace,
+        respawnStatus,
         roundTransition,
         roundTransitionStatus,
         pausedByFocusLoss,
@@ -1004,6 +1012,7 @@
       round = nextRound;
       clearActivePowers();
       syncPaddleWidth();
+      respawnStatus = '';
       roundTransition = 0;
       roundTransitionStatus = '';
       createBricks();

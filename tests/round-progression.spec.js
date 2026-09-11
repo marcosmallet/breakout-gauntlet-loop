@@ -45,7 +45,10 @@ test('limpar o tabuleiro cria uma janela de vitória antes de preparar a nova ro
   expect(result.prepared.roundTransition).toBe(0);
   expect(result.prepared.bricksRemaining).toBe(50);
   expect(result.prepared.respawnGrace).toBe(45);
-  expect(result.statusPrepared).toBe('Prepare-se...');
+  expect(result.prepared.respawnStatus).toBe(
+    'Próxima 2: Escalonada • Raquete larga (W) + Escudo (S) + Bola gigante (G). Posicione a raquete para ajustar a mira.'
+  );
+  expect(result.statusPrepared).toBe(result.prepared.respawnStatus);
 
   await expect(page.locator('#game')).toHaveCSS('--round-accent-hue', '243');
   await expect(page.locator('html')).toHaveCSS('--round-accent-hue', '243');
