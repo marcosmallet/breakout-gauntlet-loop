@@ -47,6 +47,25 @@ test('maior rodada persiste progresso mesmo quando score é um eixo separado', a
   await expect(page.locator('#bestRound')).toHaveText('2');
 });
 
+test('superar uma maior rodada existente celebra a conquista uma vez', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('breakoutBestRound', '1'));
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Iniciar' }).click();
+
+  await page.evaluate(() => {
+    const game = window.__GAME_DEBUG__;
+    while (game.getState().respawnGrace > 0) game.step();
+    game.clearBricksExcept(0);
+    game.setBall({ x: 21.6, y: 69, vx: 4, vy: 0 });
+    game.step();
+    while (game.getState().roundTransition > 0) game.step();
+  });
+
+  await expect(page.locator('#round')).toHaveText('2');
+  await expect(page.locator('#bestRound')).toHaveText('2');
+  await expect.poll(() => page.evaluate(() => window.__HIGH_SCORE_DEBUG__.getBestRoundCelebrationCount())).toBe(1);
+});
+
 test('uma nova run abaixo da maior rodada não rebaixa o progresso persistente', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('breakoutBestRound', '7'));
   await page.goto('/');
