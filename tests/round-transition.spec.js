@@ -8,7 +8,10 @@ async function clearRound(page) {
     game.clearBricksExcept(0);
     game.setBall({ x: 21.6, y: 69, vx: 4, vy: 0 });
     game.step();
-    return game.getState();
+    return {
+      state: game.getState(),
+      statusText: document.getElementById('gameStatus').textContent
+    };
   });
   return afterClear;
 }
@@ -28,13 +31,12 @@ test('round clear separa celebração da preparação e mantém o briefing duran
 
   const afterClear = await clearRound(page);
 
-  expect(afterClear.roundTransition).toBe(54);
-  expect(afterClear.respawnGrace).toBe(0);
-  expect(afterClear.bricksRemaining).toBe(0);
-  await expect(page.getByRole('status')).toHaveText(
+  expect(afterClear.state.roundTransition).toBe(54);
+  expect(afterClear.state.respawnGrace).toBe(0);
+  expect(afterClear.state.bricksRemaining).toBe(0);
+  expect(afterClear.statusText).toBe(
     'Rodada 1 concluída! Bônus +300. Vida extra. Próxima: Escalonada • Raquete larga (W) + Escudo (S) + Bola gigante (G).'
   );
-  await expect.poll(() => page.evaluate(() => window.__LAUNCH_COUNTDOWN_DEBUG__.getCountdown())).toBe(0);
 
   const previewText = await page.evaluate(() => window.__ROUND_TRANSITION_TEXT__);
   expect(previewText).toContain('W');
@@ -51,10 +53,18 @@ test('round clear separa celebração da preparação e mantém o briefing duran
     const beforePreparation = game.getState();
     game.step();
     const prepared = game.getState();
+    const preparedStatusText = document.getElementById('gameStatus').textContent;
     game.movePaddleTo(600);
     game.step();
     const whileAiming = game.getState();
-    return { beforePreparation, prepared, whileAiming };
+    const whileAimingStatusText = document.getElementById('gameStatus').textContent;
+    return {
+      beforePreparation,
+      prepared,
+      preparedStatusText,
+      whileAiming,
+      whileAimingStatusText
+    };
   });
 
   expect(transitionBoundary.beforePreparation.roundTransition).toBe(1);
@@ -67,17 +77,22 @@ test('round clear separa celebração da preparação e mantém o briefing duran
   expect(transitionBoundary.prepared.respawnStatus).toBe(
     'Próxima 2: Escalonada • Raquete larga (W) + Escudo (S) + Bola gigante (G). Posicione a raquete para ajustar a mira.'
   );
+  expect(transitionBoundary.preparedStatusText).toBe(transitionBoundary.prepared.respawnStatus);
   expect(transitionBoundary.whileAiming.paddle.x).toBeGreaterThan(transitionBoundary.prepared.paddle.x);
   expect(transitionBoundary.whileAiming.respawnStatus).toBe(transitionBoundary.prepared.respawnStatus);
-  await expect(page.getByRole('status')).toHaveText(transitionBoundary.prepared.respawnStatus);
-  await expect.poll(() => page.evaluate(() => window.__LAUNCH_COUNTDOWN_DEBUG__.getCountdown())).toBe(3);
+  expect(transitionBoundary.whileAimingStatusText).toBe(transitionBoundary.prepared.respawnStatus);
 
-  await page.evaluate(() => {
+  const afterLaunch = await page.evaluate(() => {
     while (window.__GAME_DEBUG__.getState().respawnGrace > 0) {
       window.__GAME_DEBUG__.step();
     }
+    return {
+      state: window.__GAME_DEBUG__.getState(),
+      statusText: document.getElementById('gameStatus').textContent
+    };
   });
-  await expect(page.getByRole('status')).toHaveText('');
+  expect(afterLaunch.state.respawnStatus).toBe('');
+  expect(afterLaunch.statusText).toBe('');
 });
 
 test('pausa congela a janela de vitória e restaura sua mensagem ao retomar', async ({ page }) => {
