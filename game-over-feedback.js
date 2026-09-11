@@ -1,6 +1,8 @@
 (() => {
   const canvas = document.getElementById('game');
   const status = document.getElementById('gameStatus');
+  const score = document.getElementById('score');
+  const round = document.getElementById('round');
   let triggerCount = 0;
 
   function syncGameOverFeedback() {
@@ -10,10 +12,7 @@
     canvas.classList.toggle('game-over-feedback', isGameOver);
     if (isGameOver && !wasGameOver) {
       triggerCount += 1;
-      const state = window.__GAME_DEBUG__?.getState?.();
-      if (state) {
-        status.textContent = `Fim de jogo. ${state.score} pontos • Rodada ${state.round}.`;
-      }
+      status.textContent = `Fim de jogo. ${score.textContent} pontos • Rodada ${round.textContent}.`;
     }
   }
 
