@@ -26,8 +26,11 @@
   let bestRound = readStoredPositiveInteger(ROUND_STORAGE_KEY);
   let previousScore = Number(scoreEl.textContent) || 0;
   let recordToBeat = highScore;
+  let bestRoundToBeat = bestRound;
   let celebratedThisRun = false;
+  let celebratedBestRoundThisRun = false;
   let celebrationCount = 0;
+  let bestRoundCelebrationCount = 0;
   let trackingRun = false;
   highScoreEl.textContent = highScore;
   bestRoundEl.textContent = bestRound > 0 ? String(bestRound) : '—';
@@ -40,11 +43,10 @@
     }
   }
 
-  function celebrateNewRecord() {
-    if (prefersReducedMotion()) return;
+  function animateRecord(element) {
+    if (prefersReducedMotion()) return false;
 
-    celebrationCount += 1;
-    highScoreEl.animate(
+    element.animate(
       [
         { transform: 'scale(1)', textShadow: 'none' },
         { transform: 'scale(1.55)', textShadow: '0 0 18px #facc15' },
@@ -52,6 +54,15 @@
       ],
       { duration: 520, easing: 'ease-out' }
     );
+    return true;
+  }
+
+  function celebrateNewRecord() {
+    if (animateRecord(highScoreEl)) celebrationCount += 1;
+  }
+
+  function celebrateNewBestRound() {
+    if (animateRecord(bestRoundEl)) bestRoundCelebrationCount += 1;
   }
 
   function syncHighScore() {
@@ -89,10 +100,21 @@
     bestRound = currentRound;
     bestRoundEl.textContent = String(bestRound);
     persistPositiveInteger(ROUND_STORAGE_KEY, bestRound);
+
+    if (
+      bestRoundToBeat > 0 &&
+      currentRound > bestRoundToBeat &&
+      !celebratedBestRoundThisRun
+    ) {
+      celebratedBestRoundThisRun = true;
+      celebrateNewBestRound();
+    }
   }
 
   startButton.addEventListener('click', () => {
     trackingRun = true;
+    bestRoundToBeat = bestRound;
+    celebratedBestRoundThisRun = false;
     syncBestRound();
   });
 
@@ -117,6 +139,9 @@
     },
     getCelebrationCount() {
       return celebrationCount;
+    },
+    getBestRoundCelebrationCount() {
+      return bestRoundCelebrationCount;
     }
   };
 })();
