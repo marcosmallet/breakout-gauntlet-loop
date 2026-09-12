@@ -21,6 +21,7 @@
   let roundAdvanceCount = 0;
   let paddleImpactCount = 0;
   let wallImpactCount = 0;
+  let powerPickupCount = 0;
   let emittedSoundCount = 0;
   let lastImpactFrequency = 420;
 
@@ -204,6 +205,29 @@
     });
   }
 
+  function playPowerPickup() {
+    powerPickupCount += 1;
+    const context = beginSound();
+    if (!context) return;
+
+    const now = context.currentTime;
+    [440, 660].forEach((frequency, index) => {
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      const start = now + index * 0.045;
+
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(frequency, start);
+      gain.gain.setValueAtTime(0.035, start);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.09);
+
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+      oscillator.start(start);
+      oscillator.stop(start + 0.1);
+    });
+  }
+
   soundButton.addEventListener('click', () => {
     muted = !muted;
     saveMutedPreference();
@@ -239,6 +263,16 @@
     roundObserver.observe(roundEl, { childList: true, characterData: true, subtree: true });
   }
 
+  if (gameStatusEl) {
+    let previousStatus = gameStatusEl.textContent.trim();
+    const statusObserver = new MutationObserver(() => {
+      const nextStatus = gameStatusEl.textContent.trim();
+      if (nextStatus.startsWith('Poder coletado:') && nextStatus !== previousStatus) playPowerPickup();
+      previousStatus = nextStatus;
+    });
+    statusObserver.observe(gameStatusEl, { childList: true, characterData: true, subtree: true });
+  }
+
   function watchGameImpacts() {
     const state = window.__GAME_DEBUG__?.getState?.();
     const nextPaddleFlash = state?.paddleFlash || 0;
@@ -268,6 +302,7 @@
     getRoundAdvanceCount() { return roundAdvanceCount; },
     getPaddleImpactCount() { return paddleImpactCount; },
     getWallImpactCount() { return wallImpactCount; },
+    getPowerPickupCount() { return powerPickupCount; },
     getLastImpactFrequency() { return lastImpactFrequency; },
     getEmittedSoundCount() { return emittedSoundCount; },
     isMuted() { return muted; }
