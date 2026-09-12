@@ -711,6 +711,7 @@
     }
 
     if (running && bricks.every((brick) => !brick.alive)) {
+      powerDrops = [];
       const roundClearBonus = lives * ROUND_CLEAR_LIFE_BONUS;
       score += roundClearBonus;
       scoreEl.textContent = score;
