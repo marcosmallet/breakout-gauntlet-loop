@@ -20,6 +20,7 @@
   const MAX_BALL_SPEED = (
     window.GameDifficulty?.baseMaxBallSpeedForRound?.(Number.MAX_SAFE_INTEGER) ?? 9
   ) + (window.GameDifficulty?.eliteRoundSpeedBonus ?? 0.5);
+  const SLOW_BALL_FACTOR = 0.72;
   const COUNTDOWN_SEGMENT_STEPS = 15;
   const SCORE_POPUP_FRAMES = 42;
   const ROUND_CLEAR_LIFE_BONUS = 100;
@@ -96,7 +97,8 @@
       return state;
     }
 
-    activeTrailLimit = trailLimitForSpeed(Math.hypot(state.ball.vx, state.ball.vy));
+    const movementScale = state.slowBallSteps > 0 ? SLOW_BALL_FACTOR : 1;
+    activeTrailLimit = trailLimitForSpeed(Math.hypot(state.ball.vx, state.ball.vy) * movementScale);
     const sample = { x: state.ball.x, y: state.ball.y, r: state.ball.r };
     if (!lastSample || sample.x !== lastSample.x || sample.y !== lastSample.y) {
       trail.push(sample);
