@@ -26,6 +26,7 @@
   const ROUND_TRANSITION_STEPS = 54;
   const IMPACT_FLASH_STEPS = 8;
   const PADDLE_FLASH_STEPS = 6;
+  const BASE_PADDLE_SPEED = 8;
   const BASE_PADDLE_WIDTH = 110;
   const ROUND_PADDLE_SHRINK = 8;
   const MIN_PADDLE_WIDTH = 78;
@@ -47,7 +48,7 @@
   const POWER_TIMER_STEPS_PER_SECOND = 60;
   const SHIELD_Y = H - 10;
 
-  const paddle = { x: W / 2 - BASE_PADDLE_WIDTH / 2, y: H - 38, w: BASE_PADDLE_WIDTH, h: 14, speed: 8 };
+  const paddle = { x: W / 2 - BASE_PADDLE_WIDTH / 2, y: H - 38, w: BASE_PADDLE_WIDTH, h: 14, speed: BASE_PADDLE_SPEED };
   const ball = { x: W / 2, y: H - 58, r: BASE_BALL_RADIUS, vx: 4, vy: -4 };
   const keys = new Set();
 
@@ -118,6 +119,14 @@
     const bonus = widePaddleSteps > 0 ? WIDE_PADDLE_BONUS : 0;
     paddle.w = Math.min(MAX_POWER_PADDLE_WIDTH, basePaddleWidthForRound() + bonus);
     paddle.x = Math.max(0, Math.min(W - paddle.w, center - paddle.w / 2));
+  }
+
+  function keyboardPaddleSpeedForRound(roundNumber = round) {
+    const difficultyCap = window.GameDifficulty?.maxBallSpeedForRound?.(roundNumber);
+    return Math.max(
+      BASE_PADDLE_SPEED,
+      Number.isFinite(difficultyCap) ? difficultyCap : BASE_PADDLE_SPEED
+    );
   }
 
   function powerPlanForRound(roundNumber = round) {
@@ -588,6 +597,7 @@
       return;
     }
 
+    paddle.speed = keyboardPaddleSpeedForRound();
     if (keys.has('ArrowLeft') || keys.has('a') || keys.has('A')) paddle.x -= paddle.speed * stepScale;
     if (keys.has('ArrowRight') || keys.has('d') || keys.has('D')) paddle.x += paddle.speed * stepScale;
     paddle.x = Math.max(0, Math.min(W - paddle.w, paddle.x));
