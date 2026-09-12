@@ -6,29 +6,37 @@
   const timedPowers = [
     {
       label: 'Raquete larga',
-      collectedMessage: 'Poder coletado: Raquete larga!',
       expiredMessage: 'Raquete larga terminou.'
     },
     {
       label: 'Bola gigante',
-      collectedMessage: 'Poder coletado: Bola gigante!',
       expiredMessage: 'Bola gigante terminou.'
     },
     {
       label: 'Tempo lento',
-      collectedMessage: 'Poder coletado: Tempo lento!',
       expiredMessage: 'Tempo lento terminou.'
     }
   ];
 
   let previousPowerStatus = powerStatusEl.textContent;
 
+  function lifecycleStatusOwnsMessage(status) {
+    return (
+      status === 'Pausado.' ||
+      status === 'Fim de jogo.' ||
+      status.startsWith('Prepare-se') ||
+      status.startsWith('Rodada ') ||
+      status.startsWith('Próxima ')
+    );
+  }
+
   new MutationObserver(() => {
     const nextPowerStatus = powerStatusEl.textContent;
 
     for (const power of timedPowers) {
       const expired = previousPowerStatus.includes(power.label) && !nextPowerStatus.includes(power.label);
-      if (expired && gameStatusEl.textContent === power.collectedMessage) {
+      const currentStatus = gameStatusEl.textContent.trim();
+      if (expired && !lifecycleStatusOwnsMessage(currentStatus)) {
         gameStatusEl.textContent = power.expiredMessage;
         break;
       }

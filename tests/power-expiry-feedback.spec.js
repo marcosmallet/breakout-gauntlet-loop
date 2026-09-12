@@ -7,6 +7,16 @@ async function drainGrace(page) {
   });
 }
 
+async function collectTimedPower(page, type) {
+  await page.evaluate(({ type }) => {
+    const game = window.__GAME_DEBUG__;
+    const state = game.getState();
+    game.spawnPowerDropForTest(type, state.paddle.x + state.paddle.w / 2, state.paddle.y - 12);
+    game.setBall({ x: 400, y: 300, vx: 0, vy: 0 });
+    game.step();
+  }, { type });
+}
+
 const scenarios = [
   {
     type: 'wide',
@@ -36,14 +46,7 @@ for (const scenario of scenarios) {
     await page.goto('/');
     await page.getByRole('button', { name: 'Iniciar' }).click();
     await drainGrace(page);
-
-    await page.evaluate(({ type }) => {
-      const game = window.__GAME_DEBUG__;
-      const state = game.getState();
-      game.spawnPowerDropForTest(type, state.paddle.x + state.paddle.w / 2, state.paddle.y - 12);
-      game.setBall({ x: 400, y: 300, vx: 0, vy: 0 });
-      game.step();
-    }, scenario);
+    await collectTimedPower(page, scenario.type);
 
     await expect(page.locator('#powerStatus')).toContainText(scenario.label);
     await expect(page.locator('#gameStatus')).toHaveText(scenario.collectedMessage);
@@ -61,3 +64,45 @@ for (const scenario of scenarios) {
     await expect(page.locator('#gameStatus')).toHaveText(scenario.expiredMessage);
   });
 }
+
+test('power temporário ainda anuncia expiração depois de pausar e retomar', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Iniciar' }).click();
+  await drainGrace(page);
+  await collectTimedPower(page, 'slow');
+
+  await expect(page.locator('#gameStatus')).toHaveText('Poder coletado: Tempo lento!');
+
+  await page.getByRole('button', { name: 'Pausar' }).click();
+  await expect(page.locator('#gameStatus')).toHaveText('Pausado.');
+  await page.getByRole('button', { name: 'Retomar' }).click();
+  await expect(page.locator('#gameStatus')).toHaveText('');
+
+  const expiredState = await page.evaluate(() => {
+    const game = window.__GAME_DEBUG__;
+    const remaining = game.getState().slowBallSteps;
+    game.setBall({ x: 400, y: 300, vx: 0, vy: 0 });
+    game.step(remaining);
+    return game.getState();
+  });
+
+  expect(expiredState.slowBallSteps).toBe(0);
+  await expect(page.locator('#powerStatus')).not.toContainText('Tempo lento');
+  await expect(page.locator('#gameStatus')).toHaveText('Tempo lento terminou.');
+});
+
+test('limpeza de power por perda de vida preserva o status de respawn', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Iniciar' }).click();
+  await drainGrace(page);
+  await collectTimedPower(page, 'wide');
+
+  await page.evaluate(() => {
+    const game = window.__GAME_DEBUG__;
+    game.setBall({ x: 400, y: 540, vx: 0, vy: 4 });
+    game.step();
+  });
+
+  await expect(page.locator('#powerStatus')).not.toContainText('Raquete larga');
+  await expect(page.locator('#gameStatus')).toHaveText('Prepare-se...');
+});
