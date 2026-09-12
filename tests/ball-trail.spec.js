@@ -32,10 +32,10 @@ test('rastro acompanha o movimento da bola sem afetar a simulação', async ({ p
   expect(result.trailLength).toBeGreaterThan(1);
   expect(result.trailLength).toBeLessThanOrEqual(result.activeTrailLimit);
   expect(result.activeTrailLimit).toBeGreaterThanOrEqual(4);
-  expect(result.maxTrailPoints).toBe(8);
+  expect(result.maxTrailPoints).toBe(10);
 });
 
-test('rastro fica mais longo conforme a velocidade da bola aumenta', async ({ page }) => {
+test('rastro continua comunicando a progressão de velocidade até o teto Elite', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Iniciar' }).click();
 
@@ -64,13 +64,25 @@ test('rastro fica mais longo conforme a velocidade da bola aumenta', async ({ pa
       limit: trail.getActiveTrailLimit()
     };
 
-    return { base, fast };
+    game.setBall({ x: 300, y: 300, vx: 9.5, vy: 0 });
+    for (let index = 0; index < 14; index += 1) {
+      game.step();
+      trail.refresh();
+    }
+    const eliteCap = {
+      length: trail.getTrailLength(),
+      limit: trail.getActiveTrailLimit()
+    };
+
+    return { base, fast, eliteCap };
   });
 
   expect(result.base.limit).toBe(4);
   expect(result.base.length).toBe(4);
   expect(result.fast.limit).toBe(8);
   expect(result.fast.length).toBe(8);
+  expect(result.eliteCap.limit).toBe(10);
+  expect(result.eliteCap.length).toBe(10);
 });
 
 test('countdown 3-2-1 acompanha a janela de preparação antes do lançamento', async ({ page }) => {

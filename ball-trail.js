@@ -15,9 +15,11 @@
 
   const ctx = trailCanvas.getContext('2d');
   const MIN_TRAIL_POINTS = 4;
-  const MAX_TRAIL_POINTS = 8;
+  const MAX_TRAIL_POINTS = 10;
   const BASE_BALL_SPEED = Math.hypot(4, 4);
-  const MAX_BALL_SPEED = 8;
+  const MAX_BALL_SPEED = (
+    window.GameDifficulty?.baseMaxBallSpeedForRound?.(Number.MAX_SAFE_INTEGER) ?? 9
+  ) + (window.GameDifficulty?.eliteRoundSpeedBonus ?? 0.5);
   const COUNTDOWN_SEGMENT_STEPS = 15;
   const SCORE_POPUP_FRAMES = 42;
   const ROUND_CLEAR_LIFE_BONUS = 100;
