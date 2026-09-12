@@ -1,6 +1,7 @@
 (() => {
   const EDGE_THRESHOLD = 0.72;
   const EDGE_SPEED_SCALE = 1.06;
+  const WIDE_PADDLE_BONUS = 34;
   const FEEDBACK_DURATION_MS = 180;
   const canvas = document.getElementById('game');
   const startButton = document.getElementById('startButton');
@@ -50,14 +51,20 @@
     }, FEEDBACK_DURATION_MS);
   }
 
+  function edgeReferenceWidth(state) {
+    if (state.controlHits <= 0 || state.widePaddleSteps <= 0) return state.paddle.w;
+    return Math.max(1, state.paddle.w - WIDE_PADDLE_BONUS);
+  }
+
   function tick() {
     const state = window.__GAME_DEBUG__?.getState?.();
     const flashing = Boolean(state?.paddleFlash > 0);
 
     if (state?.running && flashing && !wasFlashing) {
       const paddleCenter = state.paddle.x + state.paddle.w / 2;
+      const referenceWidth = edgeReferenceWidth(state);
       const normalizedHit = Math.abs(
-        (state.ball.x - paddleCenter) / (state.paddle.w / 2)
+        (state.ball.x - paddleCenter) / (referenceWidth / 2)
       );
       const speed = Math.hypot(state.ball.vx, state.ball.vy);
       const maxBallSpeed = window.GameDifficulty.maxBallSpeedForRound(state.round);
