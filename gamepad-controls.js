@@ -55,8 +55,13 @@
     }
 
     const horizontalAxis = Number.isFinite(gamepad.axes?.[0]) ? gamepad.axes[0] : 0;
-    const nextLeft = horizontalAxis < -AXIS_DEAD_ZONE || buttonPressed(gamepad, BUTTON_DPAD_LEFT);
-    const nextRight = horizontalAxis > AXIS_DEAD_ZONE || buttonPressed(gamepad, BUTTON_DPAD_RIGHT);
+    const pausedByPlayer = pauseButton.getAttribute('aria-pressed') === 'true';
+    const nextLeft = !pausedByPlayer && (
+      horizontalAxis < -AXIS_DEAD_ZONE || buttonPressed(gamepad, BUTTON_DPAD_LEFT)
+    );
+    const nextRight = !pausedByPlayer && (
+      horizontalAxis > AXIS_DEAD_ZONE || buttonPressed(gamepad, BUTTON_DPAD_RIGHT)
+    );
 
     leftPressed = syncDirection('ArrowLeft', nextLeft && !nextRight, leftPressed);
     rightPressed = syncDirection('ArrowRight', nextRight && !nextLeft, rightPressed);
