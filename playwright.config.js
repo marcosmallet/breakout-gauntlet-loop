@@ -2,6 +2,9 @@ const { defineConfig } = require('@playwright/test');
 
 module.exports = defineConfig({
   testDir: './tests',
+  reporter: process.env.CI
+    ? [['json', { outputFile: 'test-results.json' }]]
+    : undefined,
   use: {
     baseURL: 'http://127.0.0.1:4173',
     headless: true
