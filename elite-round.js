@@ -189,6 +189,13 @@
     masteryBrokenThisRound = false;
   }).observe(roundEl, { childList: true, characterData: true, subtree: true });
 
+  window.addEventListener('keydown', (event) => {
+    if (event.code !== 'Space' || !awaitingChoice || !pausedForChoice) return;
+    if (event.target instanceof HTMLButtonElement) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  }, true);
+
   standardButton?.addEventListener('click', () => chooseMode('standard'));
   eliteButton?.addEventListener('click', () => chooseMode('elite'));
 
