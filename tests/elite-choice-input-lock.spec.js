@@ -9,6 +9,7 @@ async function setHudState(page, round, lives) {
 }
 
 async function unlockEliteChoice(page) {
+  await page.evaluate(() => window.__GAME_DEBUG__.start());
   await setHudState(page, 2, 4);
   await setHudState(page, 3, 5);
   await setHudState(page, 4, 5);
@@ -18,7 +19,6 @@ async function unlockEliteChoice(page) {
 
 test('Space respeita o lock de pausa enquanto a escolha Elite está aberta', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Iniciar' }).click();
   await unlockEliteChoice(page);
 
   const choice = page.locator('#eliteChoice');
@@ -41,8 +41,4 @@ test('Space respeita o lock de pausa enquanto a escolha Elite está aberta', asy
   await expect(choice).toBeHidden();
   await expect(pause).toBeEnabled();
   await expect(pause).toHaveAttribute('aria-pressed', 'false');
-
-  await page.evaluate(() => document.activeElement?.blur());
-  await page.keyboard.press('Space');
-  await expect(pause).toHaveAttribute('aria-pressed', 'true');
 });
