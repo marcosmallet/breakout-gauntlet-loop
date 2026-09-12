@@ -49,3 +49,26 @@ test('botão Start pausa uma vez por pressão e novo toque retoma', async ({ pag
   await page.evaluate(() => { window.__TEST_GAMEPAD__.buttons[9].pressed = true; });
   await expect.poll(async () => page.evaluate(() => window.__GAME_DEBUG__.getState().pausedByPlayer)).toBe(false);
 });
+
+test('direção mantida no gamepad volta a mover imediatamente após pause e resume', async ({ page }) => {
+  await installGamepad(page);
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Iniciar' }).click();
+
+  await page.evaluate(() => { window.__TEST_GAMEPAD__.axes[0] = 0.9; });
+  const initialX = await page.evaluate(() => window.__GAME_DEBUG__.getState().paddle.x);
+  await expect.poll(async () => page.evaluate(() => window.__GAME_DEBUG__.getState().paddle.x)).toBeGreaterThan(initialX);
+
+  await page.evaluate(() => { window.__TEST_GAMEPAD__.buttons[9].pressed = true; });
+  await expect.poll(async () => page.evaluate(() => window.__GAME_DEBUG__.getState().pausedByPlayer)).toBe(true);
+  const pausedX = await page.evaluate(() => window.__GAME_DEBUG__.getState().paddle.x);
+  await page.waitForTimeout(100);
+  expect(await page.evaluate(() => window.__GAME_DEBUG__.getState().paddle.x)).toBe(pausedX);
+
+  await page.evaluate(() => { window.__TEST_GAMEPAD__.buttons[9].pressed = false; });
+  await page.waitForTimeout(50);
+  await page.evaluate(() => { window.__TEST_GAMEPAD__.buttons[9].pressed = true; });
+  await expect.poll(async () => page.evaluate(() => window.__GAME_DEBUG__.getState().pausedByPlayer)).toBe(false);
+
+  await expect.poll(async () => page.evaluate(() => window.__GAME_DEBUG__.getState().paddle.x)).toBeGreaterThan(pausedX);
+});
