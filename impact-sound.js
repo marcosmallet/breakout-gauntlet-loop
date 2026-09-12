@@ -4,8 +4,11 @@
   const roundEl = document.getElementById('round');
   const canvas = document.getElementById('game');
   const startButton = document.getElementById('startButton');
+  const controls = document.querySelector('.controls');
+  const gameStatusEl = document.getElementById('gameStatus');
   if (!scoreEl) return;
 
+  const STORAGE_KEY = 'breakout:sound-muted';
   let audioContext = null;
   let previousScore = Number(scoreEl.textContent) || 0;
   let previousLives = Number(livesEl?.textContent) || 0;
@@ -18,9 +21,42 @@
   let roundAdvanceCount = 0;
   let paddleImpactCount = 0;
   let wallImpactCount = 0;
+  let emittedSoundCount = 0;
   let lastImpactFrequency = 420;
 
+  function loadMutedPreference() {
+    try {
+      return localStorage.getItem(STORAGE_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  }
+
+  let muted = loadMutedPreference();
+
+  const soundButton = document.createElement('button');
+  soundButton.id = 'soundButton';
+  soundButton.type = 'button';
+  soundButton.setAttribute('aria-label', 'Alternar som do jogo');
+
+  function syncSoundButton() {
+    soundButton.textContent = muted ? 'Som: desligado' : 'Som: ligado';
+    soundButton.setAttribute('aria-pressed', String(muted));
+  }
+
+  function saveMutedPreference() {
+    try {
+      localStorage.setItem(STORAGE_KEY, String(muted));
+    } catch {}
+  }
+
+  if (controls) {
+    controls.insertBefore(soundButton, gameStatusEl || null);
+    syncSoundButton();
+  }
+
   function ensureAudioContext() {
+    if (muted) return null;
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (!AudioContext) return null;
     if (!audioContext) audioContext = new AudioContext();
@@ -28,12 +64,19 @@
     return audioContext;
   }
 
+  function beginSound() {
+    const context = ensureAudioContext();
+    if (!context) return null;
+    emittedSoundCount += 1;
+    return context;
+  }
+
   function playImpact() {
     impactCount += 1;
     const combo = Math.max(1, window.__COMBO_DEBUG__?.getCombo?.() || 1);
     lastImpactFrequency = 420 + Math.min(5, combo - 1) * 55;
 
-    const context = ensureAudioContext();
+    const context = beginSound();
     if (!context) return;
 
     const oscillator = context.createOscillator();
@@ -54,7 +97,7 @@
 
   function playPaddleImpact() {
     paddleImpactCount += 1;
-    const context = ensureAudioContext();
+    const context = beginSound();
     if (!context) return;
 
     const oscillator = context.createOscillator();
@@ -75,7 +118,7 @@
 
   function playWallImpact() {
     wallImpactCount += 1;
-    const context = ensureAudioContext();
+    const context = beginSound();
     if (!context) return;
 
     const oscillator = context.createOscillator();
@@ -96,7 +139,7 @@
 
   function playLifeLoss() {
     lifeLossCount += 1;
-    const context = ensureAudioContext();
+    const context = beginSound();
     if (!context) return;
 
     const oscillator = context.createOscillator();
@@ -117,7 +160,7 @@
 
   function playGameOver() {
     gameOverCount += 1;
-    const context = ensureAudioContext();
+    const context = beginSound();
     if (!context) return;
 
     const now = context.currentTime;
@@ -140,7 +183,7 @@
 
   function playRoundAdvance() {
     roundAdvanceCount += 1;
-    const context = ensureAudioContext();
+    const context = beginSound();
     if (!context) return;
 
     const now = context.currentTime;
@@ -161,12 +204,18 @@
     });
   }
 
+  soundButton.addEventListener('click', () => {
+    muted = !muted;
+    saveMutedPreference();
+    syncSoundButton();
+    if (!muted) ensureAudioContext();
+  });
+
   const scoreObserver = new MutationObserver(() => {
     const nextScore = Number(scoreEl.textContent) || 0;
     if (nextScore > previousScore) playImpact();
     previousScore = nextScore;
   });
-
   scoreObserver.observe(scoreEl, { childList: true, characterData: true, subtree: true });
 
   if (livesEl) {
@@ -213,26 +262,14 @@
   startButton?.addEventListener('click', ensureAudioContext, { once: true });
 
   window.__IMPACT_SOUND_DEBUG__ = {
-    getImpactCount() {
-      return impactCount;
-    },
-    getLifeLossCount() {
-      return lifeLossCount;
-    },
-    getGameOverCount() {
-      return gameOverCount;
-    },
-    getRoundAdvanceCount() {
-      return roundAdvanceCount;
-    },
-    getPaddleImpactCount() {
-      return paddleImpactCount;
-    },
-    getWallImpactCount() {
-      return wallImpactCount;
-    },
-    getLastImpactFrequency() {
-      return lastImpactFrequency;
-    }
+    getImpactCount() { return impactCount; },
+    getLifeLossCount() { return lifeLossCount; },
+    getGameOverCount() { return gameOverCount; },
+    getRoundAdvanceCount() { return roundAdvanceCount; },
+    getPaddleImpactCount() { return paddleImpactCount; },
+    getWallImpactCount() { return wallImpactCount; },
+    getLastImpactFrequency() { return lastImpactFrequency; },
+    getEmittedSoundCount() { return emittedSoundCount; },
+    isMuted() { return muted; }
   };
 })();
