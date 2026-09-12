@@ -85,6 +85,40 @@ test('rastro continua comunicando a progressão de velocidade até o teto Elite'
   expect(result.eliteCap.length).toBe(10);
 });
 
+test('Tempo lento reduz o rastro para refletir a velocidade efetiva de deslocamento', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Iniciar' }).click();
+
+  const result = await page.evaluate(() => {
+    const game = window.__GAME_DEBUG__;
+    const trail = window.__BALL_TRAIL_DEBUG__;
+
+    game.step(60);
+    game.setBall({ x: 300, y: 300, vx: 9.5, vy: 0 });
+    trail.refresh();
+    const normalLimit = trail.getActiveTrailLimit();
+
+    const paddle = game.getState().paddle;
+    game.spawnPowerDropForTest('slow', paddle.x + paddle.w / 2, paddle.y);
+    game.step();
+    trail.refresh();
+
+    return {
+      normalLimit,
+      slowLimit: trail.getActiveTrailLimit(),
+      slowBallSteps: game.getState().slowBallSteps,
+      expectedSlowLimit: trail.trailLimitForSpeed(9.5 * 0.72),
+      rawVelocityMagnitude: Math.hypot(game.getState().ball.vx, game.getState().ball.vy)
+    };
+  });
+
+  expect(result.normalLimit).toBe(10);
+  expect(result.slowBallSteps).toBeGreaterThan(0);
+  expect(result.rawVelocityMagnitude).toBeCloseTo(9.5, 8);
+  expect(result.slowLimit).toBe(6);
+  expect(result.slowLimit).toBe(result.expectedSlowLimit);
+});
+
 test('countdown 3-2-1 acompanha a janela de preparação antes do lançamento', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Iniciar' }).click();
