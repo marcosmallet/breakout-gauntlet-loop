@@ -129,3 +129,60 @@ test('avançar de rodada dispara feedback sonoro próprio uma vez', async ({ pag
   await expect(page.locator('#round')).toHaveText('2');
   await expect.poll(() => page.evaluate(() => window.__IMPACT_SOUND_DEBUG__.getRoundAdvanceCount())).toBe(1);
 });
+
+test('coletar power dispara confirmação sonora própria uma vez', async ({ page }) => {
+  await page.goto('/');
+
+  const result = await page.evaluate(async () => {
+    const game = window.__GAME_DEBUG__;
+    const sound = window.__IMPACT_SOUND_DEBUG__;
+    game.start();
+    game.step(45);
+    const before = game.getState();
+    const emittedBefore = sound.getEmittedSoundCount();
+    game.spawnPowerDropForTest('wide', before.paddle.x + before.paddle.w / 2, before.paddle.y - 12);
+    game.setBall({ x: 400, y: 300, vx: 0, vy: 0 });
+    game.step();
+    await Promise.resolve();
+    return {
+      pickupCount: sound.getPowerPickupCount(),
+      emittedDelta: sound.getEmittedSoundCount() - emittedBefore,
+      widePaddleSteps: game.getState().widePaddleSteps,
+      status: document.getElementById('gameStatus').textContent
+    };
+  });
+
+  expect(result.pickupCount).toBe(1);
+  expect(result.emittedDelta).toBe(1);
+  expect(result.widePaddleSteps).toBeGreaterThan(0);
+  expect(result.status).toBe('Poder coletado: Raquete larga!');
+});
+
+test('mute preserva a coleta do power sem emitir áudio', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Alternar som do jogo' }).click();
+
+  const result = await page.evaluate(async () => {
+    const game = window.__GAME_DEBUG__;
+    const sound = window.__IMPACT_SOUND_DEBUG__;
+    game.start();
+    game.step(45);
+    const before = game.getState();
+    const emittedBefore = sound.getEmittedSoundCount();
+    game.spawnPowerDropForTest('shield', before.paddle.x + before.paddle.w / 2, before.paddle.y - 12);
+    game.setBall({ x: 400, y: 300, vx: 0, vy: 0 });
+    game.step();
+    await Promise.resolve();
+    return {
+      pickupCount: sound.getPowerPickupCount(),
+      emittedDelta: sound.getEmittedSoundCount() - emittedBefore,
+      shieldCharges: game.getState().shieldCharges,
+      muted: sound.isMuted()
+    };
+  });
+
+  expect(result.pickupCount).toBe(1);
+  expect(result.emittedDelta).toBe(0);
+  expect(result.shieldCharges).toBe(1);
+  expect(result.muted).toBe(true);
+});
