@@ -27,6 +27,8 @@
   let scoreFeedbackCount = 0;
   let soundFeedbackCount = 0;
   let audioContext = null;
+  let reducedMotionCueTimer = null;
+  let reducedMotionSeconds = null;
 
   function maxComboMultiplier() {
     return window.GameDifficulty?.isEliteRoundActive?.()
@@ -59,9 +61,35 @@
   function render() {
     const maxMultiplier = maxComboMultiplier();
     const multiplier = Math.min(combo, maxMultiplier);
-    comboEl.textContent = combo >= maxMultiplier
+    const comboLabel = combo >= maxMultiplier
       ? `x${multiplier} MAX`
       : `x${multiplier}`;
+    comboEl.textContent = prefersReducedMotion() && combo > 0 && reducedMotionSeconds !== null
+      ? `${comboLabel} · ${reducedMotionSeconds}s`
+      : comboLabel;
+  }
+
+  function clearReducedMotionCue() {
+    if (reducedMotionCueTimer) clearTimeout(reducedMotionCueTimer);
+    reducedMotionCueTimer = null;
+    reducedMotionSeconds = null;
+  }
+
+  function scheduleReducedMotionCue(realDelay) {
+    clearReducedMotionCue();
+    if (!prefersReducedMotion() || combo <= 0 || !Number.isFinite(realDelay) || realDelay <= 0) return;
+
+    reducedMotionSeconds = Math.max(1, Math.ceil(realDelay / 1000));
+    render();
+
+    const lastSecondStartsIn = realDelay - 1000;
+    if (lastSecondStartsIn > 0) {
+      reducedMotionCueTimer = setTimeout(() => {
+        reducedMotionCueTimer = null;
+        reducedMotionSeconds = 1;
+        render();
+      }, lastSecondStartsIn);
+    }
   }
 
   function primeAudio() {
@@ -124,6 +152,7 @@
     timerStartedAt = 0;
     timerTimeScale = 1;
     pauseStartedAt = null;
+    clearReducedMotionCue();
     comboEl.classList.remove('combo-pop', 'combo-window', 'combo-window-paused');
     render();
   }
@@ -146,6 +175,7 @@
     const realDelay = comboWindowRemainingMs / timerTimeScale;
     comboWindowExpiresAt = timerStartedAt + realDelay;
     resetTimer = setTimeout(resetCombo, realDelay);
+    scheduleReducedMotionCue(realDelay);
     return realDelay;
   }
 
@@ -166,6 +196,12 @@
     if (!resetTimer || combo <= 0) return;
 
     consumeElapsedGameplayTime();
+    if (reducedMotionCueTimer) clearTimeout(reducedMotionCueTimer);
+    reducedMotionCueTimer = null;
+    if (prefersReducedMotion()) {
+      reducedMotionSeconds = Math.max(1, Math.ceil(comboWindowRemainingMs / timerTimeScale / 1000));
+      render();
+    }
     comboEl.classList.add('combo-window-paused');
     clearTimeout(resetTimer);
     resetTimer = null;
