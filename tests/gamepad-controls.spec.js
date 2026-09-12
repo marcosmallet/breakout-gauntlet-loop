@@ -30,7 +30,7 @@ test('gamepad inicia a partida e move a raquete pelo eixo horizontal', async ({ 
 
   const after = await page.evaluate(() => window.__GAME_DEBUG__.getState().paddle.x);
   expect(after).toBeGreaterThan(before);
-  await expect(page.locator('#gamepadInstructions')).toContainText('gamepad');
+  await expect(page.locator('#gamepadInstructions')).toContainText('Gamepad');
 });
 
 test('botão Start pausa uma vez por pressão e novo toque retoma', async ({ page }) => {
